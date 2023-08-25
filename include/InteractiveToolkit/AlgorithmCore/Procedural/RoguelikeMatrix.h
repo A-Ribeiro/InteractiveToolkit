@@ -76,11 +76,11 @@ namespace AlgorithmCore
 					const MathCore::vec2i &random_min_size,
 					const MathCore::vec2i &random_max_size)
 				{
-					MathCore::vec2i min(0, 0);
-					MathCore::vec2i max(
+					MathCore::vec2i _min(0, 0);
+					MathCore::vec2i _max(
 						ITKCommon::Random::Instance()->getRange(random_min_size.x, random_max_size.x),
 						ITKCommon::Random::Instance()->getRange(random_min_size.y, random_max_size.y));
-					return Area(min, max);
+					return Area(_min, _max);
 				}
 
 				void moveMinToPoint(const MathCore::vec2i &_min)
