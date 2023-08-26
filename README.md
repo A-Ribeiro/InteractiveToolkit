@@ -13,13 +13,13 @@ I'm writing this library since 2006.
 
 There were several versions.
 
-The current version is the result of an effort to update the [aRibeiroCore](https://github.com/A-Ribeiro/aRibeiroCore){:target="_blank"} lib to use modern features of C++.
+The current version is the result of an effort to update the [aRibeiroCore](https://github.com/A-Ribeiro/aRibeiroCore) lib to use modern features of C++.
 
 I implemented the templates and code to be compatible with C++11.
 
 ## Examples
 
-There are several examples using this library at: [https://github.com/A-Ribeiro/InteractiveToolkit-Examples](https://github.com/A-Ribeiro/InteractiveToolkit-Examples){:target="_blank"}
+There are several examples using this library at: [https://github.com/A-Ribeiro/InteractiveToolkit-Examples](https://github.com/A-Ribeiro/InteractiveToolkit-Examples)
 
 ## How to Import the Library?
 
