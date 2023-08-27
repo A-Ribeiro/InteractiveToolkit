@@ -46,6 +46,7 @@ endmacro()
 
 macro(configure_build_flags projectname inputfile outputfile)
     set(cmake_build_flags "")
+    set(cmake_compile_opts "")
 
     set(target_compile_defs)
     if (TARGET ${projectname})
@@ -53,6 +54,12 @@ macro(configure_build_flags projectname inputfile outputfile)
         if ("${target_compile_defs}" STREQUAL "target_compile_defs-NOTFOUND")
             set(target_compile_defs)
         endif()
+
+        get_target_property(target_compile_opts ${projectname} COMPILE_OPTIONS)
+        if ("${target_compile_opts}" STREQUAL "target_compile_opts-NOTFOUND")
+            set(target_compile_opts)
+        endif()
+
     endif()
 
     # get build flags
@@ -66,11 +73,22 @@ macro(configure_build_flags projectname inputfile outputfile)
         endif()
     endforeach()
 
-
     foreach(define ${aux})
         if(NOT "${define}" STREQUAL "NDEBUG")
             set(cmake_build_flags "${cmake_build_flags}#ifndef ${define}\n    #define ${define}\n#endif\n")
         endif()
+    endforeach()
+
+    set(aux)
+
+    foreach(target_compile_opt ${target_compile_opts})
+        if (NOT "${target_compile_opt}" IN_LIST aux)
+            list(APPEND aux ${target_compile_opt})
+        endif()
+    endforeach()
+
+    foreach(opt ${aux})
+        set(cmake_compile_opts "${cmake_compile_opts}    list(APPEND INTERACTIVETOOLKIT_COMPILE_OPTIONS \"${opt}\")\n")
     endforeach()
 
     configure_file(
@@ -81,6 +99,7 @@ macro(configure_build_flags projectname inputfile outputfile)
 endmacro()
 
 set(DEFS)
+set(OPTS)
 
 # configure compile vars
 if(WIN32)
@@ -193,6 +212,7 @@ if(NOT CMAKE_GENERATOR STREQUAL Xcode)
             include_directories(${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
             set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+            list(APPEND OPTS "${OpenMP_CXX_FLAGS}")
             set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
         endif()
     endif()
@@ -213,6 +233,7 @@ if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 			#add_definitions(-DITK_SSE2)
             list(APPEND DEFS ITK_SSE2)
 			#add_compile_options(-mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
+            list(APPEND OPTS -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
 		endif()
     endif()
 endif()
@@ -253,6 +274,11 @@ set_target_properties(${PROJECT_NAME}
                       PROPERTIES COMPILE_DEFINITIONS
                       "${DEFS}")
 
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES COMPILE_OPTIONS
+                      "${OPTS}")
+                      
+
 #
 # Generate common link libraries...
 #
@@ -288,6 +314,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ${TARGET_LIBS})
 
 # generate buildFlags.h
 configure_build_flags( ${PROJECT_NAME} "include/InteractiveToolkit/buildFlags.h.in" "include/InteractiveToolkit/buildFlags.h")
+configure_build_flags( ${PROJECT_NAME} "cmake-modules/InteractiveToolkitConfig.in.cmake" "cmake-modules/InteractiveToolkitConfig.cmake")
 
 option(ITK_SKIP_INSTALL OFF)
 

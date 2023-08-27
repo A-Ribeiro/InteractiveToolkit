@@ -23,5 +23,6 @@ Thumbs.db
 
 #/docs/
 /include/InteractiveToolkit/buildFlags.h
+/cmake-modules/InteractiveToolkitConfig.cmake
 
 /valgrind-out.txt
