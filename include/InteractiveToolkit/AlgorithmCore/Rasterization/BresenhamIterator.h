@@ -235,6 +235,71 @@ namespace AlgorithmCore
             {
                 Raster(draw_pt, a.x, a.y, b.x, b.y);
             }
+
+
+
+            template <typename T, typename ColT>
+            static ITK_INLINE void RasterWithColor(T& draw_pt, int x0, int y0, int x1, int y1, const ColT& color) noexcept
+            {
+
+                int dx, dy, sx, sy, error;
+                int steps;
+
+                dx = x1 - x0;
+                sx = MathCore::OP<int>::sign(dx);
+                dx *= sx;
+
+                dy = y1 - y0;
+                sy = MathCore::OP<int>::sign(dy);
+                dy *= -sy;
+
+                error = dx + dy;
+
+                // count = 0;
+                // steps = MathCore::OP<int>::maximum(MathCore::OP<int>::abs(dx), MathCore::OP<int>::abs(dy));
+                steps = MathCore::OP<int>::maximum(dx, -dy);
+
+                draw_pt.draw_pixel_color(x0, y0, color);
+                for (int count = 0; count < steps; count++)
+                {
+                    int e2 = error << 1;
+                    int e2_greater_equal_dy_mask = -MathCore::OP<int>::step_cmp_greater_equal(e2, dy);
+                    error += dy & e2_greater_equal_dy_mask;
+                    x0 += sx & e2_greater_equal_dy_mask;
+
+                    int e2_less_equal_dx_mask = -MathCore::OP<int>::step_cmp_less_equal(e2, dx);
+                    error += dx & e2_less_equal_dx_mask;
+                    y0 += sy & e2_less_equal_dx_mask;
+
+                    draw_pt.draw_pixel_color(x0, y0, color);
+                }
+            }
+
+            /// Example using Raster:
+            ///
+            /// using namespace MathCore;
+            /// using namespace AlgorithmCore::Rasterization;
+            ///
+            /// Matrix<char> screen(vec2i(11, 11));
+            /// struct BresenhamDraw
+            /// {
+            ///     Matrix<char> &m;
+            ///     inline void draw_pixel_color(int x, int y, const char &color) noexcept
+            ///     {
+            ///         m[y][x] = color;
+            ///     }
+            /// } DrawStructure{screen};
+            /// BresenhamIterator::Raster(
+            ///     DrawStructure,
+            ///     vec2i(0, 10),
+            ///     vec2i(5, 5)
+            /// );
+            template <typename T, typename ColT>
+            static ITK_INLINE void RasterWithColor(T& draw_pt, const MathCore::vec2i& a, const MathCore::vec2i& b, const ColT& color) noexcept
+            {
+                RasterWithColor(draw_pt, a.x, a.y, b.x, b.y, color);
+            }
+
         };
 
     }
