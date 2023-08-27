@@ -55,7 +55,7 @@ namespace MathCore
         ITK_INLINE _math_type nextRange(const _math_type &min, const _math_type &max)
         {
             _math_type result = _math_type();
-            for (size_t i = 0; i < _math_type::array_count; i++)
+            for (int i = 0; i < (int)_math_type::array_count; i++)
                 result[i] = random->getRange(min[i], max[i]);
             return result;
         }
@@ -69,8 +69,8 @@ namespace MathCore
         ITK_INLINE _math_type nextRange(const _math_type &min, const _math_type &max)
         {
             _math_type result = _math_type();
-            for (size_t c = 0; c < _math_type::cols; c++)
-                for (size_t r = 0; r < _math_type::rows; r++)
+            for (int c = 0; c < (int)_math_type::cols; c++)
+                for (int r = 0; r < (int)_math_type::rows; r++)
                     result[c][r] = random->getRange(min[c][r], max[c][r]);
 
             return result;
@@ -87,7 +87,7 @@ namespace MathCore
             using _f_type = typename MathTypeInfo<_math_type>::_type;
 
             _math_type result = _math_type();
-            for (size_t i = 0; i < _math_type::array_count; i++)
+            for (int i = 0; i < (int)_math_type::array_count; i++)
                 result[i] = next01<_f_type>();
             return result;
         }
@@ -103,8 +103,8 @@ namespace MathCore
             using _f_type = typename MathTypeInfo<_math_type>::_type;
 
             _math_type result = _math_type();
-            for (size_t c = 0; c < _math_type::cols; c++)
-                for (size_t r = 0; r < _math_type::rows; r++)
+            for (int c = 0; c < (int)_math_type::cols; c++)
+                for (int r = 0; r < (int)_math_type::rows; r++)
                     result[c][r] = next01<_f_type>();
             return result;
         }
@@ -121,7 +121,7 @@ namespace MathCore
             _math_type result = _math_type();
             do
             {
-                for (size_t i = 0; i < _math_type::array_count - (int)homogeneous; i++)
+                for (int i = 0; i < (int)_math_type::array_count - (int)homogeneous; i++)
                     result[i] = next01<_f_type>();
                 result = result * (_f_type)2 - (_f_type)1;
                 if (homogeneous)

@@ -50,7 +50,7 @@ namespace MathCore
 
     public:
 
-        static constexpr size_t array_count = 3;
+        static constexpr int array_count = 3;
         using type = self_type;
 		using element_type = _BaseType;
 

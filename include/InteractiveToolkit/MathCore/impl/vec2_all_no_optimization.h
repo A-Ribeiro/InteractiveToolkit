@@ -38,7 +38,7 @@ namespace MathCore
         using self_type = vec2<_BaseType, _SimdType>;
     public:
 
-        static constexpr size_t array_count = 2;
+        static constexpr int array_count = 2;
         using type = self_type;
 		using element_type = _BaseType;
 

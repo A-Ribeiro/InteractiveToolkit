@@ -54,11 +54,11 @@ namespace MathCore
 
     public:
 
-        static constexpr size_t rows = 3;
-		static constexpr size_t cols = 3;
+        static constexpr int rows = 3;
+		static constexpr int cols = 3;
 
-        static constexpr size_t array_count = 9;
-        static constexpr size_t array_stride = 3;
+        static constexpr int array_count = 9;
+        static constexpr int array_stride = 3;
 
         using type = self_type;
 		using element_type = _BaseType;
