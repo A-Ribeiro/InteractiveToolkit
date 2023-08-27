@@ -315,6 +315,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ${TARGET_LIBS})
 # generate buildFlags.h
 configure_build_flags( ${PROJECT_NAME} "include/InteractiveToolkit/buildFlags.h.in" "include/InteractiveToolkit/buildFlags.h")
 configure_build_flags( ${PROJECT_NAME} "cmake-modules/InteractiveToolkitConfig.in.cmake" "cmake-modules/InteractiveToolkitConfig.cmake")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/InteractiveToolkitConfig.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/FindInteractiveToolkit.cmake" COPYONLY)
 
 option(ITK_SKIP_INSTALL OFF)
 
