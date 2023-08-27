@@ -144,6 +144,7 @@ include_directories(${INTERACTIVETOOLKIT_INCLUDE_DIR})
 # ...
 
 target_link_libraries(${PROJECT_NAME} ${INTERACTIVETOOLKIT_LIBRARIES})
+target_compile_options(${PROJECT_NAME} PUBLIC ${INTERACTIVETOOLKIT_COMPILE_OPTIONS})
 ```
 
 ## Authors
