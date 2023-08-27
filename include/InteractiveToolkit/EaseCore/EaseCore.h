@@ -130,7 +130,7 @@ namespace EaseCore
         static inline T none(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp) + _startValue;
         }
@@ -156,7 +156,7 @@ namespace EaseCore
         static inline T inQuad(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp * lerp) + _startValue;
         }
@@ -182,7 +182,7 @@ namespace EaseCore
         static inline T outQuad(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp * ((_type)2 - lerp)) + _startValue;
         }
@@ -249,7 +249,7 @@ namespace EaseCore
         static inline T inCubic(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp * lerp * lerp) + _startValue;
         }
@@ -275,7 +275,7 @@ namespace EaseCore
         static inline T outCubic(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             lerp -= (_type)1;
             return (delta) * (lerp * lerp * lerp + (_type)1) + _startValue;
@@ -340,7 +340,7 @@ namespace EaseCore
         static inline T inQuart(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp * lerp * lerp * lerp) + _startValue;
         }
@@ -366,7 +366,7 @@ namespace EaseCore
         static inline T outQuart(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             lerp -= (_type)1;
             return (delta) * ((_type)1 - lerp * lerp * lerp * lerp) + _startValue;
@@ -431,7 +431,7 @@ namespace EaseCore
         static inline T inQuint(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return (delta) * (lerp * lerp * lerp * lerp * lerp) + _startValue;
         }
@@ -457,7 +457,7 @@ namespace EaseCore
         static inline T outQuint(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             lerp -= (_type)1;
             return (delta) * ((_type)1 + lerp * lerp * lerp * lerp * lerp) + _startValue;
@@ -522,7 +522,7 @@ namespace EaseCore
         static inline T inSine(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return delta * ((_type)1 - OP<_type>::cos(lerp * CONSTANT<_type>::PI * (_type)0.5)) + _startValue;
         }
@@ -548,7 +548,7 @@ namespace EaseCore
         static inline T outSine(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             return delta * (OP<_type>::sin(lerp * CONSTANT<_type>::PI * (_type)0.5)) + _startValue;
         }
@@ -612,7 +612,7 @@ namespace EaseCore
         static inline T inExpo(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             if (lerp <= (_type)0)
                 return _startValue;
             T delta = _endValue - _startValue;
@@ -640,7 +640,7 @@ namespace EaseCore
         static inline T outExpo(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             if (lerp >= (_type)1)
                 return _endValue;
             T delta = _endValue - _startValue;
@@ -797,7 +797,7 @@ namespace EaseCore
         static inline T inElastic(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             if (lerp <= (_type)0)
                 return _startValue;
             T delta = _endValue - _startValue;
@@ -827,7 +827,7 @@ namespace EaseCore
         static inline T outElastic(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             if (lerp >= (_type)1)
                 return _endValue;
             T delta = _endValue - _startValue;
@@ -896,7 +896,7 @@ namespace EaseCore
         static inline T inBack(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             const _type overshoot = (_type)1.70158;
             T delta = _endValue - _startValue;
             return delta * lerp * lerp * ((overshoot + (_type)1) * lerp - overshoot) + _startValue;
@@ -923,7 +923,7 @@ namespace EaseCore
         static inline T outBack(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             const _type overshoot = (_type)1.70158;
             T delta = _endValue - _startValue;
             lerp -= (_type)1;
@@ -989,7 +989,7 @@ namespace EaseCore
         static inline T inBounce(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             lerp = (_type)1 - lerp;
             if (lerp < (_type)1 / (_type)2.75)
@@ -1035,7 +1035,7 @@ namespace EaseCore
         static inline T outBounce(const T &_startValue, const T &_endValue, _type lerp)
         {
             using namespace MathCore;
-            lerp = OP<_type>::clamp(lerp, 0, 1);
+            //lerp = OP<_type>::clamp(lerp, 0, 1);
             T delta = _endValue - _startValue;
             if (lerp < (_type)1 / (_type)2.75)
             {
