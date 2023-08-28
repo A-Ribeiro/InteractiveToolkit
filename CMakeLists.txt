@@ -410,7 +410,7 @@ if( NOT MSVC AND NOT ITK_SKIP_INSTALL )
     # )
 
 
-    foreach(file ${PUBLIC_HEADERS} ${PUBLIC_INL})
+    foreach(file ${PUBLIC_HEADERS} ${PUBLIC_INL} "include/InteractiveToolkit/opts.cmake")
         get_filename_component(DST_DIR ${file} DIRECTORY)
         install(
             FILES ${file}
