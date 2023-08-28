@@ -31,6 +31,10 @@ if( NOT WIN32 AND NOT CMAKE_BUILD_TYPE )
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
+#
+# MACROS
+#
+
 # automatically setup IDE source group. Useful for VSStudio
 macro(define_source_group )
     foreach(entry IN ITEMS ${ARGN})
@@ -44,51 +48,102 @@ macro(define_source_group )
     endforeach()
 endmacro()
 
-macro(configure_build_flags projectname inputfile outputfile)
-    set(cmake_build_flags "")
-    set(cmake_compile_opts "")
+macro(to_unique_list output)
+    set(${output})
+    foreach(var IN ITEMS ${ARGN})
+        if (NOT "${var}" IN_LIST ${output})
+            list(APPEND ${output} ${var})
+        endif()
+    endforeach()
+endmacro()
 
-    set(target_compile_defs)
+macro(configure_build_flags projectname inputfile outputfile)
+
+    #output
+    set(configure_COMPILE_DEFINITIONS "") # generate buildFlags.h
+    set(configure_COMPILE_OPTIONS "") # generate opts.cmake
+    set(configure_LINK_LIBRARIES "") # generate opts.cmake
+    set(configure_LINK_OPTIONS "") # generate opts.cmake
+    set(configure_INCLUDE_DIRECTORIES "") # generate opts.cmake
+
+    set(target_COMPILE_DEFINITIONS)
+    set(target_COMPILE_OPTIONS)
+    set(target_LINK_LIBRARIES)
+    set(target_LINK_OPTIONS)
+    set(target_INCLUDE_DIRECTORIES)
+
     if (TARGET ${projectname})
-        get_target_property(target_compile_defs ${projectname} COMPILE_DEFINITIONS)
-        if ("${target_compile_defs}" STREQUAL "target_compile_defs-NOTFOUND")
-            set(target_compile_defs)
+        get_target_property(target_COMPILE_DEFINITIONS ${projectname} COMPILE_DEFINITIONS)
+        if ("${target_COMPILE_DEFINITIONS}" STREQUAL "target_COMPILE_DEFINITIONS-NOTFOUND")
+            set(target_COMPILE_DEFINITIONS)
         endif()
 
-        get_target_property(target_compile_opts ${projectname} COMPILE_OPTIONS)
-        if ("${target_compile_opts}" STREQUAL "target_compile_opts-NOTFOUND")
-            set(target_compile_opts)
+        get_target_property(target_COMPILE_OPTIONS ${projectname} COMPILE_OPTIONS)
+        if ("${target_COMPILE_OPTIONS}" STREQUAL "target_COMPILE_OPTIONS-NOTFOUND")
+            set(target_COMPILE_OPTIONS)
+        endif()
+
+        get_target_property(target_LINK_LIBRARIES ${projectname} INTERFACE_LINK_LIBRARIES)
+        if ("${target_LINK_LIBRARIES}" STREQUAL "target_LINK_LIBRARIES-NOTFOUND")
+            set(target_LINK_LIBRARIES)
+        endif()
+
+        get_target_property(target_LINK_OPTIONS ${projectname} INTERFACE_LINK_OPTIONS)
+        if ("${target_LINK_OPTIONS}" STREQUAL "target_LINK_OPTIONS-NOTFOUND")
+            set(target_LINK_OPTIONS)
+        endif()
+
+        get_target_property(target_INCLUDE_DIRECTORIES ${projectname} INTERFACE_INCLUDE_DIRECTORIES)
+        if ("${target_INCLUDE_DIRECTORIES}" STREQUAL "target_INCLUDE_DIRECTORIES-NOTFOUND")
+            set(target_INCLUDE_DIRECTORIES)
         endif()
 
     endif()
 
     # get build flags
     #get_directory_property(aux COMPILE_DEFINITIONS)
-    set(aux)
-
-    # copy target defs that are not in dir defs
-    foreach(target_compile_opt ${target_compile_defs})
-        if (NOT "${target_compile_opt}" IN_LIST aux)
-            list(APPEND aux ${target_compile_opt})
+    #
+    # configure_COMPILE_DEFINITIONS
+    #
+    to_unique_list(aux ${target_COMPILE_DEFINITIONS})
+    foreach(var ${aux})
+        if(NOT "${var}" STREQUAL "NDEBUG")
+            set(configure_COMPILE_DEFINITIONS "${configure_COMPILE_DEFINITIONS}#ifndef ${var}\n    #define ${var}\n#endif\n")
         endif()
     endforeach()
 
-    foreach(define ${aux})
-        if(NOT "${define}" STREQUAL "NDEBUG")
-            set(cmake_build_flags "${cmake_build_flags}#ifndef ${define}\n    #define ${define}\n#endif\n")
-        endif()
+    #unset(INTERACTIVETOOLKIT_INCLUDE_DIRS)
+
+    #
+    # COMPILE_OPTIONS
+    #
+    to_unique_list(aux ${target_COMPILE_OPTIONS})
+    foreach(var ${aux})
+        set(configure_COMPILE_OPTIONS "${configure_COMPILE_OPTIONS}    list(APPEND INTERACTIVETOOLKIT_COMPILE_OPTIONS \"${var}\")\n")
     endforeach()
 
-    set(aux)
-
-    foreach(target_compile_opt ${target_compile_opts})
-        if (NOT "${target_compile_opt}" IN_LIST aux)
-            list(APPEND aux ${target_compile_opt})
-        endif()
+    #
+    # LINK_LIBRARIES
+    #
+    to_unique_list(aux ${target_LINK_LIBRARIES})
+    foreach(var ${aux})
+        set(configure_LINK_LIBRARIES "${configure_LINK_LIBRARIES}    list(APPEND INTERACTIVETOOLKIT_LIBRARIES \"${var}\")\n")
     endforeach()
 
-    foreach(opt ${aux})
-        set(cmake_compile_opts "${cmake_compile_opts}    list(APPEND INTERACTIVETOOLKIT_COMPILE_OPTIONS \"${opt}\")\n")
+    #
+    # LINK_OPTIONS
+    #
+    to_unique_list(aux ${target_LINK_OPTIONS})
+    foreach(var ${aux})
+        set(configure_LINK_OPTIONS "${configure_LINK_OPTIONS}    list(APPEND INTERACTIVETOOLKIT_LINK_OPTIONS \"${var}\")\n")
+    endforeach()
+
+    #
+    # INCLUDE_DIRECTORIES
+    #
+    to_unique_list(aux ${target_INCLUDE_DIRECTORIES})
+    foreach(var ${aux})
+        set(configure_INCLUDE_DIRECTORIES "${configure_INCLUDE_DIRECTORIES}    list(APPEND INTERACTIVETOOLKIT_INCLUDE_DIRS \"${var}\")\n")
     endforeach()
 
     configure_file(
@@ -98,8 +153,17 @@ macro(configure_build_flags projectname inputfile outputfile)
     )
 endmacro()
 
-set(DEFS)
-set(OPTS)
+#
+# Auxiliary vars
+#
+
+set(ITK_COMPILE_DEFINITIONS)
+set(ITK_COMPILE_OPTIONS)
+set(ITK_LINK_OPTIONS)
+set(ITK_LINK_LIBRARIES)
+set(ITK_LINK_LIBRARIES)
+set(ITK_INCLUDE_DIRECTORIES)
+
 
 # configure compile vars
 if(WIN32)
@@ -110,7 +174,7 @@ if(WIN32)
         create_missing_cmake_build_type()
         if (CMAKE_BUILD_TYPE STREQUAL Release)
             #add_definitions(-DNDEBUG)
-            list(APPEND DEFS NDEBUG)
+            list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
             #add_compile_options(-O3 -fno-strict-aliasing)
         endif()
     elseif(MSVC)
@@ -138,19 +202,20 @@ elseif(APPLE)
     #
     if (CMAKE_BUILD_TYPE STREQUAL Release)
         #add_definitions(-DNDEBUG)
-        list(APPEND DEFS NDEBUG)
+        list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
         #add_compile_options(-O3 -fno-strict-aliasing)
     endif()
     #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -all_load")
     #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -v")
-    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -ObjC")
+    #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -ObjC")
+    list(APPEND ITK_LINK_OPTIONS -ObjC)
 elseif(UNIX)
     #
     # Linux, BSD, Solaris, Minix
     #
     if (CMAKE_BUILD_TYPE STREQUAL Release)
         #add_definitions(-DNDEBUG)
-        list(APPEND DEFS NDEBUG)
+        list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
         #add_compile_options(-O3 -fno-strict-aliasing)
     elseif( CMAKE_BUILD_TYPE STREQUAL Debug)
         #add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -165,11 +230,11 @@ endif()
 if(UNIX AND EXISTS "/opt/vc/include/bcm_host.h" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     set(ITK_RPI true CACHE BOOL "Set this if you are buinding for Raspberry PI" )
     #add_definitions(-DITK_RPI)
-    list(APPEND DEFS ITK_RPI)
+    list(APPEND ITK_COMPILE_DEFINITIONS ITK_RPI)
     # RPI OMX Compilation Flag on 32bit: -DOMX_SKIP64BIT
     if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
         #add_definitions(-DOMX_SKIP64BIT)
-        list(APPEND DEFS OMX_SKIP64BIT)
+        list(APPEND ITK_COMPILE_DEFINITIONS OMX_SKIP64BIT)
     endif()
     link_directories(/opt/vc/lib/)
     include_directories(
@@ -177,6 +242,10 @@ if(UNIX AND EXISTS "/opt/vc/include/bcm_host.h" AND ${CMAKE_SYSTEM_PROCESSOR} MA
         /opt/vc/include/interface/vmcs_host/linux
         /opt/vc/include
     )
+    list(APPEND ITK_INCLUDE_DIRECTORIES
+        /opt/vc/include/interface/vcos/pthreads
+        /opt/vc/include/interface/vmcs_host/linux
+        /opt/vc/include)
     set(EGL_INCLUDE_DIR /opt/vc/include)
     set(EGL_LIBRARY /opt/vc/lib/libbrcmEGL.so)
     set(GLES_INCLUDE_DIR /opt/vc/include)
@@ -194,8 +263,9 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     set(ITK_NEON ON CACHE BOOL "Turn on NEON optimizations." )
     if (ITK_NEON)
 		#add_definitions(-DITK_NEON)
-        list(APPEND DEFS ITK_NEON)
+        list(APPEND ITK_COMPILE_DEFINITIONS ITK_NEON)
         #add_compile_options(-mfpu=neon -finline-functions)
+        list(APPEND ITK_COMPILE_OPTIONS -mfpu=neon -finline-functions)
         message(STATUS "[NEON ENABLED]")
     endif()
 endif()
@@ -208,12 +278,14 @@ if(NOT CMAKE_GENERATOR STREQUAL Xcode)
         set(ITK_OPENMP ON CACHE BOOL "Turn on OPENMP optimizations." )
         if (ITK_OPENMP)
             #add_definitions(-DITK_OPENMP)
-            list(APPEND DEFS ITK_OPENMP)
+            list(APPEND ITK_COMPILE_DEFINITIONS ITK_OPENMP)
             include_directories(${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
+            list(APPEND ITK_INCLUDE_DIRECTORIES ${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
             set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-            list(APPEND OPTS "${OpenMP_CXX_FLAGS}")
+            list(APPEND ITK_COMPILE_OPTIONS "${OpenMP_CXX_FLAGS}")
             set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+            list(APPEND ITK_LINK_OPTIONS "${OpenMP_EXE_LINKER_FLAGS}")
         endif()
     endif()
 endif()
@@ -228,12 +300,12 @@ if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 			#message(STATUS "             the containers (vector, set, map, etc...)")
 			#message(STATUS "             need to be aligned with ssealign<T,16>")
 			#add_definitions(-DITK_SSE2) # /arch:SSE2 /Gz __stdcall
-            list(APPEND DEFS ITK_SSE2)
+            list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE2)
 		else()
 			#add_definitions(-DITK_SSE2)
-            list(APPEND DEFS ITK_SSE2)
+            list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE2)
 			#add_compile_options(-mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
-            list(APPEND OPTS -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
+            list(APPEND ITK_COMPILE_OPTIONS -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
 		endif()
     endif()
 endif()
@@ -255,9 +327,42 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+#
+# Generate common link libraries...
+#
+if (ITK_RPI)
+    list(APPEND ITK_LINK_LIBRARIES ${RPI_LIBRARIES} )
+endif()
+if(WIN32)
+    #
+    # Windows
+    #
+    list(APPEND ITK_LINK_LIBRARIES
+                shlwapi iphlpapi #path operations
+                winmm #multimedia calls
+                ws2_32 #WinSock2
+    )
+elseif(APPLE)
+    #
+    # MacOS X, iOS, watchOS, tvOS (since 3.10.3)
+    #
+elseif(UNIX)
+    #
+    # Linux, BSD, Solaris, Minix
+    #
+    list(APPEND ITK_LINK_LIBRARIES pthread rt )
+else()
+    message(FATAL_ERROR "Platform not tested error")
+endif()
+
+#
+# Create Library
+#
+
+# create/export include dirs/libs
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-# export include dirs
-set(INTERACTIVETOOLKIT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE STRING "${PROJECT_NAME}: Include Directories" FORCE)
+set(INTERACTIVETOOLKIT_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE STRING "${PROJECT_NAME}: Include Directories" FORCE)
+set(INTERACTIVETOOLKIT_LIBRARIES ${ITK_LINK_LIBRARIES} CACHE STRING "${PROJECT_NAME}: Link Libraries" FORCE)
 
 FILE( GLOB_RECURSE PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h)
 FILE( GLOB_RECURSE PUBLIC_INL RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.inl)
@@ -272,50 +377,27 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIB")
 
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES COMPILE_DEFINITIONS
-                      "${DEFS}")
+                      "${ITK_COMPILE_DEFINITIONS}")
 
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES COMPILE_OPTIONS
-                      "${OPTS}")
-                      
+                      "${ITK_COMPILE_OPTIONS}")
 
-#
-# Generate common link libraries...
-#
-set(TARGET_LIBS "")
-if (ITK_RPI)
-    list(APPEND TARGET_LIBS ${RPI_LIBRARIES} )
-endif()
-if(WIN32)
-    #
-    # Windows
-    #
-    list(APPEND TARGET_LIBS
-                shlwapi iphlpapi #path operations
-                winmm #multimedia calls
-                ws2_32 #WinSock2
-    )
-elseif(APPLE)
-    #
-    # MacOS X, iOS, watchOS, tvOS (since 3.10.3)
-    #
-elseif(UNIX)
-    #
-    # Linux, BSD, Solaris, Minix
-    #
-    list(APPEND TARGET_LIBS pthread rt )
-else()
-    message(FATAL_ERROR "Platform not tested error")
-endif()
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES INTERFACE_LINK_OPTIONS
+                      "${ITK_LINK_OPTIONS}")
 
-set(INTERACTIVETOOLKIT_LIBRARIES ${TARGET_LIBS} CACHE STRING "${PROJECT_NAME}: Link Libraries" FORCE)
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                      "${ITK_INCLUDE_DIRECTORIES}")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ${TARGET_LIBS})
+target_link_libraries(${PROJECT_NAME} INTERFACE ${ITK_LINK_LIBRARIES})
 
 # generate buildFlags.h
 configure_build_flags( ${PROJECT_NAME} "include/InteractiveToolkit/buildFlags.h.in" "include/InteractiveToolkit/buildFlags.h")
-configure_build_flags( ${PROJECT_NAME} "cmake-modules/InteractiveToolkitConfig.in.cmake" "cmake-modules/InteractiveToolkitConfig.cmake")
+# configure_build_flags( ${PROJECT_NAME} "cmake-modules/InteractiveToolkitConfig.in.cmake" "cmake-modules/InteractiveToolkitConfig.cmake")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/InteractiveToolkitConfig.cmake" "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules/FindInteractiveToolkit.cmake" COPYONLY)
+configure_build_flags( ${PROJECT_NAME} "include/InteractiveToolkit/opts.cmake.in" "include/InteractiveToolkit/opts.cmake")
 
 option(ITK_SKIP_INSTALL OFF)
 

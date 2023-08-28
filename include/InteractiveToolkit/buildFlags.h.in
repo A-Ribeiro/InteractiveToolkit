@@ -7,5 +7,5 @@
 //
 // John 3:16
 
-@cmake_build_flags@
+@configure_COMPILE_DEFINITIONS@
 
