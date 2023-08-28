@@ -139,12 +139,13 @@ Take a look at the example below:
 
 ```cmake
 find_package(InteractiveToolkit REQUIRED)
-include_directories(${INTERACTIVETOOLKIT_INCLUDE_DIR})
+include_directories(${INTERACTIVETOOLKIT_INCLUDE_DIRS})
+add_compile_options(${INTERACTIVETOOLKIT_COMPILE_OPTIONS})
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${INTERACTIVETOOLKIT_LINK_OPTIONS}")
 
 # ...
 
 target_link_libraries(${PROJECT_NAME} ${INTERACTIVETOOLKIT_LIBRARIES})
-target_compile_options(${PROJECT_NAME} PUBLIC ${INTERACTIVETOOLKIT_COMPILE_OPTIONS})
 ```
 
 ## Authors
