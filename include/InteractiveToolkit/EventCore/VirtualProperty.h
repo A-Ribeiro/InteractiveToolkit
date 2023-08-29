@@ -139,4 +139,9 @@ namespace EventCore
     _declare_vproperty_operator(/);
     _declare_vproperty_operator(^);
 
+    _declare_vproperty_operator(&&);
+    _declare_vproperty_operator(||);
+
+    #undef _declare_vproperty_operator
+
 }

@@ -227,17 +227,17 @@ namespace EventCore
     template <typename T>                                                                 \
     static ITK_INLINE T operator OP(const T &a, const Property<T> &b) noexcept           \
     {                                                                                     \
-        return a OP b.value;                                                              \
+        return a OP (T)b;                                                              \
     }                                                                                     \
     template <typename T>                                                                 \
     static ITK_INLINE T operator OP(const Property<T> &a, const T &b) noexcept           \
     {                                                                                     \
-        return a.value OP b;                                                              \
+        return (T)a OP b;                                                              \
     }                                                                                     \
     template <typename T>                                                                 \
     static ITK_INLINE T operator OP(const Property<T> &a, const Property<T> &b) noexcept \
     {                                                                                     \
-        return a.value OP b.value;                                                        \
+        return (T)a OP (T)b;                                                        \
     }
 
     _declare_property_operator(+);
@@ -245,5 +245,10 @@ namespace EventCore
     _declare_property_operator(*);
     _declare_property_operator(/);
     _declare_property_operator(^);
+
+    _declare_property_operator(&&);
+    _declare_property_operator(||);
+
+    #undef _declare_property_operator
 
 }
