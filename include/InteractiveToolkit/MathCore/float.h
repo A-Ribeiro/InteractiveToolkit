@@ -20,6 +20,16 @@ namespace MathCore
         static constexpr _type RAD2DEG = _180_PI;
         static constexpr _type DEG2RAD = _PI_180;
 
+        //static constexpr _type _SQRT_5 = (_type)2.236067977499789805;
+        //1st Solution Golden Ratio = (1 + sqrt(5))*0.5
+        static constexpr _type PHI = (_type)1.61803398874989484820;
+        
+        //2nd Solution Golden Ratio = (1 - sqrt(5))*0.5
+        static constexpr _type PHI2nd = (_type)-0.61803398874989484820;
+
+        //reciprocal Golden Ratio = 1.0 / PHI
+        static constexpr _type RPHI = (_type)0.61803398874989484820;
+
         // static constexpr _type PI() noexcept { return (_type)3.1415926535897932384626433832795; }
         // static constexpr _type _PI_180() noexcept { return (_type)0.0174532925199432957692222222222222; }
         // static constexpr _type _180_PI() noexcept { return (_type)57.2957795130823208767981548141052; }
