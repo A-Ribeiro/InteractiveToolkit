@@ -844,8 +844,13 @@ namespace MathCore
             y = typeVec4(side.x, side.y, 0, 0);
             // z = typeVec4(0, 0, 1, 0);
             w = typeVec4(position.x, position.y, 0, 1);
-
+#if defined(ITK_SSE2)
             return typeMat4(x, y, _vec4_0010_sse, w);
+#elif defined(ITK_NEON)
+            return typeMat4(x, y, _neon_0010, w);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
         }
 
         static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec3 &_front, const typeVec2 &position) noexcept
@@ -859,7 +864,14 @@ namespace MathCore
             // z = typeVec4(0, 0, 1, 0);
             w = typeVec4(position.x, position.y, 0, 1);
 
+#if defined(ITK_SSE2)
             return typeMat4(x, y, _vec4_0010_sse, w);
+#elif defined(ITK_NEON)
+            return typeMat4(x, y, _neon_0010, w);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            
         }
 
         /// \brief Construct a 4x4 transformation matrix from a quaternion

@@ -346,7 +346,7 @@ namespace MathCore
 
             float32x4_t Det0 = dot_neon_4(m.array_neon[0], DetCof);
 
-            result = Det0[0];
+            return Det0[0];
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

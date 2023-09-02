@@ -1305,8 +1305,8 @@ namespace MathCore
             //     exit(-1);
             // }
 
-            _type det = Det0[0];
-            det = OP<_type>::maximum(det,FloatTypeInfo<_type>::min);
+            _BaseType det = Det0[0];
+            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
 
             float32x4_t Rcp0 = vset1(1.0f / det); //_mm_div_ps(_mm_set1_ps(1.0f), Det0);
             //__m128 Rcp0 = _mm_rcp_ps(Det0);
@@ -1387,7 +1387,7 @@ namespace MathCore
 
             // check det
             //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-            det = OP<_type>::maximum(det,FloatTypeInfo<_type>::min);
+            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
             det = (_BaseType)1.0 / det;
             
             return self_type(

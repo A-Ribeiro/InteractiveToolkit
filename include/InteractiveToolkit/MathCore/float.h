@@ -513,8 +513,8 @@ namespace MathCore
             float v = self_type::maximum(v_, type_info::min);
 #if defined(ITK_SSE2)
             return _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
-#elif defined(ITK_NEON)
-            float32_t x = (float32_t){v_};
+#elif defined(ITK_NEON) && false // temporary disable
+            const float32_t &x = v_;
             float32_t y = vrsqrtes_f32(x);
             // from arm documentation
             // The Newton-Raphson iteration:

@@ -332,7 +332,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
             float32x4_t aResult = vmulq_f32(a.array_neon, vset1(a_factor));
             float32x4_t _new_b_Result = vmulq_f32(_new_b_.array_neon, vset1(b_factor));
-            return self_type::normalize(quat(vaddq_f32(aResult, _new_b_Result)));
+            return self_type::normalize(quatT(vaddq_f32(aResult, _new_b_Result)));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
