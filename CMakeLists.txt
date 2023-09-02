@@ -370,8 +370,9 @@ FILE( GLOB_RECURSE SRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.cpp)
 
 define_source_group(${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
-add_library(${PROJECT_NAME} INTERFACE)
-target_sources(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${SRC})
+#add_library(${PROJECT_NAME} INTERFACE)
+#target_sources(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${SRC})
+add_custom_target(${PROJECT_NAME} SOURCES ${PUBLIC_HEADERS} ${SRC})
 
 # set the target's folder (for IDEs that support it, e.g. Visual Studio)
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIB")
@@ -392,7 +393,11 @@ set_target_properties(${PROJECT_NAME}
                       PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
                       "${ITK_INCLUDE_DIRECTORIES}")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ${ITK_LINK_LIBRARIES})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES INTERFACE_LINK_LIBRARIES
+                      "${ITK_LINK_LIBRARIES}")
+
+#target_link_libraries(${PROJECT_NAME} INTERFACE ${ITK_LINK_LIBRARIES})
 
 # generate buildFlags.h
 configure_build_flags( ${PROJECT_NAME} "include/InteractiveToolkit/buildFlags.h.in" "include/InteractiveToolkit/buildFlags.h")
