@@ -216,7 +216,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             return _mm_f32_(_mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)), 0);
 #elif defined(ITK_NEON)
-            float32x4_t max_neon = vmaxq_f32(vset1(a), vset1(b));
+            float32x2_t max_neon = vmaxq_f32(vdup_n_f32(a), vdup_n_f32(b));
             return max_neon[0];
 #else
             return (a > b) ? a : b;
@@ -259,7 +259,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             return _mm_f32_(_mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)), 0);
 #elif defined(ITK_NEON)
-            float32x4_t min_neon = vminq_f32(vset1(a), vset1(b));
+            float32x2_t min_neon = vminq_f32(vdup_n_f32(a), vdup_n_f32(b));
             return min_neon[0];
 #else
             return (a < b) ? a : b;
@@ -311,8 +311,8 @@ namespace MathCore
             __m128 minStep = _mm_min_ss(maxStep, _mm_set_ss(max));
             return _mm_f32_(minStep, 0);
 #elif defined(ITK_NEON)
-            float32x4_t max_neon = vmaxq_f32(vset1(value), vset1(min));
-            float32x4_t min_neon = vminq_f32(max_neon, vset1(max));
+            float32x2_t max_neon = vmaxq_f32(vdup_n_f32(value), vdup_n_f32(min));
+            float32x2_t min_neon = vminq_f32(max_neon, vdup_n_f32(max));
             return min_neon[0];
 #else
             _type maxStep = OP<_type>::maximum(value, min);
