@@ -1,5 +1,12 @@
 #pragma once
 
+// https://sourceforge.net/p/predef/wiki/Architectures/
+
+#if defined(__x86_64__) || defined(_M_X64) || \
+    defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+
+// if defined(__arm__)
+
 #include "../common.h"
 
 #if defined(_MSC_VER) //_WIN32
@@ -155,3 +162,5 @@ namespace ITKCommon
         bool OS_AVX_SUPPORTED;
     };
 }
+
+#endif
