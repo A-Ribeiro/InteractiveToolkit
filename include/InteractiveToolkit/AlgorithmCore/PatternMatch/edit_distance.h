@@ -20,8 +20,14 @@ namespace AlgorithmCore
 			return _mm_i32_(_min, 0);
 #elif defined(ITK_NEON)
 
-#error need to implement on RPI arm processor
+			int32x2_t _a = (int32x2_t){a};
+			int32x2_t _b = (int32x2_t){b};
+			int32x2_t _c = (int32x2_t){c};
 
+			int32x2_t _min = vmin_s32(_a, _b);
+			_min = vmin_s32(_min, _c);
+
+			return _min[0];
 #else
 			int32_t min = (a < b) ? a : b;
 			min = (min < c) ? min : c;
