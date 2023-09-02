@@ -412,7 +412,7 @@ namespace MathCore
                 float32x4_t e0 = vshuffle_0000(M.array_neon[0]);
                 float32x4_t e1 = vshuffle_1111(M.array_neon[0]);
                 float32x4_t e2 = vshuffle_2222(M.array_neon[0]);
-                float32x4_t e3 = vshufflec333(M.array_neon[0]);
+                float32x4_t e3 = vshuffle_3333(M.array_neon[0]);
 
                 float32x4_t m0 = vmulq_f32(array_neon[0], e0);
                 float32x4_t m1 = vmulq_f32(array_neon[1], e1);
@@ -430,7 +430,7 @@ namespace MathCore
                 float32x4_t e0 = vshuffle_0000(M.array_neon[1]);
                 float32x4_t e1 = vshuffle_1111(M.array_neon[1]);
                 float32x4_t e2 = vshuffle_2222(M.array_neon[1]);
-                float32x4_t e3 = vshufflec333(M.array_neon[1]);
+                float32x4_t e3 = vshuffle_3333(M.array_neon[1]);
 
                 float32x4_t m0 = vmulq_f32(array_neon[0], e0);
                 float32x4_t m1 = vmulq_f32(array_neon[1], e1);
@@ -448,7 +448,7 @@ namespace MathCore
                 float32x4_t e0 = vshuffle_0000(M.array_neon[2]);
                 float32x4_t e1 = vshuffle_1111(M.array_neon[2]);
                 float32x4_t e2 = vshuffle_2222(M.array_neon[2]);
-                float32x4_t e3 = vshufflec333(M.array_neon[2]);
+                float32x4_t e3 = vshuffle_3333(M.array_neon[2]);
 
                 float32x4_t m0 = vmulq_f32(array_neon[0], e0);
                 float32x4_t m1 = vmulq_f32(array_neon[1], e1);
@@ -467,7 +467,7 @@ namespace MathCore
                 float32x4_t e0 = vshuffle_0000(M.array_neon[3]);
                 float32x4_t e1 = vshuffle_1111(M.array_neon[3]);
                 float32x4_t e2 = vshuffle_2222(M.array_neon[3]);
-                float32x4_t e3 = vshufflec333(M.array_neon[3]);
+                float32x4_t e3 = vshuffle_3333(M.array_neon[3]);
 
                 float32x4_t m0 = vmulq_f32(array_neon[0], e0);
                 float32x4_t m1 = vmulq_f32(array_neon[1], e1);
