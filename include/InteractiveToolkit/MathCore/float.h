@@ -514,7 +514,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             return _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
 #elif defined(ITK_NEON)
-            const float &x = v;
+            const float &x = v_;
             float y = vrsqrtes_f32(x);
             // from arm documentation
             // The Newton-Raphson iteration:
