@@ -512,16 +512,10 @@ namespace MathCore
             using type_info = FloatTypeInfo<_type>;
             float v = self_type::maximum(v_, type_info::min);
 #if defined(ITK_SSE2)
-            __m128 x = _mm_set_ss(v);
-            __m128 y = _mm_rsqrt_ss(x);
-
+            float y = _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
             // 2nd iteration: y = y * ( 0.5f * (3.0f - (x * y) * y) );
-            __m128 _tmp = _mm_mul_ss(_mm_mul_ss(x, y), y);
-            _tmp = _mm_sub_ss( _mm_set_ss(3.0f), _tmp);
-            _tmp = _mm_mul_ss( _mm_set_ss(0.5f), _tmp);
-            y = _mm_mul_ss( y, _tmp);
-
-            return _mm_f32_(y, 0);
+            y = y * ( 0.5f * (3.0f - (v * y) * y) );
+            return y;
 #elif defined(ITK_NEON) && defined(__aarch64__) // arm64
             const float32_t &x = v_;
             float32_t y = vrsqrtes_f32(x);
