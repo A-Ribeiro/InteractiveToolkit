@@ -277,16 +277,14 @@ namespace MathCore
     // TODO: need test this shuffle...
     ITK_INLINE float32x4_t vshuffle_3120(const float32x4_t &a)
     {
-        printf("vshuffle_3120 not tested\n");
-        exit(-1);
         float32x2x2_t r = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(r.val[0], r.val[1]);
     }
 
     ITK_INLINE float32x4_t vshuffle_3102(const float32x4_t &a)
     {
-        float32x2x2_t r = vtrn_f32(vget_high_f32(a), vget_low_f32(a));
-        return vcombine_f32(r.val[0], vrev64_f32(r.val[1]));
+        float32x2x2_t r = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
+        return vcombine_f32(vrev64_f32(r.val[0]), r.val[1]);
     }
 
     ITK_INLINE float32x4_t vshuffle_2000(const float32x4_t &a)
@@ -444,18 +442,14 @@ namespace MathCore
 
     ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a)
     {
-        float32x2x2_t _31_a = vtrn_f32(vget_high_f32(a), vget_low_f32(a));
-        float32x2_t _31_ = vrev64_f32(_31_a.val[1]);
-        float32x2_t _00_ = vdup_lane_f32(vget_low_f32(a), 0);
-        return vcombine_f32(_31_, _00_);
+        float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
+        return vcombine_f32(_31_a.val[1], vdup_lane_f32(vget_low_f32(a), 0));
     }
 
     ITK_INLINE float32x4_t vshuffle_3110(const float32x4_t &a)
     {
-        float32x2x2_t _31_a = vtrn_f32(vget_high_f32(a), vget_low_f32(a));
-        float32x2_t _31_ = vrev64_f32(_31_a.val[1]);
-        float32x2_t _10_ = vget_low_f32(a);
-        return vcombine_f32(_10_, _31_);
+        float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
+        return vcombine_f32(vget_low_f32(a), _31_a.val[1]);
     }
 
     ITK_INLINE float32x4_t vshuffle_1122(const float32x4_t &a)
@@ -488,11 +482,8 @@ namespace MathCore
 
     ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a, const float32x4_t &b)
     {
-        float32x2x2_t _31_a = vtrn_f32(vget_high_f32(a), vget_low_f32(a));
-        float32x2_t _31_ = vrev64_f32(_31_a.val[1]);
-        // float32x2_t _31_ = vdup_lane_f32(vget_low_f32(a), 1);
-        float32x2_t _00_ = vdup_lane_f32(vget_low_f32(b), 0);
-        return vcombine_f32(_31_, _00_);
+        float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
+        return vcombine_f32(_31_a.val[1], vdup_lane_f32(vget_low_f32(b), 0));
     }
 
     ITK_INLINE float32x4_t vshuffle_1022(const float32x4_t &a, const float32x4_t &b)
