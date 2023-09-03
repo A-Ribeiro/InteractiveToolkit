@@ -47,7 +47,7 @@ namespace MathCore
         struct SIMD;
         struct CARMACK;
 
-#if defined(ITK_NEON)
+#if defined(ITK_NEON) || defined(ITK_SSE2)
         using DEFAULT = SIMD;
 #else
         using DEFAULT = NORMAL;

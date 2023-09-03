@@ -20,14 +20,14 @@ namespace MathCore
         static constexpr _type RAD2DEG = _180_PI;
         static constexpr _type DEG2RAD = _PI_180;
 
-        //static constexpr _type _SQRT_5 = (_type)2.236067977499789805;
-        //1st Solution Golden Ratio = (1 + sqrt(5))*0.5
+        // static constexpr _type _SQRT_5 = (_type)2.236067977499789805;
+        // 1st Solution Golden Ratio = (1 + sqrt(5))*0.5
         static constexpr _type PHI = (_type)1.61803398874989484820;
-        
-        //2nd Solution Golden Ratio = (1 - sqrt(5))*0.5
+
+        // 2nd Solution Golden Ratio = (1 - sqrt(5))*0.5
         static constexpr _type PHI2nd = (_type)-0.61803398874989484820;
 
-        //reciprocal Golden Ratio = 1.0 / PHI
+        // reciprocal Golden Ratio = 1.0 / PHI
         static constexpr _type RPHI = (_type)0.61803398874989484820;
 
         // static constexpr _type PI() noexcept { return (_type)3.1415926535897932384626433832795; }
@@ -64,8 +64,8 @@ namespace MathCore
 
         static constexpr double minus_zero = -.0;
         static constexpr double one = 1.0;
-        static constexpr double min = 2.22507385850720138309023271733240406e-308;//DBL_MIN;
-        static constexpr double max = 1.79769313486231570814527423731704357e+308;//DBL_MAX;
+        static constexpr double min = 2.22507385850720138309023271733240406e-308; // DBL_MIN;
+        static constexpr double max = 1.79769313486231570814527423731704357e+308; // DBL_MAX;
         static constexpr uint64_t one_uint = 0x3ff0000000000000;
         static constexpr uint64_t sign_bit = 0x8000000000000000;
         static constexpr uint64_t sign_bit_negated = ~sign_bit;
@@ -123,9 +123,9 @@ namespace MathCore
             compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
             return *((_type *)&result);
 
-            //return (a < (_type)0) ? -a : a;
+            // return (a < (_type)0) ? -a : a;
 
-            //return OP<_type>::sign(a) * a;
+            // return OP<_type>::sign(a) * a;
         }
 
         /// \brief Computes the squared distance between two 1D vectors
@@ -383,7 +383,7 @@ namespace MathCore
 
             return result_f;
 
-            //return OP<_type>::abs(value) * signToCopy;
+            // return OP<_type>::abs(value) * signToCopy;
         }
 
         /// \brief Computes the linear interpolation
@@ -512,7 +512,16 @@ namespace MathCore
             using type_info = FloatTypeInfo<_type>;
             float v = self_type::maximum(v_, type_info::min);
 #if defined(ITK_SSE2)
-            return _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
+            __m128 x = _mm_set_ss(v);
+            __m128 y = _mm_rsqrt_ss(x);
+
+            // 2nd iteration: y = y * ( 0.5f * (3.0f - (x * y) * y) );
+            __m128 _tmp = _mm_mul_ss(_mm_mul_ss(x, y), y);
+            _tmp = _mm_sub_ss( _mm_set_ss(3.0f), _tmp);
+            _tmp = _mm_mul_ss( _mm_set_ss(0.5f), _tmp);
+            y = _mm_mul_ss( y, _tmp);
+
+            return _mm_f32_(y, 0);
 #elif defined(ITK_NEON) && defined(__aarch64__) // arm64
             const float32_t &x = v_;
             float32_t y = vrsqrtes_f32(x);
@@ -558,30 +567,31 @@ namespace MathCore
             // y = y * ( threehalfs - ( x2 * y * y ) ); // 2nd iteration, medium precision
             // //y = y * ( threehalfs - ( x2 * y * y ) ); // 3rd iteration, better precision
 
-            // lomont algorithm - better starting estimative
-            float x2, y;
-            uint32_t &i = *(uint32_t *)&y;
-            const float threehalfs = 1.5f;
-            x2 = v * 0.5f;
-            y = v;
-            // i = *(long *)&y;
-            i = 0x5F375A86 - (i >> 1);
-            // y = *(float *)&i;
-            y = y * (threehalfs - (x2 * y * y)); // 1st iteration, low precision
-            y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, medium precision
-            // y = y * ( threehalfs - ( x2 * y * y ) ); // 3rd iteration, better precision
-
-            // // Jan Kadlec algorithm - 2.7x more accurate
-            // const float &x = v;
-            // float y;
+            // // lomont algorithm - better starting estimative
+            // float x2, y;
             // uint32_t &i = *(uint32_t *)&y;
-            // // const float threehalfs = 1.5f;
-            // // x2 = v * 0.5f;
+            // const float threehalfs = 1.5f;
+            // x2 = v * 0.5f;
             // y = v;
             // // i = *(long *)&y;
-            // i = 0x5F1FFFF9 - (i >> 1);
+            // i = 0x5F375A86 - (i >> 1);
             // // y = *(float *)&i;
-            // y = y * (0.703952253f * (2.38924456f - (x * y) * y)); // 1st iteration, low precision
+            // y = y * (threehalfs - (x2 * y * y)); // 1st iteration, low precision
+            // y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, medium precision
+            // // y = y * ( threehalfs - ( x2 * y * y ) ); // 3rd iteration, better precision
+
+            // Jan Kadlec algorithm - 2.7x more accurate
+            const float &x = v;
+            float y;
+            uint32_t &i = *(uint32_t *)&y;
+            // const float threehalfs = 1.5f;
+            // x2 = v * 0.5f;
+            y = v;
+            // i = *(long *)&y;
+            i = 0x5F1FFFF9 - (i >> 1);
+            // y = *(float *)&i;
+            y = y * (0.703952253f * (2.38924456f - (x * y) * y)); // 1st iteration, low precision
+            y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
 
             return y;
         }
