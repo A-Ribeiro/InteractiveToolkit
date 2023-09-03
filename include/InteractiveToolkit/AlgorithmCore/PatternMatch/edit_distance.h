@@ -35,7 +35,7 @@ namespace AlgorithmCore
 #endif
 		}
 
-		int32_t edit_distance(const char* s, const char* t)
+		static ITK_INLINE int32_t edit_distance(const char* s, const char* t)
 		{
 			int32_t s_len = (int32_t)strlen(s);
 			int32_t t_len = (int32_t)strlen(t);
