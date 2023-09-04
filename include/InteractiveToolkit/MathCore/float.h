@@ -505,19 +505,19 @@ namespace MathCore
                       std::is_same<_Type, float>::value &&
                           std::is_same<Algorithm, RSQRT::SIMD>::value,
                       bool>::type = true>
-        static ITK_INLINE float rsqrt(const float &v_) noexcept
+        static ITK_INLINE float rsqrt(const float &_x) noexcept
         {
             // printf("float simd\n");
 
             using type_info = FloatTypeInfo<_type>;
-            float v = self_type::maximum(v_, type_info::min);
+            float x = self_type::maximum(_x, type_info::min);
 #if defined(ITK_SSE2)
-            float y = _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
+            float y = _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(x)), 0);
             // 2nd iteration: y = y * ( 0.5f * (3.0f - (x * y) * y) );
-            y = y * (0.5f * (3.0f - (v * y) * y));
+            y = y * (0.5f * (3.0f - (x * y) * y));
             return y;
 #elif defined(ITK_NEON) && defined(__aarch64__) // arm64
-            const float32_t &x = v_;
+            //const float32_t &x = v_;
             float32_t y = vrsqrtes_f32(x);
             // from arm documentation
             // The Newton-Raphson iteration:
@@ -533,7 +533,7 @@ namespace MathCore
             y = y * vrsqrtss_f32(x * y, y); // 2nd iteration
             return y;
 #else
-            return 1.0f / sqrtf(v);
+            return 1.0f / sqrtf(x);
 #endif
         }
         template <typename Algorithm = _Algorithm, class _Type = _type,
