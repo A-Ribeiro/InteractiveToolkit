@@ -328,6 +328,7 @@ if (ITK_SSE2)
     endif()
 endif()
 
+set(ITK_FORCE_USE_RSQRT_CARMACK ON CACHE BOOL "Force use of the alternative RSQRT algorithm.")
 
 ############################################################################
 # Print Result
