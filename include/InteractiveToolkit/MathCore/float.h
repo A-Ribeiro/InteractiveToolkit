@@ -514,7 +514,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             float y = _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(v)), 0);
             // 2nd iteration: y = y * ( 0.5f * (3.0f - (x * y) * y) );
-            y = y * ( 0.5f * (3.0f - (v * y) * y) );
+            y = y * (0.5f * (3.0f - (v * y) * y));
             return y;
 #elif defined(ITK_NEON) && defined(__aarch64__) // arm64
             const float32_t &x = v_;
@@ -541,7 +541,7 @@ namespace MathCore
                       std::is_same<_Type, float>::value &&
                           std::is_same<Algorithm, RSQRT::CARMACK>::value,
                       bool>::type = true>
-        static ITK_INLINE float rsqrt(const float &v) noexcept
+        static ITK_INLINE float rsqrt(const float &x) noexcept
         {
             // printf("float carmack\n");
 
@@ -549,42 +549,37 @@ namespace MathCore
             // https://en.wikipedia.org/wiki/Fast_inverse_square_root
 
             // // original algorithm
-            // float x2, y;
+            // const float _3_div_2 = 1.5f;
+            // float x_div_2 = x * 0.5f;
+            // float y = x;
             // uint32_t &i = *(uint32_t *)&y;
-            // const float threehalfs = 1.5f;
-            // x2 = v * 0.5f;
-            // y = v;
-            // //i = *(long *)&y;
             // i = 0x5f3759df - ( i >> 1 );
-            // //y = *(float *)&i;
-            // y = y * ( threehalfs - ( x2 * y * y ) ); // 1st iteration, low precision
-            // y = y * ( threehalfs - ( x2 * y * y ) ); // 2nd iteration, medium precision
-            // //y = y * ( threehalfs - ( x2 * y * y ) ); // 3rd iteration, better precision
+            // y = y * ( _3_div_2 - ( x_div_2 * y * y ) ); // 1st iteration, low precision
+            // y = y * ( _3_div_2 - ( x_div_2 * y * y ) ); // 2nd iteration, medium precision
+            // //y = y * ( _3_div_2 - ( x_div_2 * y * y ) ); // 3rd iteration, better precision
 
             // // lomont algorithm - better starting estimative
-            // float x2, y;
+            // const float _3_div_2 = 1.5f;
+            // float x_div_2 = x * 0.5f;
+            // float y = x;
             // uint32_t &i = *(uint32_t *)&y;
-            // const float threehalfs = 1.5f;
-            // x2 = v * 0.5f;
-            // y = v;
-            // // i = *(long *)&y;
             // i = 0x5F375A86 - (i >> 1);
-            // // y = *(float *)&i;
-            // y = y * (threehalfs - (x2 * y * y)); // 1st iteration, low precision
-            // y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, medium precision
-            // // y = y * ( threehalfs - ( x2 * y * y ) ); // 3rd iteration, better precision
+            // y = y * (_3_div_2 - (x_div_2 * y * y)); // 1st iteration, low precision
+            // y = y * (_3_div_2 - (x_div_2 * y * y)); // 2nd iteration, medium precision
+            // // y = y * ( _3_div_2 - ( x_div_2 * y * y ) ); // 3rd iteration, better precision
 
-            // Jan Kadlec algorithm - 2.7x more accurate
-            const float &x = v;
-            float y;
+            // // Jan Kadlec algorithm - 2.7x more accurate
+            // float y = x;
+            // uint32_t &i = *(uint32_t *)&y;
+            // i = 0x5F1FFFF9 - (i >> 1);
+            // y = y * (0.703952253f * (2.38924456f - (x * y) * y)); // 1st iteration, low precision
+            // y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
+
+            // Parameters Optimized By Alessandro 
+            float y = x;
             uint32_t &i = *(uint32_t *)&y;
-            // const float threehalfs = 1.5f;
-            // x2 = v * 0.5f;
-            y = v;
-            // i = *(long *)&y;
             i = 0x5F1FFFF9 - (i >> 1);
-            // y = *(float *)&i;
-            y = y * (0.703952253f * (2.38924456f - (x * y) * y)); // 1st iteration, low precision
+            y = y * (0.749755859375f * (2.2899169921875f - (x * y) * y)); // 1st iteration, first estimative
             y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
 
             return y;
@@ -592,14 +587,37 @@ namespace MathCore
 
         template <typename Algorithm = _Algorithm, class _Type = _type,
                   typename std::enable_if<
-                      std::is_same<_Type, double>::value, bool>::type = true>
-        static ITK_INLINE double rsqrt(const double &v) noexcept
+                      std::is_same<_Type, double>::value &&
+                          (std::is_same<Algorithm, RSQRT::NORMAL>::value || std::is_same<Algorithm, RSQRT::SIMD>::value),
+                      bool>::type = true>
+        static ITK_INLINE double rsqrt(const double &_x) noexcept
         {
             // printf("double\n");
 
             using type_info = FloatTypeInfo<_type>;
-            double v_ = self_type::maximum(v, type_info::min);
-            return 1.0 / sqrt(v_);
+            double x = self_type::maximum(_x, type_info::min);
+            return 1.0 / sqrt(x);
+        }
+
+        template <typename Algorithm = _Algorithm, class _Type = _type,
+                  typename std::enable_if<
+                      std::is_same<_Type, double>::value &&
+                          std::is_same<Algorithm, RSQRT::CARMACK>::value,
+                      bool>::type = true>
+        static ITK_INLINE double rsqrt(const double &x) noexcept
+        {
+
+            // Parameters Optimized By Alessandro 
+            const double _3_div_2 = 1.5;
+            double x_div_2 = x * 0.5;
+            double y = x;
+            uint64_t &i = *(uint64_t *)&y;
+            i = 0x5FE3FFFFFFFFFFF9 - (i >> 1);
+            y = y * (0.749755859375 * (2.2899169921875 - (x * y) * y)); // 1st iteration, first estimative
+            y = y * (_3_div_2 - (x_div_2 * y) * y);                        // 2nd iteration
+            y = y * (_3_div_2 - (x_div_2 * y) * y);                        // 3nd iteration
+
+            return y;
         }
 
         static ITK_INLINE _type step(const _type &threshould, const _type &v) noexcept
