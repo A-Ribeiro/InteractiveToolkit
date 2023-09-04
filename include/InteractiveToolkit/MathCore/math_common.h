@@ -40,14 +40,15 @@ namespace MathCore
     {
     };
 
-
     namespace RSQRT
     {
         struct NORMAL;
         struct SIMD;
         struct CARMACK;
 
-#if defined(ITK_NEON) || defined(ITK_SSE2)
+#if defined(ITK_FORCE_USE_RSQRT_CARMACK)
+        using DEFAULT = CARMACK;
+#elif defined(ITK_NEON) || defined(ITK_SSE2)
         using DEFAULT = SIMD;
 #else
         using DEFAULT = NORMAL;
@@ -60,113 +61,111 @@ namespace MathCore
     {
     };
 
-
     template <typename _type_, class Enable = void>
     struct GEN
     {
     };
-    
 
-#define INLINE_STATIC_ARITHMETIC_OPERATION_IMPLEMENTATION(TTYPE)                                                                                        \
-    template <typename _BaseType, typename _SimdType>                                                                                                   \
+#define INLINE_STATIC_ARITHMETIC_OPERATION_IMPLEMENTATION(TTYPE)                                                                                       \
+    template <typename _BaseType, typename _SimdType>                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const TTYPE<_BaseType, _SimdType> &vecA, const TTYPE<_BaseType, _SimdType> &vecB) noexcept \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vecA) /= vecB);                                                                                             \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) /= vecB);                                                                                            \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vec) /= (_BaseType)value);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vec) /= (_BaseType)value);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) /= vec);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _SimdType>                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) /= vec);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType>                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator*(const TTYPE<_BaseType, _SimdType> &vecA, const TTYPE<_BaseType, _SimdType> &vecB) noexcept \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vecA) *= vecB);                                                                                             \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) *= vecB);                                                                                            \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator*(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vec) *= (_BaseType)value);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vec) *= (_BaseType)value);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator*(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) *= vec);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _SimdType>                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) *= vec);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType>                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator+(const TTYPE<_BaseType, _SimdType> &vecA, const TTYPE<_BaseType, _SimdType> &vecB) noexcept \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vecA) += vecB);                                                                                             \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) += vecB);                                                                                            \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator+(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vec) += (_BaseType)value);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vec) += (_BaseType)value);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator+(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) += vec);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _SimdType>                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) += vec);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType>                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator-(const TTYPE<_BaseType, _SimdType> &vecA, const TTYPE<_BaseType, _SimdType> &vecB) noexcept \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vecA) -= vecB);                                                                                             \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) -= vecB);                                                                                            \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator-(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>(vec) -= (_BaseType)value);                                                                                  \
-    }                                                                                                                                                   \
-    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                              \
-              typename std::enable_if<                                                                                                                  \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                  \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                     \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                          \
-                  bool>::type = true>                                                                                                                   \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vec) -= (_BaseType)value);                                                                                 \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
+              typename std::enable_if<                                                                                                                 \
+                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
+                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
+                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator-(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
-    {                                                                                                                                                   \
-        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) -= vec);                                                                                  \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>((_BaseType)value) -= vec);                                                                                 \
     }
 
 #define MATH_CORE_AUX_STR_(x) #x
