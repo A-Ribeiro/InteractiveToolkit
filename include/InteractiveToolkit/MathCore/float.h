@@ -579,7 +579,7 @@ namespace MathCore
             float y = x;
             uint32_t &i = *(uint32_t *)&y;
             i = 0x5F1FFFF9 - (i >> 1);
-            y = y * (0.749755859375f * (2.2899169921875f - (x * y) * y)); // 1st iteration, first estimative
+            y = y * (0.7005444765090942f * (2.396728873252868f - (x * y) * y)); // 1st iteration, first estimative
             y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
 
             return y;
