@@ -24,12 +24,12 @@ if(MSVC)
 endif()
 
 # create CMAKE_BUILD_TYPE for non-windows platform
-if( NOT WIN32 AND NOT CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING
-            "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-            FORCE )
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Release RelWithDebInfo MinSizeRel)
-endif()
+# if( NOT WIN32 AND NOT CMAKE_BUILD_TYPE )
+#     set( CMAKE_BUILD_TYPE Release CACHE STRING
+#             "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+#             FORCE )
+#     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Release RelWithDebInfo MinSizeRel)
+# endif()
 
 #
 # MACROS
@@ -173,65 +173,65 @@ set(ITK_LINK_LIBRARIES)
 set(ITK_INCLUDE_DIRECTORIES)
 
 
-# configure compile vars
-if(WIN32)
-    #
-    # Windows
-    #
-    if(CMAKE_COMPILER_IS_GNUCXX)
-        create_missing_cmake_build_type()
-        if (CMAKE_BUILD_TYPE STREQUAL Release)
-            #add_definitions(-DNDEBUG)
-            list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
-            #add_compile_options(-O3 -fno-strict-aliasing)
-        endif()
-    elseif(MSVC)
-        # change the multithread debug DLL to multithread debug static compilation
-        # avoid link with another VS DLL...
-        foreach(flag
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
+# # configure compile vars
+# if(WIN32)
+#     #
+#     # Windows
+#     #
+#     if(CMAKE_COMPILER_IS_GNUCXX)
+#         create_missing_cmake_build_type()
+#         if (CMAKE_BUILD_TYPE STREQUAL Release)
+#             #add_definitions(-DNDEBUG)
+#             list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
+#             #add_compile_options(-O3 -fno-strict-aliasing)
+#         endif()
+#     elseif(MSVC)
+#         # change the multithread debug DLL to multithread debug static compilation
+#         # avoid link with another VS DLL...
+#         foreach(flag
+#                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+#                 CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
 
-                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO )
-            if(${flag} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-                SET ( ${flag} "${${flag}}" CACHE STRING "" FORCE)
-            endif()
-            set("${flag}" "${${flag}} /MP")
-        endforeach()
+#                 CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+#                 CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO )
+#             if(${flag} MATCHES "/MD")
+#                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+#                 SET ( ${flag} "${${flag}}" CACHE STRING "" FORCE)
+#             endif()
+#             set("${flag}" "${${flag}} /MP")
+#         endforeach()
 
-        #SET(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /O2")
-        #SET(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} /O2")
-    endif()
-elseif(APPLE)
-    #
-    # MacOS X, iOS, watchOS, tvOS (since 3.10.3)
-    #
-    if (CMAKE_BUILD_TYPE STREQUAL Release)
-        #add_definitions(-DNDEBUG)
-        list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
-        #add_compile_options(-O3 -fno-strict-aliasing)
-    endif()
-    #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -all_load")
-    #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -v")
-    #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -ObjC")
-    list(APPEND ITK_LINK_OPTIONS -ObjC)
-elseif(UNIX)
-    #
-    # Linux, BSD, Solaris, Minix
-    #
-    if (CMAKE_BUILD_TYPE STREQUAL Release)
-        #add_definitions(-DNDEBUG)
-        list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
-        #add_compile_options(-O3 -fno-strict-aliasing)
-    elseif( CMAKE_BUILD_TYPE STREQUAL Debug)
-        #add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -static-libasan")
-    endif()
-else()
-    message(FATAL_ERROR "Cmake not configured for this OS")
-endif()
+#         #SET(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /O2")
+#         #SET(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} /O2")
+#     endif()
+# elseif(APPLE)
+#     #
+#     # MacOS X, iOS, watchOS, tvOS (since 3.10.3)
+#     #
+#     if (CMAKE_BUILD_TYPE STREQUAL Release)
+#         #add_definitions(-DNDEBUG)
+#         list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
+#         #add_compile_options(-O3 -fno-strict-aliasing)
+#     endif()
+#     #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -all_load")
+#     #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -v")
+#     #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -ObjC")
+#     list(APPEND ITK_LINK_OPTIONS -ObjC)
+# elseif(UNIX)
+#     #
+#     # Linux, BSD, Solaris, Minix
+#     #
+#     if (CMAKE_BUILD_TYPE STREQUAL Release)
+#         #add_definitions(-DNDEBUG)
+#         list(APPEND ITK_COMPILE_DEFINITIONS NDEBUG)
+#         #add_compile_options(-O3 -fno-strict-aliasing)
+#     elseif( CMAKE_BUILD_TYPE STREQUAL Debug)
+#         #add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+#         #SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -static-libasan")
+#     endif()
+# else()
+#     message(FATAL_ERROR "Cmake not configured for this OS")
+# endif()
 ############################################################################
 # Detect Raspberry Pi
 ############################################################################
@@ -248,12 +248,12 @@ if (ITK_RPI)
         #add_definitions(-DOMX_SKIP64BIT)
         list(APPEND ITK_COMPILE_DEFINITIONS OMX_SKIP64BIT)
     endif()
-    link_directories(/opt/vc/lib/)
-    include_directories(
-        /opt/vc/include/interface/vcos/pthreads
-        /opt/vc/include/interface/vmcs_host/linux
-        /opt/vc/include
-    )
+    # link_directories(/opt/vc/lib/)
+    # include_directories(
+    #     /opt/vc/include/interface/vcos/pthreads
+    #     /opt/vc/include/interface/vmcs_host/linux
+    #     /opt/vc/include
+    # )
     list(APPEND ITK_INCLUDE_DIRECTORIES
         /opt/vc/include/interface/vcos/pthreads
         /opt/vc/include/interface/vmcs_host/linux
@@ -281,50 +281,58 @@ if (ITK_NEON)
     list(APPEND ITK_COMPILE_DEFINITIONS ITK_NEON)
     #add_compile_options(-mfpu=neon -finline-functions)
     list(APPEND ITK_COMPILE_OPTIONS -mfpu=neon -finline-functions)
-    message(STATUS "[NEON ENABLED]")
+    #message(STATUS "[NEON ENABLED]")
 endif()
 ############################################################################
 # Detect OpenMP compatible environment
 ############################################################################
 if(NOT CMAKE_GENERATOR STREQUAL Xcode)
-    find_package(OpenMP)
+    find_package(OpenMP QUIET)
     if (OPENMP_FOUND)
         set(ITK_OPENMP ON CACHE BOOL "Turn on OPENMP optimizations." )
-        if (ITK_OPENMP)
-            #add_definitions(-DITK_OPENMP)
-            list(APPEND ITK_COMPILE_DEFINITIONS ITK_OPENMP)
-            include_directories(${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
-            list(APPEND ITK_INCLUDE_DIRECTORIES ${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
-            set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-            list(APPEND ITK_COMPILE_OPTIONS "${OpenMP_CXX_FLAGS}")
-            set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-            list(APPEND ITK_LINK_OPTIONS "${OpenMP_EXE_LINKER_FLAGS}")
-        endif()
     else()
         set(ITK_OPENMP OFF CACHE BOOL "Turn on OPENMP optimizations." )
     endif()
+else()
+    set(ITK_OPENMP OFF CACHE BOOL "Turn on OPENMP optimizations." )
+endif()
+if (ITK_OPENMP)
+    if(CMAKE_GENERATOR STREQUAL Xcode)
+        message(FATAL_ERROR "CANNOT ENABLE OPENMP WITH XCODE BUILD.")
+    endif()
+    find_package(OpenMP REQUIRED)
+    #add_definitions(-DITK_OPENMP)
+    list(APPEND ITK_COMPILE_DEFINITIONS ITK_OPENMP)
+    # include_directories(${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
+    list(APPEND ITK_INCLUDE_DIRECTORIES ${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
+    # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    list(APPEND ITK_COMPILE_OPTIONS "${OpenMP_CXX_FLAGS}")
+    # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    list(APPEND ITK_LINK_OPTIONS "${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 ############################################################################
 # Detect SSE2 compatible environment
 ############################################################################
+set(ITK_SSE_SKIP_SSE41 OFF CACHE BOOL "Skip SSE41 on some special CPUs.")
 if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     set(ITK_SSE2 ON CACHE BOOL "Turn on SSE2 optimizations.")
 else()
     set(ITK_SSE2 OFF CACHE BOOL "Turn on SSE2 optimizations.")
 endif()
 if (ITK_SSE2)
-    if(MSVC)
-        #message(STATUS "DETECT_SSE2: You are building the code for Visual Studio.")
-        #message(STATUS "             the containers (vector, set, map, etc...)")
-        #message(STATUS "             need to be aligned with ssealign<T,16>")
-        #add_definitions(-DITK_SSE2) # /arch:SSE2 /Gz __stdcall
-        list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE2)
-    else()
-        #add_definitions(-DITK_SSE2)
-        list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE2)
+    if (ITK_SSE_SKIP_SSE41)
+        list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE_SKIP_SSE41)
+    endif()
+    #add_definitions(-DITK_SSE2)
+    list(APPEND ITK_COMPILE_DEFINITIONS ITK_SSE2)
+    if(NOT MSVC)
         #add_compile_options(-mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
-        list(APPEND ITK_COMPILE_OPTIONS -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
+        if (ITK_SSE_SKIP_SSE41)
+            list(APPEND ITK_COMPILE_OPTIONS -mmmx -msse -msse2 -msse3 -mfpmath=sse -minline-all-stringops -finline-functions)
+        else()
+            list(APPEND ITK_COMPILE_OPTIONS -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
+        endif()
     endif()
 endif()
 
@@ -369,6 +377,7 @@ elseif(APPLE)
     #
     # MacOS X, iOS, watchOS, tvOS (since 3.10.3)
     #
+    list(APPEND ITK_LINK_OPTIONS -ObjC)
 elseif(UNIX)
     #
     # Linux, BSD, Solaris, Minix
@@ -383,9 +392,9 @@ endif()
 #
 
 # create/export include dirs/libs
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(INTERACTIVETOOLKIT_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE STRING "${PROJECT_NAME}: Include Directories" FORCE)
-set(INTERACTIVETOOLKIT_LIBRARIES ${ITK_LINK_LIBRARIES} CACHE STRING "${PROJECT_NAME}: Link Libraries" FORCE)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#set(INTERACTIVETOOLKIT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE STRING "${PROJECT_NAME}: Include Directories" FORCE)
+#set(INTERACTIVETOOLKIT_LIBRARIES ${ITK_LINK_LIBRARIES} CACHE STRING "${PROJECT_NAME}: Link Libraries" FORCE)
 
 FILE( GLOB_RECURSE PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.h)
 FILE( GLOB_RECURSE PUBLIC_INL RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.inl)
@@ -461,4 +470,7 @@ endif()
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
     set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_LIST_DIR}/cmake-modules" PARENT_SCOPE)
+    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 endif()
+
+#find_package (InteractiveToolkit QUIET PATHS ${CMAKE_CURRENT_SOURCE_DIR}/include)
