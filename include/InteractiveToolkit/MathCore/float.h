@@ -658,7 +658,16 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float floor(const float &v) noexcept
         {
+#if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _mm_f32_(_sse2_mm_floor_ps(_mm_set_ss(v)),0);
+#else
+            return _mm_f32_(_mm_floor_ps(_mm_set_ss(v)),0);
+#endif
+//#elif defined(ITK_NEON)
+#else
             return ::floorf(v);
+#endif
         }
         template <class _Type = _type,
                   typename std::enable_if<
@@ -673,7 +682,16 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float ceil(const float &v) noexcept
         {
+#if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _mm_f32_(_sse2_mm_ceil_ps(_mm_set_ss(v)),0);
+#else
+            return _mm_f32_(_mm_ceil_ps(_mm_set_ss(v)),0);
+#endif
+//#elif defined(ITK_NEON)
+#else
             return ::ceilf(v);
+#endif
         }
         template <class _Type = _type,
                   typename std::enable_if<
@@ -688,7 +706,16 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float round(const float &v) noexcept
         {
+#if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _mm_f32_(_sse2_mm_round_ps(_mm_set_ss(v)),0);
+#else
+            return _mm_f32_(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC),0);
+#endif
+//#elif defined(ITK_NEON)
+#else
             return ::roundf(v);
+#endif
         }
         template <class _Type = _type,
                   typename std::enable_if<
