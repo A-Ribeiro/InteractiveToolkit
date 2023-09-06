@@ -375,6 +375,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #
 if (ITK_RPI)
     list(APPEND ITK_LINK_LIBRARIES ${RPI_LIBRARIES} )
+    list(APPEND ITK_LINK_OPTIONS -L/opt/vc/lib/)
 endif()
 if(WIN32)
     #
