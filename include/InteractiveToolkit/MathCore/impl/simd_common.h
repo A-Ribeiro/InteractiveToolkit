@@ -73,8 +73,17 @@ namespace MathCore
     ITK_INLINE __m128 dot_sse_3(const __m128 &a, const __m128 &b)
     {
 #if true
+#if defined(ITK_SSE_SKIP_SSE41)
+        __m128 mul0 = _mm_mul_ps(a, b);
 
+        _mm_f32_(mul0, 3) = 0;
+        mul0 = _mm_hadd_ps(mul0, mul0);
+        mul0 = _mm_hadd_ps(mul0, mul0);
+
+        return mul0;
+#else
         return _mm_dp_ps(a, b, 0x77);
+#endif
 
 #elif defined(_MSC_VER) || true
 
@@ -104,8 +113,16 @@ namespace MathCore
     ITK_INLINE __m128 dot_sse_4(const __m128 &a, const __m128 &b)
     {
 #if true
+#if defined(ITK_SSE_SKIP_SSE41)
+        __m128 mul0 = _mm_mul_ps(a, b);
 
+        mul0 = _mm_hadd_ps(mul0, mul0);
+        mul0 = _mm_hadd_ps(mul0, mul0);
+
+        return mul0;
+#else
         return _mm_dp_ps(a, b, 0xff);
+#endif
 
 #elif defined(_MSC_VER) || true
 

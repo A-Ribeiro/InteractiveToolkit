@@ -14,8 +14,13 @@ namespace AlgorithmCore
 			__m128i _b = _mm_set1_epi32(b);
 			__m128i _c = _mm_set1_epi32(c);
 
+#if defined(ITK_SSE_SKIP_SSE41)
+			__m128i _min = _sse2_mm_min_epi32(_a, _b);
+			_min = _sse2_mm_min_epi32(_min, _c);
+#else
 			__m128i _min = _mm_min_epi32(_a, _b);
 			_min = _mm_min_epi32(_min, _c);
+#endif
 
 			return _mm_i32_(_min, 0);
 #elif defined(ITK_NEON)

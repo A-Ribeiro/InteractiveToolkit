@@ -130,7 +130,12 @@ namespace MathCore
         static ITK_INLINE _type dot(const type2 &a, const type2 &b) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 dp = _mm_mul_ps(a.array_sse, b.array_sse);
+            dp = _mm_hadd_ps(dp, dp);
+#else
             __m128 dp = _mm_dp_ps(a.array_sse, b.array_sse, 0x33);
+#endif
             return _mm_f32_(dp, 0);
 #elif defined(ITK_NEON)
             float32x4_t mul0 = vmulq_f32(a.array_neon, b.array_neon);
@@ -248,7 +253,12 @@ namespace MathCore
         static ITK_INLINE type2 reflect(const type2 &a, const type2 &N) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 dt = _mm_mul_ps(a.array_sse, N.array_sse);
+            dt = _mm_hadd_ps(dt, dt);
+#else
             __m128 dt = _mm_dp_ps(a.array_sse, N.array_sse, 0x33);
+#endif
             __m128 mul0 = _mm_mul_ps(dt, N.array_sse);
             __m128 mul1 = _mm_mul_ps(mul0, _vec3_two_sse);
             return _mm_sub_ps(a.array_sse, mul1);
@@ -485,7 +495,12 @@ namespace MathCore
         static ITK_INLINE type2 parallelComponent(const type2 &a, const type2 &unitV) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 dot0 = _mm_mul_ps(a.array_sse, unitV.array_sse);
+            dot0 = _mm_hadd_ps(dot0, dot0);
+#else
             __m128 dot0 = _mm_dp_ps(a.array_sse, unitV.array_sse, 0x33);
+#endif
             __m128 mul0 = _mm_mul_ps(unitV.array_sse, dot0);
             return mul0;
 #elif defined(ITK_NEON)
@@ -527,7 +542,12 @@ namespace MathCore
         static ITK_INLINE type2 perpendicularComponent(const type2 &a, const type2 &unitV) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 dot0 = _mm_mul_ps(a.array_sse, unitV.array_sse);
+            dot0 = _mm_hadd_ps(dot0, dot0);
+#else
             __m128 dot0 = _mm_dp_ps(a.array_sse, unitV.array_sse, 0x33);
+#endif
             __m128 mul0 = _mm_mul_ps(unitV.array_sse, dot0);
             __m128 sub = _mm_sub_ps(a.array_sse, mul0);
             return sub;
@@ -585,7 +605,12 @@ namespace MathCore
                                           type2 *perpendicular, type2 *parallel) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 dot0 = _mm_mul_ps(a.array_sse, unitV.array_sse);
+            dot0 = _mm_hadd_ps(dot0, dot0);
+#else
             __m128 dot0 = _mm_dp_ps(a.array_sse, unitV.array_sse, 0x33);
+#endif
             __m128 mul0 = _mm_mul_ps(unitV.array_sse, dot0);
             __m128 sub = _mm_sub_ps(a.array_sse, mul0);
 

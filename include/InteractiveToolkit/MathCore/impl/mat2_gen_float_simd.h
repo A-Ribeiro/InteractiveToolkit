@@ -49,10 +49,16 @@ namespace MathCore
         static ITK_INLINE typeMat2 scale(const typeVec2 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+                return _mm_setr_ps( 
+                        _v_.x, 0, 
+                        0, _v_.y);
+#else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
 
             return _tmp0;
+#endif
 
             // return typeMat2(_mm_setr_ps(_v_.x, 0,
             //                             0, _v_.y));
@@ -67,11 +73,16 @@ namespace MathCore
         static ITK_INLINE typeMat2 scale(const typeVec3 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
-
+#if defined(ITK_SSE_SKIP_SSE41)
+                return _mm_setr_ps( 
+                        _v_.x, 0, 
+                        0, _v_.y);
+#else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
 
             return _tmp0;
+#endif
 
             // return typeMat2(_mm_setr_ps(_v_.x, 0,
             //                             0, _v_.y));
@@ -86,10 +97,16 @@ namespace MathCore
         static ITK_INLINE typeMat2 scale(const typeVec4 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+                return _mm_setr_ps( 
+                        _v_.x, 0, 
+                        0, _v_.y);
+#else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
 
             return _tmp0;
+#endif
 
             // return typeMat2(_mm_setr_ps(_v_.x, 0,
             //                             0, _v_.y));

@@ -478,10 +478,13 @@ namespace MathCore
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            __m128 param = v.array_sse;
-
             //const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 param = _mm_setr_ps(v.x,v.y,1.0f,1.0f);
+#else
+            __m128 param = v.array_sse;
             param = _mm_blend_ps(param, _vec4_one_sse, 0xC);
+#endif
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)

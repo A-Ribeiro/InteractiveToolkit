@@ -100,8 +100,13 @@ namespace MathCore
 		static ITK_INLINE _type clamp(const _type &value, const _type &min, const _type &max) noexcept
 		{
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+			__m128i maxStep = _sse2_mm_max_epi32(_mm_set1_epi32(value), _mm_set1_epi32(min));
+			__m128i minStep = _sse2_mm_min_epi32(maxStep, _mm_set1_epi32(max));
+#else
 			__m128i maxStep = _mm_max_epi32(_mm_set1_epi32(value), _mm_set1_epi32(min));
 			__m128i minStep = _mm_min_epi32(maxStep, _mm_set1_epi32(max));
+#endif
 			return _mm_i32_(minStep, 0);
 #else
 			return (value < min) ? min : ((value > max) ? max : value);
@@ -113,8 +118,13 @@ namespace MathCore
 		static ITK_INLINE _type clamp(const _type &value, const _type &min, const _type &max) noexcept
 		{
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+			__m128i maxStep = _sse2_mm_max_epu32(_mm_set1_epi32(value), _mm_set1_epi32(min));
+			__m128i minStep = _sse2_mm_min_epu32(maxStep, _mm_set1_epi32(max));
+#else
 			__m128i maxStep = _mm_max_epu32(_mm_set1_epi32(value), _mm_set1_epi32(min));
 			__m128i minStep = _mm_min_epu32(maxStep, _mm_set1_epi32(max));
+#endif
 			return _mm_u32_(minStep, 0);
 #else
 			return (value < min) ? min : ((value > max) ? max : value);
@@ -148,7 +158,11 @@ namespace MathCore
 		static ITK_INLINE _type maximum(const _type &a, const _type &b) noexcept
 		{
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+			return _mm_i32_(_sse2_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#else
 			return _mm_i32_(_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#endif
 #else
 			return (a > b) ? a : b;
 #endif
@@ -181,7 +195,11 @@ namespace MathCore
 		static ITK_INLINE _type minimum(const _type &a, const _type &b) noexcept
 		{
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+			return _mm_i32_(_sse2_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#else
 			return _mm_i32_(_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#endif
 #else
 			return (a < b) ? a : b;
 #endif
@@ -192,7 +210,11 @@ namespace MathCore
 		static ITK_INLINE _type minimum(const _type &a, const _type &b) noexcept
 		{
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+			return _mm_u32_(_sse2_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#else
 			return _mm_u32_(_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+#endif
 #else
 			return (a < b) ? a : b;
 #endif

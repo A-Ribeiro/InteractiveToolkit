@@ -52,9 +52,16 @@ namespace MathCore
         static ITK_INLINE typeMat3 translateHomogeneous(const typeVec2 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 _t = _mm_setr_ps(_v_.x, _v_.y, 1.0f, 0.0f);
+            return typeMat3(_vec4_1000_sse,
+                            _vec4_0100_sse,
+                            _t);
+#else
             return typeMat3(_vec4_1000_sse,
                             _vec4_0100_sse,
                             _mm_blend_ps(_v_.array_sse, _vec4_0010_sse, 0xC));
+#endif
 #elif defined(ITK_NEON)
             return typeMat3(_neon_1000,
                             _neon_0100,
@@ -67,9 +74,16 @@ namespace MathCore
         static ITK_INLINE typeMat3 translateHomogeneous(const typeVec3 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 _t = _mm_setr_ps(_v_.x, _v_.y, 1.0f, 0.0f);
+            return typeMat3(_vec4_1000_sse,
+                            _vec4_0100_sse,
+                            _t);
+#else
             return typeMat3(_vec4_1000_sse,
                             _vec4_0100_sse,
                             _mm_blend_ps(_v_.array_sse, _vec4_0010_sse, 0xC));
+#endif
 #elif defined(ITK_NEON)
             return typeMat3(_neon_1000,
                             _neon_0100,
@@ -82,9 +96,16 @@ namespace MathCore
         static ITK_INLINE typeMat3 translateHomogeneous(const typeVec4 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            __m128 _t = _mm_setr_ps(_v_.x, _v_.y, 1.0f, 0.0f);
+            return typeMat3(_vec4_1000_sse,
+                            _vec4_0100_sse,
+                            _t);
+#else
             return typeMat3(_vec4_1000_sse,
                             _vec4_0100_sse,
                             _mm_blend_ps(_v_.array_sse, _vec4_0010_sse, 0xC));
+#endif
 #elif defined(ITK_NEON)
             return typeMat3(_neon_1000,
                             _neon_0100,
@@ -513,6 +534,13 @@ namespace MathCore
         static ITK_INLINE typeMat3 fromMat2(const typeMat2 &v) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return typeMat3(
+                _mm_setr_ps(v.a1, v.a2, 0, 0),
+                _mm_setr_ps(v.b1, v.b2, 0, 0),
+                _vec4_0010_sse,
+                _vec4_0001_sse);
+#else
             return typeMat3(
                 _mm_blend_ps(
                     _mm_shuffle_ps(v.array_sse, v.array_sse, _MM_SHUFFLE(1, 0, 1, 0)),
@@ -521,6 +549,7 @@ namespace MathCore
                     _mm_shuffle_ps(v.array_sse, v.array_sse, _MM_SHUFFLE(3, 2, 3, 2)),
                     _vec4_zero_sse, 0xC),
                 _vec4_0010_sse);
+#endif
 #elif defined(ITK_NEON)
             return typeMat3(
                 (float32x4_t){v.a1, v.a2, 0, 0},

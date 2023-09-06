@@ -546,7 +546,11 @@ namespace MathCore
             __m128 param = v.array_sse;
 
             //const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
+#if defined(ITK_SSE_SKIP_SSE41)
+            _mm_f32_(param,3) = 1.0f;
+#else
             param = _mm_blend_ps(param, _vec4_one_sse, 0x8);
+#endif
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)

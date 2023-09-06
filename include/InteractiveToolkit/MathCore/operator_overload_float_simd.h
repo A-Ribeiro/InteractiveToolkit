@@ -418,7 +418,11 @@ namespace MathCore
         quat<_type, _simd> result;
         result.array_sse = _mm_and_ps(v.array_sse, _vec3_valid_bits_sse);
         result = a ^ result ^ OP<quat<_type, _simd>>::conjugate(a);
+#if defined(ITK_SSE_SKIP_SSE41)
+        _mm_f32_(result.array_sse, 3) = _mm_f32_(v.array_sse, 3);
+#else
         result.array_sse = _mm_blend_ps(result.array_sse, v.array_sse, 0x8);
+#endif
         return result.array_sse;
 #elif defined(ITK_NEON)
         quat<_type, _simd> result(v.array_neon);
@@ -476,7 +480,11 @@ namespace MathCore
         quat<_type, _simd> result;
         result.array_sse = _mm_and_ps(v.array_sse, _vec3_valid_bits_sse);
         result = OP<quat<_type, _simd>>::conjugate(a) ^ result ^ a;
+#if defined(ITK_SSE_SKIP_SSE41)
+        _mm_f32_(result.array_sse, 3) = _mm_f32_(v.array_sse, 3);
+#else
         result.array_sse = _mm_blend_ps(result.array_sse, v.array_sse, 0x8);
+#endif
         return result.array_sse;
 #elif defined(ITK_NEON)
         quat<_type, _simd> result(v.array_neon);
