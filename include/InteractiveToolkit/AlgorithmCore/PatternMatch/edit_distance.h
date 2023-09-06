@@ -35,13 +35,27 @@ namespace AlgorithmCore
 #endif
 		}
 
-		static ITK_INLINE int32_t edit_distance(const char* s, const char* t)
+		static ITK_INLINE int32_t edit_distance(const char* _s, const char* _t)
 		{
+			const char* s = _s;
+			const char* t = _t;
+
 			int32_t s_len = (int32_t)strlen(s);
 			int32_t t_len = (int32_t)strlen(t);
 
-			if (s_len < t_len)
-				return edit_distance(t, s);
+			if (s_len < t_len){
+				//return edit_distance(t, s);
+				//swap input...
+
+				const char* aux = s;
+				s = t;
+				t = aux;
+
+				int32_t aux_len = s_len;
+				s_len = t_len;
+				t_len = aux_len;
+			}
+				
 
 			int32_t result = 0;
 			if (strcmp(s, t) == 0)
