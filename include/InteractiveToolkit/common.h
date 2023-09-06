@@ -170,8 +170,29 @@ static inline __m128 _sse2_mm_floor_ps(const __m128 &f)
 // ceiling(fp) = -floor(-fp)
 static inline __m128 _sse2_mm_ceil_ps(const __m128 &f)
 {
+    //const __m128 _sign_bit = _mm_set1_ps(-0.f);
+    //__m128 r = _mm_xor_ps(_sse2_mm_floor_ps(_mm_xor_ps(f, _sign_bit)), _sign_bit);
+    //return r;
+
+    // r = (float)(int)f;
+    __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+
+    // if (f < r) r -= 1;
+    const __m128 _one = _mm_set1_ps(-1.f);
+    r = _mm_sub_ps(r, _mm_and_ps(_mm_cmpgt_ps(f, r), _one));
+
+    // two possible values:
+    // - 8388608.f (23bits)
+    // - 2147483648.f (31bits)
+    // Any value greater than this, will have integral mantissa... 
+    // and no decimal part
+    //
+    // if ((abs(f) > 2**31 )) r = f;
     const __m128 _sign_bit = _mm_set1_ps(-0.f);
-    __m128 r = _mm_xor_ps(_sse2_mm_floor_ps(_mm_xor_ps(f, _sign_bit)), _sign_bit);
+    const __m128 _max_f = _mm_set1_ps(8388608.f);
+    __m128 m = _mm_cmpgt_ps(_max_f, _mm_andnot_ps(_sign_bit, f));
+    r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, f));
+
     return r;
 }
 

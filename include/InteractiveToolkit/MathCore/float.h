@@ -517,7 +517,7 @@ namespace MathCore
             y = y * (0.5f * (3.0f - (x * y) * y));
             return y;
 #elif defined(ITK_NEON) && defined(__aarch64__) // arm64
-            //const float32_t &x = v_;
+            // const float32_t &x = v_;
             float32_t y = vrsqrtes_f32(x);
             // from arm documentation
             // The Newton-Raphson iteration:
@@ -575,12 +575,12 @@ namespace MathCore
             // y = y * (0.703952253f * (2.38924456f - (x * y) * y)); // 1st iteration, low precision
             // y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
 
-            // Parameters Optimized By Alessandro 
+            // Parameters Optimized By Alessandro
             float y = x;
             uint32_t &i = *(uint32_t *)&y;
             i = 0x5F1FFFF9 - (i >> 1);
             y = y * (0.7005444765090942f * (2.396728873252868f - (x * y) * y)); // 1st iteration, first estimative
-            y = y * (0.5f * (3.0f - (x * y) * y));                // 2nd iteration
+            y = y * (0.5f * (3.0f - (x * y) * y));                              // 2nd iteration
 
             return y;
         }
@@ -607,15 +607,15 @@ namespace MathCore
         static ITK_INLINE double rsqrt(const double &x) noexcept
         {
 
-            // Parameters Optimized By Alessandro 
+            // Parameters Optimized By Alessandro
             const double _3_div_2 = 1.5;
             double x_div_2 = x * 0.5;
             double y = x;
             uint64_t &i = *(uint64_t *)&y;
             i = 0x5FE3FFFFFFFFFFF9 - (i >> 1);
             y = y * (0.749755859375 * (2.2899169921875 - (x * y) * y)); // 1st iteration, first estimative
-            y = y * (_3_div_2 - (x_div_2 * y) * y);                        // 2nd iteration
-            y = y * (_3_div_2 - (x_div_2 * y) * y);                        // 3nd iteration
+            y = y * (_3_div_2 - (x_div_2 * y) * y);                     // 2nd iteration
+            y = y * (_3_div_2 - (x_div_2 * y) * y);                     // 3nd iteration
 
             return y;
         }
@@ -658,15 +658,33 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float floor(const float &v) noexcept
         {
-#if defined(ITK_SSE2)
-#if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_sse2_mm_floor_ps(_mm_set_ss(v)),0);
+#if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
+    return _mm_f32_(_mm_floor_ps(_mm_set_ss(v)), 0);
 #else
-            return _mm_f32_(_mm_floor_ps(_mm_set_ss(v)),0);
-#endif
-//#elif defined(ITK_NEON)
-#else
-            return ::floorf(v);
+            float f_sign = OP<float>::sign(v);
+            float r = (float)(int)v;
+
+            // if (f < r) r -= 1;
+            float _one = 1.f;
+            uint32_t &_one_uint = *(uint32_t *)&_one;
+            uint32_t mask = -(int)(v < r);
+            _one_uint = _one_uint & mask;
+            r = r - _one;
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            // if ((abs(f) > 2**31 )) r = f;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
+            mask = -(int)(8388608.f > (v * f_sign));
+            r_uint = (r_uint & mask) | (f_uint & ~mask);
+
+            return r;
+            //return ::floorf(v);
 #endif
         }
         template <class _Type = _type,
@@ -682,15 +700,38 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float ceil(const float &v) noexcept
         {
-#if defined(ITK_SSE2)
-#if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_sse2_mm_ceil_ps(_mm_set_ss(v)),0);
+#if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
+            return _mm_f32_(_mm_ceil_ps(_mm_set_ss(v)), 0);
 #else
-            return _mm_f32_(_mm_ceil_ps(_mm_set_ss(v)),0);
-#endif
-//#elif defined(ITK_NEON)
-#else
-            return ::ceilf(v);
+            // floor(-fp) = -ceiling(fp)
+            // ceiling(fp) = -floor(-fp)
+            //return -OP<float>::floor(-v);
+
+            float f_sign = OP<float>::sign(v);
+            float r = (float)(int)v;
+
+            // if (f < r) r -= 1;
+            float _one = -1.f;
+            uint32_t &_one_uint = *(uint32_t *)&_one;
+            uint32_t mask = -(int)(v > r);
+            _one_uint = _one_uint & mask;
+            r = r - _one;
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            // if ((abs(f) > 2**31 )) r = f;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
+            mask = -(int)(8388608.f > (v * f_sign));
+            r_uint = (r_uint & mask) | (f_uint & ~mask);
+
+            return r;
+
+            //return ::ceilf(v);
 #endif
         }
         template <class _Type = _type,
@@ -706,15 +747,29 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float round(const float &v) noexcept
         {
-#if defined(ITK_SSE2)
-#if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_sse2_mm_round_ps(_mm_set_ss(v)),0);
+#if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
+            return _mm_f32_(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC), 0);
 #else
-            return _mm_f32_(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC),0);
-#endif
-//#elif defined(ITK_NEON)
-#else
-            return ::roundf(v);
+            float f_sign = OP<float>::sign(v);
+            float _half_signed = f_sign * .5f;
+            float f = v + _half_signed;
+
+            float r = (float)(int)f;
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            // if ((abs(f) > 2**31 )) r = f;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
+            uint32_t mask = -(int)(8388608.f > (v * f_sign));
+            r_uint = (r_uint & mask) | (f_uint & ~mask);
+
+            return r;
+            //return ::roundf(v);
 #endif
         }
         template <class _Type = _type,
@@ -835,7 +890,22 @@ namespace MathCore
                       std::is_same<_Type, float>::value, bool>::type = true>
         static ITK_INLINE float fmod(const float &a, const float &b) noexcept
         {
-            return ::fmodf(a, b);
+            float f = (a / b);
+            float r = (float)(int)f;
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            uint32_t &r_uint = *(uint32_t *)&r;
+            uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
+            r_uint = r_uint & mask;
+
+            return a - r * b;
+
+            //return ::fmodf(a, b);
         }
         template <class _Type = _type,
                   typename std::enable_if<
