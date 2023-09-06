@@ -295,6 +295,50 @@ namespace MathCore
 #endif
         }
 
+        static ITK_INLINE typeMat2 fmod(const typeMat2 &a, const typeMat2 &b) noexcept
+        {
+#if defined(ITK_SSE2)
+
+            //float f = (a / b);
+            __m128 f = _mm_div_ps(a.array_sse, b.array_sse);
+
+            //float r = (float)(int)f;
+            __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            //uint32_t &r_uint = *(uint32_t *)&r;
+            //uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
+            //r_uint = r_uint & mask;
+            
+            // if ((abs(f) > 2**31 )) r = f;
+            const __m128 _sign_bit = _mm_set1_ps(-0.f);
+            const __m128 _max_f = _mm_set1_ps(8388608.f);
+            __m128 m = _mm_cmpgt_ps(_max_f, _mm_andnot_ps(_sign_bit, f));
+            r = _mm_and_ps(m, r);
+
+            //return a - r * b;
+            __m128 result = _mm_mul_ps(r, b.array_sse);
+
+            result = _mm_sub_ps(a.array_sse, result);
+            return result;
+
+#elif defined(ITK_NEON)
+            return (float32x4_t){
+                OP<_type>::fmod(a.array_neon[0], b.array_neon[0]),
+                OP<_type>::fmod(a.array_neon[1], b.array_neon[1]),
+                OP<_type>::fmod(a.array_neon[2], b.array_neon[2]),
+                OP<_type>::fmod(a.array_neon[3], b.array_neon[3])
+            };
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         static ITK_INLINE typeMat2 step(const typeMat2 &threshould, const typeMat2 &v) noexcept
         {
 #if defined(ITK_SSE2)

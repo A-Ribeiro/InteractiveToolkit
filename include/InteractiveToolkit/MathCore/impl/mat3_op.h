@@ -240,6 +240,14 @@ namespace MathCore
                 OP<type3>::round(m[2]));
         }
 
+        static ITK_INLINE typeMat3 fmod(const typeMat3 &a, const typeMat3 &b) noexcept
+        {
+            return typeMat3(
+                OP<type3>::fmod(a[0], b[0]),
+                OP<type3>::fmod(a[1], b[1]),
+                OP<type3>::fmod(a[2], b[2]));
+        }
+
         static ITK_INLINE typeMat3 step(const typeMat3 &threshould, const typeMat3 &v) noexcept
         {
             return typeMat3(

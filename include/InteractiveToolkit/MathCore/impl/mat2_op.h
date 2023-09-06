@@ -179,6 +179,13 @@ namespace MathCore
                 OP<type2>::round(m[1]));
         }
 
+        static ITK_INLINE typeMat2 fmod(const typeMat2 &a, const typeMat2 &b) noexcept
+        {
+            return typeMat2(
+                OP<type2>::fmod(a[0], b[0]),
+                OP<type2>::fmod(a[1], b[1]));
+        }
+
         static ITK_INLINE typeMat2 step(const typeMat2 &threshould, const typeMat2 &v) noexcept
         {
             return typeMat2(
