@@ -65,6 +65,7 @@ macro(configure_build_flags projectname inputfile outputfile)
     set(configure_LINK_LIBRARIES "") # generate opts.cmake
     set(configure_LINK_OPTIONS "") # generate opts.cmake
     set(configure_INCLUDE_DIRECTORIES "") # generate opts.cmake
+    set(configure_LIB_CMAKE_FLAGS "") # generate opts.cmake
 
     set(target_COMPILE_DEFINITIONS)
     set(target_COMPILE_OPTIONS)
@@ -154,6 +155,16 @@ macro(configure_build_flags projectname inputfile outputfile)
         set(configure_INCLUDE_DIRECTORIES "${configure_INCLUDE_DIRECTORIES}    list(APPEND INTERACTIVETOOLKIT_INCLUDE_DIRS \"${var}\")\n")
     endforeach()
 
+    #
+    # CMAKE LIB_FLAGS
+    #
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_RPI ${ITK_RPI})\n")
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_NEON ${ITK_NEON})\n")
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_OPENMP ${ITK_OPENMP})\n")
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_SSE2 ${ITK_SSE2})\n")
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_SSE_SKIP_SSE41 ${ITK_SSE_SKIP_SSE41})\n")
+    set(configure_LIB_CMAKE_FLAGS "${configure_LIB_CMAKE_FLAGS}    set(ITK_FORCE_USE_RSQRT_CARMACK ${ITK_FORCE_USE_RSQRT_CARMACK})\n")
+    
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/${inputfile}"
         "${CMAKE_CURRENT_SOURCE_DIR}/${outputfile}"

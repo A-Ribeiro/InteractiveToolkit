@@ -1,6 +1,11 @@
+include(${CMAKE_CURRENT_LIST_DIR}/opts.cmake)
 
 if(ANDROID_ABI MATCHES "x86_64" OR ANDROID_ABI MATCHES "x86")
+if (ITK_SSE_SKIP_SSE41)
+        target_compile_options(${PROJECT_NAME} PUBLIC -mmmx -msse -msse2 -msse3 -mfpmath=sse -minline-all-stringops -finline-functions)
+else()
         target_compile_options(${PROJECT_NAME} PUBLIC -mmmx -msse -msse2 -msse3 -msse4.1 -mfpmath=sse -minline-all-stringops -finline-functions)
+endif()
 elseif(ANDROID_ABI MATCHES "arm64-v8a" OR ANDROID_ABI MATCHES "armeabi-v7a")
         target_compile_options(${PROJECT_NAME} PUBLIC -mfpu=neon -finline-functions)
 endif()
