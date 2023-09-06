@@ -1144,6 +1144,15 @@ namespace MathCore
                 OP<_type>::round(v.x),
                 OP<_type>::round(v.y));
         }
+        
+        /// \brief fmod each component.
+        ///
+        static ITK_INLINE type2 fmod(const type2 &a, const type2 &b) noexcept
+        {
+            return type2(
+                OP<_type>::fmod(a.x, b.x),
+                OP<_type>::fmod(a.y, b.y));
+        }
 
         /// \brief Step function on each component. ( v >= threshould ) ? 1 : 0
         ///

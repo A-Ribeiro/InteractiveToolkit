@@ -1352,6 +1352,50 @@ namespace MathCore
 #endif
         }
 
+        /// \brief fmod each component.
+        ///
+        static ITK_INLINE type3 fmod(const type3 &a, const type3 &b) noexcept
+        {
+#if defined(ITK_SSE2)
+
+            //float f = (a / b);
+            __m128 f = _mm_div_ps(a.array_sse, b.array_sse);
+
+            //float r = (float)(int)f;
+            __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            //uint32_t &r_uint = *(uint32_t *)&r;
+            //uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
+            //r_uint = r_uint & mask;
+            
+            // if ((abs(f) > 2**31 )) r = f;
+            const __m128 _sign_bit = _mm_set1_ps(-0.f);
+            const __m128 _max_f = _mm_set1_ps(8388608.f);
+            __m128 m = _mm_cmpgt_ps(_max_f, _mm_andnot_ps(_sign_bit, f));
+            r = _mm_and_ps(m, r);
+
+            //return a - r * b;
+            __m128 result = _mm_mul_ps(r, b.array_sse);
+
+            result = _mm_sub_ps(a.array_sse, result);
+            return result;
+            
+#elif defined(ITK_NEON)
+            return type3(
+                OP<_type>::fmod(a.x, b.x),
+                OP<_type>::fmod(a.y, b.y),
+                OP<_type>::fmod(a.z, b.z));
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         /// \brief Step function on each component. ( v >= threshould ) ? 1 : 0
         ///
         static ITK_INLINE type3 step(const type3 &threshould, const type3 &v) noexcept
