@@ -238,7 +238,11 @@ namespace MathCore
         static ITK_INLINE typeMat2 floor(const typeMat2 &m) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _sse2_mm_floor_ps(m.array_sse);
+#else
             return _mm_floor_ps(m.array_sse);
+#endif
 #elif defined(ITK_NEON)
             return (float32x4_t){
                 OP<_type>::floor(m.array_neon[0]),
@@ -254,7 +258,11 @@ namespace MathCore
         static ITK_INLINE typeMat2 ceil(const typeMat2 &m) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _sse2_mm_ceil_ps(m.array_sse);
+#else
             return _mm_ceil_ps(m.array_sse);
+#endif
 #elif defined(ITK_NEON)
             return (float32x4_t){
                 OP<_type>::ceil(m.array_neon[0]),
@@ -270,7 +278,11 @@ namespace MathCore
         static ITK_INLINE typeMat2 round(const typeMat2 &m) noexcept
         {
 #if defined(ITK_SSE2)
+#if defined(ITK_SSE_SKIP_SSE41)
+            return _sse2_mm_round_ps(m.array_sse);
+#else
             return _mm_round_ps(m.array_sse, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+#endif
 #elif defined(ITK_NEON)
             return (float32x4_t){
                 OP<_type>::round(m.array_neon[0]),
