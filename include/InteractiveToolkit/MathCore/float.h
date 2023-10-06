@@ -622,9 +622,11 @@ namespace MathCore
 
         static ITK_INLINE _type step(const _type &threshould, const _type &v) noexcept
         {
-            _type _sub = v - threshould;
-            _type _sign = self_type::sign(_sub);
-            _sign = self_type::maximum(_sign, (_type)0);
+            //_type _sub = v - threshould;
+            //_type _sign = self_type::sign(_sub);
+            //_sign = self_type::maximum(_sign, (_type)0);
+            //_type _sign = (_type)(_sub >= (_type)0);
+            _type _sign = (_type)(v >= threshould);
             return _sign;
         }
 

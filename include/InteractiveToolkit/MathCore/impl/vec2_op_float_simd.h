@@ -1341,9 +1341,12 @@ namespace MathCore
         static ITK_INLINE type2 step(const type2 &threshould, const type2 &v) noexcept
         {
 #if defined(ITK_SSE2)
-            type2 _sub = v - threshould;
-            type2 _sign = self_type::sign(_sub);
-            return self_type::maximum(_sign, _vec4_zero_sse);
+            __m128 _cmp =  _mm_cmpge_ps( v.array_sse, threshould.array_sse );
+            __m128 _rc = _mm_and_ps(_cmp, _vec2_one_sse);
+            return _rc;
+            // type2 _sub = v - threshould;
+            // type2 _sign = self_type::sign(_sub);
+            // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
             type2 _sub = v - threshould;
             type2 _sign = self_type::sign(_sub);

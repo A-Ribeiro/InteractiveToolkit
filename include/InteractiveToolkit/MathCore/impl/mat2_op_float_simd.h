@@ -342,13 +342,17 @@ namespace MathCore
         static ITK_INLINE typeMat2 step(const typeMat2 &threshould, const typeMat2 &v) noexcept
         {
 #if defined(ITK_SSE2)
-            type4 _sub = v - threshould;
-            type4 _sign = type4::sign(_sub);
-            return type4::maximum(_sign, _vec4_zero_sse).array_sse;
+            __m128 _cmp =  _mm_cmpge_ps( v.array_sse, threshould.array_sse );
+            __m128 _rc = _mm_and_ps(_cmp, _vec4_one_sse);
+            return _rc;
+
+            // typeMat2 _sub = v - threshould;
+            // typeMat2 _sign = self_type::sign(_sub);
+            // return self_type::maximum(_sign, _vec4_zero_sse).array_sse;
 #elif defined(ITK_NEON)
-            type4 _sub = v - threshould;
-            type4 _sign = type4::sign(_sub);
-            return type4::maximum(_sign, _vec4_zero).array_neon;
+            typeMat2 _sub = v - threshould;
+            typeMat2 _sign = self_type::sign(_sub);
+            return self_type::maximum(_sign, _vec4_zero).array_neon;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

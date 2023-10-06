@@ -1395,9 +1395,13 @@ namespace MathCore
         static ITK_INLINE type4 step(const type4 &threshould, const type4 &v) noexcept
         {
 #if defined(ITK_SSE2)
-            type4 _sub = v - threshould;
-            type4 _sign = self_type::sign(_sub);
-            return self_type::maximum(_sign, _vec4_zero_sse);
+            __m128 _cmp =  _mm_cmpge_ps( v.array_sse, threshould.array_sse );
+            __m128 _rc = _mm_and_ps(_cmp, _vec4_one_sse);
+            return _rc;
+
+            // type4 _sub = v - threshould;
+            // type4 _sign = self_type::sign(_sub);
+            // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
             type4 _sub = v - threshould;
             type4 _sign = self_type::sign(_sub);
