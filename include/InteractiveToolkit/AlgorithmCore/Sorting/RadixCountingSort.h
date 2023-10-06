@@ -703,7 +703,7 @@ namespace AlgorithmCore
                         uint32_t index_0 = (currItem)&0xff;
                         uint32_t index_1 = (currItem >> 8) & 0xff;
                         uint32_t index_2 = (currItem >> 16) & 0xff;
-                        uint32_t index_3 = ((currItem >> 24) + _minus_128) & 0xff;
+                        uint32_t index_3 = ((currItem >> 24) ^ _minus_128) & 0xff;
 
                         _mm_u32_(counting[index_0], 0)++;
                         _mm_u32_(counting[index_1], 1)++;
@@ -795,7 +795,7 @@ namespace AlgorithmCore
                         for (uint32_t j = 0; j < arrSize; j++)
                         {
                             int32_t currItem = in[j];
-                            uint32_t bucket_index = ((((int32_t)currItem >> 24) + _minus_128) & 0xff);
+                            uint32_t bucket_index = ((((int32_t)currItem >> 24) ^ _minus_128) & 0xff);
 
                             uint32_t out_index = _mm_u32_(counting[bucket_index], 3);
 
@@ -845,7 +845,7 @@ namespace AlgorithmCore
                         counting[(currItem)&0xff][0]++;
                         counting[(currItem >> 8) & 0xff][1]++;
                         counting[(currItem >> 16) & 0xff][2]++;
-                        counting[((currItem >> 24) + _minus_128) & 0xff][3]++;
+                        counting[((currItem >> 24) ^ _minus_128) & 0xff][3]++;
                     }
 
                     // compute offsets
@@ -937,7 +937,7 @@ namespace AlgorithmCore
                         for (uint32_t j = 0; j < arrSize; j++)
                         {
                             int32_t currItem = in[j];
-                            uint32_t bucket_index = ((((uint32_t)currItem >> 24) + _minus_128) & 0xff);
+                            uint32_t bucket_index = ((((uint32_t)currItem >> 24) ^ _minus_128) & 0xff);
                             uint32_t out_index = counting[bucket_index][3];
                             counting[bucket_index][3]++;
                             out[out_index] = currItem;
@@ -995,7 +995,7 @@ namespace AlgorithmCore
                         uint32_t index_0 = (currItem)&0xff;
                         uint32_t index_1 = (currItem >> 8) & 0xff;
                         uint32_t index_2 = (currItem >> 16) & 0xff;
-                        uint32_t index_3 = ((currItem >> 24) + _minus_128) & 0xff;
+                        uint32_t index_3 = ((currItem >> 24) ^ _minus_128) & 0xff;
 
                         _mm_u32_(counting[index_0], 0)++;
                         _mm_u32_(counting[index_1], 1)++;
@@ -1087,7 +1087,7 @@ namespace AlgorithmCore
                         for (uint32_t j = 0; j < arrSize; j++)
                         {
                             const sortIndexType &currItem = in[j];
-                            uint32_t bucket_index = ((((int32_t)currItem.toSort >> 24) + _minus_128) & 0xff);
+                            uint32_t bucket_index = ((((int32_t)currItem.toSort >> 24) ^ _minus_128) & 0xff);
 
                             uint32_t out_index = _mm_u32_(counting[bucket_index], 3);
 
@@ -1137,7 +1137,7 @@ namespace AlgorithmCore
                         counting[(currItem)&0xff][0]++;
                         counting[(currItem >> 8) & 0xff][1]++;
                         counting[(currItem >> 16) & 0xff][2]++;
-                        counting[((currItem >> 24) + _minus_128) & 0xff][3]++;
+                        counting[((currItem >> 24) ^ _minus_128) & 0xff][3]++;
                     }
 
                     // compute offsets
@@ -1229,7 +1229,7 @@ namespace AlgorithmCore
                         for (uint32_t j = 0; j < arrSize; j++)
                         {
                             const sortIndexType &currItem = in[j];
-                            uint32_t bucket_index = ((((uint32_t)currItem.toSort >> 24) + _minus_128) & 0xff);
+                            uint32_t bucket_index = ((((uint32_t)currItem.toSort >> 24) ^ _minus_128) & 0xff);
                             uint32_t out_index = counting[bucket_index][3];
                             counting[bucket_index][3]++;
                             out[out_index] = currItem;
