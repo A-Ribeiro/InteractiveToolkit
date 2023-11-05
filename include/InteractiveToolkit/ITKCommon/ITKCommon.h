@@ -4,7 +4,7 @@
 #include "Path.h"
 #include "Memory.h"
 #include "Random.h"
-#include "Semaphore.h"
+#include "STLSemaphore.h"
 #include "Matrix.h"
 #include "StringUtil.h"
 #include "x86CPUInfo.h"

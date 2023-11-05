@@ -368,7 +368,7 @@ namespace EventCore
 			// struct_._std_function_functor = nullptr;
 
 			// object
-			struct_._ptr_instance = static_cast<_BaseClassType *>(instance);
+			struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 			struct_._ptr_class_member = (ptr_class_member)class_member;
 			// struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
@@ -443,7 +443,7 @@ namespace EventCore
 			struct_._std_function_functor = nullptr;
 
 			// object
-			struct_._ptr_instance = static_cast<_BaseClassType *>(instance);
+			struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 			struct_._ptr_class_member = (ptr_class_member)class_member;
 			// struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 

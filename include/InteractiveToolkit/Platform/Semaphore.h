@@ -1,0 +1,236 @@
+#pragma once
+
+#include "platform_common.h"
+#include "Thread.h"
+#include "Sleep.h"
+
+namespace Platform
+{
+
+    class Semaphore {
+        
+    #if defined(_WIN32)
+        HANDLE semaphore;
+    #elif defined(__linux__) 
+        sem_t semaphore;
+    #elif defined(__APPLE__)
+        fake_sem_t semaphore;
+    #endif
+
+        //private copy constructores, to avoid copy...
+        Semaphore(const Semaphore& v){}
+        void operator=(const Semaphore& v){}
+
+    public:
+        Semaphore(int count) {
+            //signaled = false;
+    #if defined(_WIN32)
+            semaphore = CreateSemaphore( 
+                NULL,           // default security attributes
+                count,  // initial count
+                LONG_MAX,//count,  // maximum count
+                NULL            // unnamed semaphore
+            );
+            ITK_ABORT(semaphore == NULL, "CreateSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+    #elif defined(__linux__)
+            sem_init(&semaphore, 0, count);// 0 means is a semaphore bound to threads
+    #elif defined(__APPLE__)
+            fake_sem_init(&semaphore, 0, count);
+    #endif
+        }
+        virtual ~Semaphore(){
+    #if defined(_WIN32)
+            if (semaphore != NULL)
+                CloseHandle(semaphore);
+            semaphore = NULL;
+    #elif defined(__linux__)
+            sem_destroy(&semaphore);
+    #elif defined(__APPLE__)
+            fake_sem_destroy(&semaphore);
+    #endif
+        }
+
+        bool tryToAcquire(uint32_t timeout_ms = 0) {
+            Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
+
+#if defined(__linux__) || defined(__APPLE__)
+            currentThread->semaphoreLock();
+#endif
+
+            if (isSignaled()) {
+#if defined(__linux__) || defined(__APPLE__)
+                currentThread->semaphoreUnLock();
+#endif
+                return false;
+            }
+
+    #if defined(_WIN32)
+
+
+            DWORD dwWaitResult;
+
+            //dwWaitResult = WaitForSingleObject( semaphore, (DWORD)timeout_ms );
+            //signaled = signaled || dwWaitResult == WAIT_FAILED;
+
+            HANDLE handles_threadInterrupt_sem[2] = {
+                semaphore, // WAIT_OBJECT_0 + 0
+                currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
+            };
+
+            dwWaitResult = WaitForMultipleObjects(
+                2,   // number of handles in array
+                handles_threadInterrupt_sem,     // array of thread handles
+                FALSE,          // wait until all are signaled
+                (DWORD)timeout_ms //INFINITE
+            );
+
+            // true if the interrupt is signaled (and only the interrupt...)
+            if (dwWaitResult == WAIT_OBJECT_0 + 1) {
+                //signaled = true;
+                return false;
+            }
+
+            // true if the semaphore is signaled (might have the interrupt or not...)
+            return dwWaitResult == WAIT_OBJECT_0 + 0;
+    #elif defined(__linux__)
+            if (timeout_ms == 0) {
+                currentThread->semaphoreUnLock();
+                return sem_trywait(&semaphore) == 0;
+            }
+
+            struct timespec ts;
+            if (clock_gettime(CLOCK_REALTIME, &ts)) {
+                currentThread->semaphoreUnLock();
+                ITK_ABORT(true, "clock_gettime error\n");
+            }
+
+            struct timespec ts_increment;
+            ts_increment.tv_sec = timeout_ms / 1000;
+            ts_increment.tv_nsec = ((long)timeout_ms % 1000L) * 1000000L;
+
+            ts.tv_nsec += ts_increment.tv_nsec;
+            ts.tv_sec += ts.tv_nsec / 1000000000L;
+            ts.tv_nsec = ts.tv_nsec % 1000000000L;
+
+            ts.tv_sec += ts_increment.tv_sec;
+
+            currentThread->semaphoreWaitBegin(&semaphore);
+            currentThread->semaphoreUnLock();
+            int s = sem_timedwait(&semaphore, &ts);
+            currentThread->semaphoreWaitDone(&semaphore);
+
+            // currentThread->isCurrentThreadInterrupted() || 
+            if ( (s == -1 && errno != ETIMEDOUT) ) {
+                //interrupt signaled
+                //signaled = true;
+                return false;
+            }
+
+            return s == 0;
+    #elif defined(__APPLE__)
+            if (timeout_ms == 0) {
+                currentThread->semaphoreUnLock();
+                return fake_sem_trywait(&semaphore) == 0;
+            }
+
+            struct timespec ts;
+            if (clock_gettime(CLOCK_REALTIME, &ts)) {
+                currentThread->semaphoreUnLock();
+                ITK_ABORT(true, "clock_gettime error\n");
+            }
+
+            struct timespec ts_increment;
+            ts_increment.tv_sec = timeout_ms / 1000;
+            ts_increment.tv_nsec = ((long)timeout_ms % 1000L) * 1000000L;
+
+            ts.tv_nsec += ts_increment.tv_nsec;
+            ts.tv_sec += ts.tv_nsec / 1000000000L;
+            ts.tv_nsec = ts.tv_nsec % 1000000000L;
+
+            ts.tv_sec += ts_increment.tv_sec;
+
+            currentThread->semaphoreWaitBegin(NULL);
+            currentThread->semaphoreUnLock();
+            int s = fake_sem_timedwait(&semaphore, &ts);
+            currentThread->semaphoreWaitDone(NULL);
+
+            // currentThread->isCurrentThreadInterrupted() || 
+            if ( (s == -1 && errno != ETIMEDOUT) ) {
+                //interrupt signaled
+                //signaled = true;
+                return false;
+            }
+
+            return s == 0;
+    #endif
+        }
+
+        bool blockingAcquire() {
+#if defined(_WIN32)
+            bool signaled = isSignaled();
+            while (!signaled && !tryToAcquire(UINT32_MAX)) {
+                signaled = isSignaled();
+            }
+            return !signaled;
+
+#elif defined(__linux__)
+
+            Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
+
+            currentThread->semaphoreLock();
+            
+            bool signaled = isSignaled();
+
+            if (signaled) {
+                currentThread->semaphoreUnLock();
+            }
+            else {
+                currentThread->semaphoreWaitBegin(&semaphore);
+                currentThread->semaphoreUnLock();
+                signaled = signaled || (sem_wait(&semaphore) != 0);
+                currentThread->semaphoreWaitDone(&semaphore);
+            }
+
+            return !signaled;
+
+#elif defined(__APPLE__)
+            Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
+
+            currentThread->semaphoreLock();
+            
+            bool signaled = isSignaled();
+
+            if (signaled) {
+                currentThread->semaphoreUnLock();
+            }
+            else {
+                currentThread->semaphoreWaitBegin(NULL);
+                currentThread->semaphoreUnLock();
+                signaled = signaled || (fake_sem_wait(&semaphore) != 0);
+                currentThread->semaphoreWaitDone(NULL);
+            }
+
+            return !signaled;
+#endif
+        }
+
+        void release() {
+    #if defined(_WIN32)
+            BOOL result = ReleaseSemaphore( semaphore, 1, NULL );
+            ITK_ABORT(!result, "ReleaseSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+    #elif defined(__linux__)
+            sem_post(&semaphore);
+    #elif defined(__APPLE__)
+            fake_sem_post(&semaphore);
+    #endif
+        }
+
+        // only check if this queue is signaled for the current thread... 
+        // it may be active in another thread...
+        bool isSignaled() const {
+            return Platform::Thread::isCurrentThreadInterrupted();
+        }
+
+    };
+
+}

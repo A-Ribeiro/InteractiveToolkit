@@ -271,7 +271,7 @@ namespace EventCore
 			//_std_function_functor = nullptr;
 
 			// object
-			_ptr_instance = static_cast<_BaseClassType *>(instance);
+			_ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 			_ptr_class_member = (ptr_class_member)class_member;
 			//_std_function_class_member = _ptr_class_member;//std_function_class_member(_ptr_class_member);
 
