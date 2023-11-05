@@ -82,12 +82,12 @@ namespace Platform
         if (result)
             return result;
         xresult = 0;
-        while (!PlatformThread::isCurrentThreadInterrupted() && pxsem->count == 0) {
+        while (!Platform::Thread::isCurrentThreadInterrupted() && pxsem->count == 0) {
             xresult = pthread_cond_wait(&pxsem->cond_var, &pxsem->mutex);
             if (xresult) // any error...
                 break;
         }
-        if (PlatformThread::isCurrentThreadInterrupted())
+        if (Platform::Thread::isCurrentThreadInterrupted())
             xresult = EINTR;
         if (!xresult && pxsem->count > 0)
             pxsem->count--;
@@ -131,12 +131,12 @@ namespace Platform
         if (result)
             return result;
         xresult = 0;
-        while (!PlatformThread::isCurrentThreadInterrupted() && pxsem->count == 0) {
+        while (!Platform::Thread::isCurrentThreadInterrupted() && pxsem->count == 0) {
             xresult = pthread_cond_timedwait(&pxsem->cond_var, &pxsem->mutex, abstim);
             if (xresult) //ETIMEDOUT or any other error...
                 break;
         }
-        if (PlatformThread::isCurrentThreadInterrupted())
+        if (Platform::Thread::isCurrentThreadInterrupted())
             xresult = EINTR;
         if (!xresult && pxsem->count > 0)
             pxsem->count--;
