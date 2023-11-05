@@ -16,17 +16,14 @@ namespace Platform
         // grab all semaphores
         semaphore.acquireCount(threadData.size());
 
+        Thread *result = nullptr;
         if (threadData.size() > 0)
         {
             it = threadData.find(tid);
             if (it != threadData.end())
             {
-                Thread *result = it->second;
+                result = it->second;
                 threadData.erase(it);
-
-                // template grants the
-                // hability to set this variable
-                result->exited = true;
             }
         }
 
@@ -34,6 +31,10 @@ namespace Platform
         semaphore.releaseCount(threadData.size());
 
         register_mutex.unlock();
+
+        // mark thread exited
+        if (result != nullptr)
+            result->exited = true;
     }
 
 }

@@ -27,6 +27,8 @@
 #include <wchar.h>  // wprintf
 #include <cctype>   // tolower
 
+#include <list>
+
 #if _MSC_VER
 #define ITK_INLINE __forceinline
 #else
@@ -50,10 +52,25 @@
 
 #include <direct.h>
 
+#include <mmsystem.h>
+#include <Shlwapi.h>
+#include <Iphlpapi.h>
+#include <tchar.h>
+#include <locale.h>
+
 #elif defined(__APPLE__) || defined(__linux__)
 
 #include <sys/errno.h>
 #include <unistd.h>
+
+#include <sys/types.h>
+#include <pwd.h>
+
+#include <sys/time.h>
+#include <time.h>
+
+#include <sys/stat.h>
+#include <dirent.h>
 
 #define ITK_SYS_ALIGNED_ALLOC(alignment, size) (::aligned_alloc)(alignment, size)
 #define ITK_SYS_ALIGNED_FREE(data) (::free)(data)

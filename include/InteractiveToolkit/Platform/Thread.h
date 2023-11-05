@@ -294,6 +294,8 @@ namespace Platform
 
                 // OnAbortBeforeExit = _thread_at_exit;
                 mainThread.name = "Main Thread";
+
+                ThreadDataSet::Instance()->registerThread(&mainThread);
             }
             return &mainThread;
         }

@@ -66,9 +66,9 @@
     //#include <errno.h>
 
     // Time
-    #include <unistd.h>
-    #include <sys/time.h>
-    #include <time.h>
+    //#include <unistd.h>
+    //#include <sys/time.h>
+    //#include <time.h>
 
     //#include <stdint.h> // uint64_t on iPhone
     #include <mach/mach_time.h>
@@ -87,7 +87,7 @@
     // Thread
     #include <sys/syscall.h>
     #include <sys/sysctl.h>
-    #include <sys/types.h>
+    //#include <sys/types.h>
 
 #elif defined(__linux__)
 
@@ -96,9 +96,9 @@
     //#include <errno.h>
 
     // Time
-    #include <unistd.h>
-    #include <sys/time.h>
-    #include <time.h>
+    //#include <unistd.h>
+    //#include <sys/time.h>
+    //#include <time.h>
 
     // Mutex
     #include <pthread.h>
@@ -110,7 +110,7 @@
 
     // Thread
     #include <sys/syscall.h>
-    #include <sys/types.h>
+    //#include <sys/types.h>
 
 #else
 #error Platform Not Supported!!!
