@@ -60,6 +60,8 @@
 
 #include <inttypes.h>
 
+#include <sys/types.h>
+
 #elif defined(__APPLE__) || defined(__linux__)
 
 #include <sys/errno.h>

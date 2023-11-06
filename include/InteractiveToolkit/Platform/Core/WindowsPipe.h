@@ -56,7 +56,7 @@ namespace Platform
             read_event = NULL;
 
             read_event = CreateEvent(0, TRUE, FALSE, NULL);
-            ITK_ABORT(read_event == NULL, "Error to create Event. Message: %s", _GetLastErrorToString_pipe().c_str());
+            ITK_ABORT(read_event == NULL, "Error to create Event. Message: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 
             ZeroMemory(&overlapped, sizeof(OVERLAPPED));
             overlapped.hEvent = read_event;
@@ -88,7 +88,7 @@ namespace Platform
                 0,                                          // client time-out
                 &sa);                                       // default security attribute
 
-            ITK_ABORT(read_fd == INVALID_HANDLE_VALUE, "%s", _GetLastErrorToString_pipe().c_str());
+            ITK_ABORT(read_fd == INVALID_HANDLE_VALUE, "%s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 
             write_fd = ::CreateFile(
                 named_pipe_name.c_str(),
@@ -99,7 +99,7 @@ namespace Platform
                 FILE_FLAG_OVERLAPPED,
                 NULL);
 
-            ITK_ABORT(write_fd == INVALID_HANDLE_VALUE, "%s", _GetLastErrorToString_pipe().c_str());
+            ITK_ABORT(write_fd == INVALID_HANDLE_VALUE, "%s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
         }
 
         ~WindowsPipe()
@@ -128,7 +128,7 @@ namespace Platform
                 // else
                 {
                     // any other error
-                    printf("[WindowsPipe] write ERROR: %s", _GetLastErrorToString_pipe().c_str());
+                    printf("[WindowsPipe] write ERROR: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
                     write_signaled = true;
                 }
                 return 0;
@@ -157,7 +157,7 @@ namespace Platform
 
             DWORD received = 0;
             bool bool_result = ::ReadFile(read_fd, outputBuffer->data, outputBuffer->size, &received, &overlapped);
-            // ITK_ABORT(!bool_result, "%s", _GetLastErrorToString_pipe().c_str());
+            // ITK_ABORT(!bool_result, "%s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 
             if (bool_result)
             {
@@ -292,7 +292,7 @@ namespace Platform
 
                 default:
                 {
-                    printf("[WindowsPipe] read UNHANDLED ERROR: %s", _GetLastErrorToString_pipe().c_str());
+                    printf("[WindowsPipe] read UNHANDLED ERROR: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
                     break;
                 }
                 }
@@ -322,7 +322,7 @@ namespace Platform
             //     //else
             //     {
             //         // any other error
-            //         printf("[WindowsPipe] read ERROR: %s", _GetLastErrorToString_pipe().c_str());
+            //         printf("[WindowsPipe] read ERROR: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
             //         read_signaled = true;
             //     }
             // }
