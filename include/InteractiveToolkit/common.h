@@ -58,6 +58,8 @@
 #include <tchar.h>
 #include <locale.h>
 
+#include <inttypes.h>
+
 #elif defined(__APPLE__) || defined(__linux__)
 
 #include <sys/errno.h>

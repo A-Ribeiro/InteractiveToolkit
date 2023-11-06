@@ -89,6 +89,14 @@
     #include <sys/sysctl.h>
     //#include <sys/types.h>
 
+    #include <fcntl.h>
+
+    // Process
+    #include <sys/wait.h>
+
+    // environment variables location
+    extern char **environ;
+
 #elif defined(__linux__)
 
     // Sleep
@@ -111,6 +119,14 @@
     // Thread
     #include <sys/syscall.h>
     //#include <sys/types.h>
+
+    #include <fcntl.h>
+
+    // Process
+    #include <sys/wait.h>
+
+    // environment variables location
+    extern char **environ;
 
 #else
 #error Platform Not Supported!!!
