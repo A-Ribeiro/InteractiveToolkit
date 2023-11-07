@@ -2,6 +2,10 @@
 
 #include "platform_common.h"
 
+#include "Core/ObjectBuffer.h"
+#include "Core/ObjectPool.h"
+#include "Core/ObjectQueue.h"
+
 #include "AutoLock.h"
 #include "Mutex.h"
 #include "Process.h"
@@ -22,4 +26,9 @@
 #include "IPC/QueueIPC.h"
 #include "IPC/SemaphoreIPC.h"
 
+//
+// Tool
+//
+#include "Tool/DebugConsoleIPC.h"
+#include "Tool/GetFirstMacAddress.h"
 

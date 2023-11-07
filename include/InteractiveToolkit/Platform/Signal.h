@@ -18,8 +18,9 @@ namespace Platform
 
         static void handle_signal_fnc(int _sngl)
         {
-            if (Instance()->handle_signal_fnc != nullptr)
-                Instance()->handle_signal_fnc(_sngl);
+            Signal *sngl = Signal::Instance();
+            if (sngl->signalFunction != nullptr)
+                sngl->signalFunction(_sngl);
         }
 
     private:
@@ -29,9 +30,9 @@ namespace Platform
         }
 
         bool signal_set;
-#if defined(_WIN32)
-        Callback<void(int)> signalFunction;
+        EventCore::Callback<void(int)> signalFunction;
 
+#if defined(_WIN32)
         static BOOL WINAPI HandlerRoutine_exit(_In_ DWORD dwCtrlType)
         {
             switch (dwCtrlType)
@@ -77,14 +78,15 @@ namespace Platform
 #endif
 
     public:
-        static void Set(const Callback<void(int)> &sgnl_fnc)
+        static void Set(const EventCore::Callback<void(int)> &sgnl_fnc)
         {
-            Instance()->handle_signal_fnc = sgnl_fnc;
+            Signal *sngl = Signal::Instance();
+            sngl->signalFunction = sgnl_fnc;
 
-            if (Instance()->signal_set)
+            if (sngl->signal_set)
                 return;
 
-            Instance()->signal_set = true;
+            sngl->signal_set = true;
 
             signal(SIGINT, handle_signal_fnc);
             signal(SIGTERM, handle_signal_fnc);
@@ -98,12 +100,14 @@ namespace Platform
         }
         static void Reset()
         {
-            Instance()->handle_signal_fnc = nullptr;
+            Signal *sngl = Signal::Instance();
+            
 
-            if (!Instance()->signal_set)
+            if (!sngl->signal_set)
                 return;
 
-            Instance()->signal_set = false;
+            sngl->signal_set = false;
+            sngl->signalFunction = nullptr;
 
             signal(SIGINT, SIG_DFL);
             signal(SIGTERM, SIG_DFL);

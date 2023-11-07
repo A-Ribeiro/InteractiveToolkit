@@ -78,8 +78,8 @@ namespace Platform {
         }
 
         ObjectBuffer* copy(ObjectBuffer* src) {
-			Platform::AutoLock autoLock(&mutex);
-            Platform::AutoLock autoLock(&src->mutex);
+			Platform::AutoLock autoLockSelf(&mutex);
+            Platform::AutoLock autoLockOther(&src->mutex);
 
             setSize(src->size, src->align);
             memcpy(data, src->data,size);

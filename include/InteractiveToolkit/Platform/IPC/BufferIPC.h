@@ -17,7 +17,7 @@ namespace Platform
     namespace IPC
     {
 
-        class BufferIPC
+        class BufferIPC : public EventCore::HandleCallback
         {
 
             std::string name;
@@ -33,7 +33,7 @@ namespace Platform
             {
                 Platform::AutoLock autoLock(&shm_mutex);
 
-                ITKCommon::ITKAbort::Instance()->OnAbort.remove(this, &BufferIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.remove(&BufferIPC::onAbort, this);
 
 #if !defined(_WIN32)
                 lock(true);
@@ -90,7 +90,7 @@ namespace Platform
                         sem_unlink(semaphore_name.c_str());
 
                         // unlink the lock_f
-                        std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".b.f_lock");
+                        std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
                         unlink(global_lock_file.c_str());
                     }
 
@@ -128,7 +128,7 @@ namespace Platform
                     ITK_ABORT(f_lock != -1, "Trying to lock twice from constructor.\n");
 
                     // file lock ... to solve the dead semaphore reinitialization...
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".b.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
 
                     f_lock = open(global_lock_file.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                     ITK_ABORT(f_lock == -1, "Error to open f_lock. Error code: %s\n", strerror(errno));
@@ -193,7 +193,7 @@ namespace Platform
 
                 // Platform::AutoLock autoLock(&shm_mutex);
                 shm_mutex.lock();
-                ITKCommon::ITKAbort::Instance()->OnAbort.add(this, &BufferIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.add(&BufferIPC::onAbort, this);
 
                 force_finish_initialization = true;
 

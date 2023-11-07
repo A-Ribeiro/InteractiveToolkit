@@ -301,7 +301,7 @@ namespace Platform {
         // only check if this queue is signaled for the current thread... 
         // it may be active in another thread...
         bool isSignaled() const {
-            return PlatformThread::isCurrentThreadInterrupted();
+            return Platform::Thread::isCurrentThreadInterrupted();
             //return signaled;
         }
 

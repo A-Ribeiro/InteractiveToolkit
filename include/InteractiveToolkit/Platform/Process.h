@@ -9,9 +9,9 @@
 #include "../ITKCommon/Path.h"
 
 #if defined(_WIN32)
-#include <aRibeiroPlatform/WindowsPipe.h>
+#include "Core/WindowsPipe.h"
 #elif defined(__linux__) || defined(__APPLE__)
-#include <Core/UnixPipe.h>
+#include "Core/UnixPipe.h"
 #endif
 
 namespace Platform
@@ -61,7 +61,7 @@ namespace Platform
                     {
                         p[0] = 0;
                     }
-                    std::string exe_path = std::string(s) + ITKCommon::Path::SEPARATOR + app_name;
+                    std::string exe_path = std::string(s) + ITKCommon::PATH_SEPARATOR + app_name;
                     if (ITKCommon::Path::isFile(exe_path))
                     {
                         // check can execute
@@ -107,7 +107,7 @@ namespace Platform
 
 #if defined(_WIN32)
 
-            ITKCommon::StringUtil::replaceAll(&lpApplicationName, "/", ITKCommon::Path::SEPARATOR);
+            ITKCommon::StringUtil::replaceAll(&lpApplicationName, "/", ITKCommon::PATH_SEPARATOR);
 
             if (lpApplicationName.find(".") == std::string::npos)
                 lpApplicationName += ".exe";
@@ -191,7 +191,7 @@ namespace Platform
                     {
                         p[0] = 0;
                     }
-                    std::string exe_path = std::string(s) + ITKCommon::Path::SEPARATOR + lpApplicationName;
+                    std::string exe_path = std::string(s) + ITKCommon::PATH_SEPARATOR + lpApplicationName;
                     if (ITKCommon::Path::isFile(exe_path))
                     {
                         // check can execute

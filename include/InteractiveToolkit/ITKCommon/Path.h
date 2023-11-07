@@ -121,6 +121,12 @@ DEFINE_KNOWN_FOLDER(FOLDERID_Documents, 0xFDD39AD0, 0x238F, 0x46AF, 0xAD, 0xB4, 
 namespace ITKCommon
 {
 
+#if defined(_WIN32)
+        static constexpr char PATH_SEPARATOR[] = "\\";
+#elif defined(__APPLE__) || defined(__linux__)
+        static constexpr char PATH_SEPARATOR[] = "/";
+#endif
+
     class Path
     {
 
@@ -305,11 +311,6 @@ namespace ITKCommon
 #endif
 
     public:
-#if defined(_WIN32)
-        static constexpr char SEPARATOR[] = "\\";
-#elif defined(__APPLE__) || defined(__linux__)
-        static constexpr char SEPARATOR[] = "/";
-#endif
 
         /// \brief Get the current executable path.
         ///
@@ -437,7 +438,7 @@ namespace ITKCommon
         /// std::string path_to_save_files = PlatformPath::getSaveGamePath( "Company Root Folder", "Game Name" );
         /// ...
         /// // Save some data on the path
-        /// FILE *out = fopen( ( path_to_save_files + PlatformPath::SEPARATOR + "out.cfg" ).c_str(), "wb" );
+        /// FILE *out = fopen( ( path_to_save_files + PlatformPATH_SEPARATOR + "out.cfg" ).c_str(), "wb" );
         /// if ( out ) {
         ///     ...
         ///     fclose(out);
@@ -496,7 +497,7 @@ namespace ITKCommon
         /// std::string path_to_save_files = PlatformPath::getDocumentsPath( "Company Root Folder", "App Name" );
         /// ...
         /// // Save some data on the path
-        /// FILE *out = fopen( ( path_to_save_files + PlatformPath::SEPARATOR + "out.cfg" ).c_str(), "wb" );
+        /// FILE *out = fopen( ( path_to_save_files + PlatformPATH_SEPARATOR + "out.cfg" ).c_str(), "wb" );
         /// if ( out ) {
         ///     ...
         ///     fclose(out);
@@ -625,11 +626,11 @@ namespace ITKCommon
             //
             // normalize path separator
             //
-            std::replace(input.begin(), input.end(), '\\', ITKCommon::Path::SEPARATOR[0]);
-            std::replace(input.begin(), input.end(), '/', ITKCommon::Path::SEPARATOR[0]);
+            std::replace(input.begin(), input.end(), '\\', ITKCommon::PATH_SEPARATOR[0]);
+            std::replace(input.begin(), input.end(), '/', ITKCommon::PATH_SEPARATOR[0]);
 
             std::string folder, filename, filename_wo_ext, ext;
-            size_t path_directory_index = input.find_last_of(ITKCommon::Path::SEPARATOR[0]);
+            size_t path_directory_index = input.find_last_of(ITKCommon::PATH_SEPARATOR[0]);
             if (path_directory_index == -1)
             {
                 folder = ".";

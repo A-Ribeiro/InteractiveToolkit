@@ -276,6 +276,9 @@ namespace Platform
                 return Thread::getMainThread();
             return result;
         }
+        static void staticInitialization(){
+            getMainThread();
+        }
         static Thread *getMainThread()
         {
             // force set the global thread priority

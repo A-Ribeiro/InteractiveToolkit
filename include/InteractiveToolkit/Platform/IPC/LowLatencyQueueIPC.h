@@ -9,7 +9,7 @@ namespace Platform
     namespace IPC
     {
 
-        class LowLatencyQueueIPC
+        class LowLatencyQueueIPC : public EventCore::HandleCallback
         {
 
             bool blocking_on_read;
@@ -37,7 +37,7 @@ namespace Platform
                     ITK_ABORT(f_lock != -1, "Trying to lock twice from constructor.\n");
 
                     // file lock ... to solve the dead semaphore reinitialization...
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".llq.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
 
                     f_lock = open(global_lock_file.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                     ITK_ABORT(f_lock == -1, "Error to open f_lock. Error code: %s\n", strerror(errno));
@@ -132,7 +132,7 @@ namespace Platform
             {
                 Platform::AutoLock autoLock(&shm_mutex);
 
-                ITKCommon::ITKAbort::Instance()->OnAbort.remove(this, &LowLatencyQueueIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.remove(&LowLatencyQueueIPC::onAbort, this);
 
 #if !defined(_WIN32)
                 lock(true);
@@ -226,7 +226,7 @@ namespace Platform
                     sem_unlink(sem_count_name.c_str());
 
                     // unlink the lock_f
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".llq.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
                     unlink(global_lock_file.c_str());
                 }
 
@@ -271,7 +271,7 @@ namespace Platform
 
                 Platform::AutoLock autoLock(&shm_mutex);
 
-                ITKCommon::ITKAbort::Instance()->OnAbort.add(this, &LowLatencyQueueIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.add(&LowLatencyQueueIPC::onAbort, this);
 
                 semaphore_ipc = NULL;
 

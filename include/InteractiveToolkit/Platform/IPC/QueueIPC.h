@@ -36,7 +36,7 @@ namespace Platform
             uint32_t size;
         };
 
-        class QueueIPC
+        class QueueIPC : public EventCore::HandleCallback
         {
 
             std::string name;
@@ -60,7 +60,7 @@ namespace Platform
                     ITK_ABORT(f_lock != -1, "Trying to lock twice from constructor.\n");
 
                     // file lock ... to solve the dead semaphore reinitialization...
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".q.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".q.f_lock");
 
                     f_lock = open(global_lock_file.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                     ITK_ABORT(f_lock == -1, "Error to open f_lock. Error code: %s\n", strerror(errno));
@@ -160,7 +160,7 @@ namespace Platform
             {
                 Platform::AutoLock autoLock(&shm_mutex);
 
-                ITKCommon::ITKAbort::Instance()->OnAbort.remove(this, &QueueIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.remove(&QueueIPC::onAbort, this);
 
 #if !defined(_WIN32)
                 lock(true);
@@ -231,7 +231,7 @@ namespace Platform
                     sem_unlink(semaphore_name.c_str());
 
                     // unlink the lock_f
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::Path::SEPARATOR + this->name + std::string(".q.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".q.f_lock");
                     unlink(global_lock_file.c_str());
                 }
 
@@ -266,7 +266,7 @@ namespace Platform
             {
 
                 Platform::AutoLock autoLock(&shm_mutex);
-                ITKCommon::ITKAbort::Instance()->OnAbort.add(this, &QueueIPC::onAbort);
+                ITKCommon::ITKAbort::Instance()->OnAbort.add(&QueueIPC::onAbort, this);
 
                 queue_semaphore = NULL;
                 queue_header_handle = BUFFER_HANDLE_NULL;
@@ -666,7 +666,7 @@ namespace Platform
                         unlock();
                         shm_mutex.unlock();
 
-                        if (!blocking || PlatformThread::isCurrentThreadInterrupted())
+                        if (!blocking || Platform::Thread::isCurrentThreadInterrupted())
                             return false;
 
                         Platform::Sleep::millis(1);
@@ -742,7 +742,7 @@ namespace Platform
                         unlock();
                         shm_mutex.unlock();
 
-                        if (!blocking || PlatformThread::isCurrentThreadInterrupted())
+                        if (!blocking || Platform::Thread::isCurrentThreadInterrupted())
                             return false;
 
                         Platform::Sleep::millis(1);

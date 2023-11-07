@@ -366,7 +366,7 @@ namespace Platform
 
             if (blocking)
             {
-                aRibeiro::Platform::Thread *currentThread = aRibeiro::Platform::Thread::getCurrentThread();
+                Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
 #if defined(_WIN32)
                 DWORD dwWaitResult;
