@@ -462,7 +462,7 @@ namespace Platform
                     {
                         Thread *_instance = this;
                         interrupt_thread = new Thread(
-                            [&_instance]()
+                            [_instance]()
                             {
                                 struct sigaction sa;
                                 sigemptyset(&sa.sa_mask);

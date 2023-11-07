@@ -90,7 +90,7 @@ namespace Platform
                         sem_unlink(semaphore_name.c_str());
 
                         // unlink the lock_f
-                        std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
+                        std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
                         unlink(global_lock_file.c_str());
                     }
 
@@ -114,6 +114,25 @@ namespace Platform
             void operator=(const BufferIPC &v) {}
 
         public:
+
+#if defined(__linux__) || defined(__APPLE__)
+            // unlink all resources
+            static void force_shm_unlink(const std::string &name)
+            {
+                printf("[BufferIPC] force_shm_unlink\n");
+
+                std::string buffer_name = std::string("/") + std::string(name) + std::string("_abd");    // aribeiro_buffer_data
+                std::string semaphore_name = std::string("/") + std::string(name) + std::string("_abs"); // aribeiro_buffer_semaphore
+
+                shm_unlink(buffer_name.c_str());
+                sem_unlink(semaphore_name.c_str());
+
+                // unlink the lock_f
+                std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + name + std::string(".b.f_lock");
+                unlink(global_lock_file.c_str());
+            }
+#endif
+
             void lock(bool from_constructor = false)
             {
                 Platform::AutoLock autoLock(&shm_mutex);
@@ -128,7 +147,7 @@ namespace Platform
                     ITK_ABORT(f_lock != -1, "Trying to lock twice from constructor.\n");
 
                     // file lock ... to solve the dead semaphore reinitialization...
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".b.f_lock");
 
                     f_lock = open(global_lock_file.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                     ITK_ABORT(f_lock == -1, "Error to open f_lock. Error code: %s\n", strerror(errno));

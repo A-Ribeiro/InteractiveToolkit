@@ -60,8 +60,12 @@ namespace EventCore
 		std::vector<__internal> op_fncs;
 		bool _runtime_inside_call;
 
+		std::recursive_mutex mtx;
+
 		void _add(__internal &&struct_)
 		{
+			std::lock_guard<decltype(mtx)> lock(mtx);
+
 			if (_runtime_inside_call)
 			{
 				op_fncs.push_back(std::move(struct_));
@@ -73,6 +77,8 @@ namespace EventCore
 		}
 		void _remove(__internal &&struct_)
 		{
+			std::lock_guard<decltype(mtx)> lock(mtx);
+
 			auto rc = std::find_if(fncs.begin(), fncs.end(), [struct_](const __internal &_c)
 								   {
 									   return
@@ -106,10 +112,14 @@ namespace EventCore
 	public:
 		void operator()(_ArgsType... _arg)
 		{
-			// avoid recursive callback...
-			if (_runtime_inside_call)
-				return;
-			_runtime_inside_call = true;
+			{
+				std::lock_guard<decltype(mtx)> lock(mtx);
+
+				// avoid recursive callback...
+				if (_runtime_inside_call)
+					return;
+				_runtime_inside_call = true;
+			}
 			for (const __internal &_i_struct : fncs)
 			{
 				_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
@@ -118,22 +128,27 @@ namespace EventCore
 				// else
 				// 	_i_struct._std_function_class_member(_i_struct._ptr_instance, std::forward<_ArgsType>(_arg)...);
 			}
-			_runtime_inside_call = false;
 
-			// 1 - add, 2 - remove, 3 - clear
-			for (__internal &_i_struct : op_fncs)
 			{
-				if (_i_struct.op == 1)
-					_add(std::move(_i_struct));
-				else if (_i_struct.op == 2)
-					_remove(std::move(_i_struct));
-				else if (_i_struct.op == 3){
-					fncs.clear();
-					//op_fncs.clear();
-				}
-			}
+				std::lock_guard<decltype(mtx)> lock(mtx);
+				_runtime_inside_call = false;
 
-			op_fncs.clear();
+				// 1 - add, 2 - remove, 3 - clear
+				for (__internal &_i_struct : op_fncs)
+				{
+					if (_i_struct.op == 1)
+						_add(std::move(_i_struct));
+					else if (_i_struct.op == 2)
+						_remove(std::move(_i_struct));
+					else if (_i_struct.op == 3)
+					{
+						fncs.clear();
+						// op_fncs.clear();
+					}
+				}
+
+				op_fncs.clear();
+			}
 		}
 
 		// // it is safer to always execute a non - const event call...
@@ -153,20 +168,45 @@ namespace EventCore
 		{
 			return fncs.size() > 0;
 		}
+		operator bool()
+		{
+			std::lock_guard<decltype(mtx)> lock(mtx);
+			return fncs.size() > 0;
+		}
 
 		//////////////////////////
 		// COPY CONSTRUCTOR
 		// COPY OPERATOR
 		//////////////////////////
-		Event(const self_type &_v)
+		Event(self_type &_v)
 		{
-			_runtime_inside_call = false;
+			std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
+			
+			_runtime_inside_call = _v._runtime_inside_call;
 			fncs.assign(_v.fncs.begin(), _v.fncs.end());
 			op_fncs.assign(_v.op_fncs.begin(), _v.op_fncs.end());
 		}
+		Event(const self_type &_v)
+		{
+			_runtime_inside_call = _v._runtime_inside_call;
+			fncs.assign(_v.fncs.begin(), _v.fncs.end());
+			op_fncs.assign(_v.op_fncs.begin(), _v.op_fncs.end());
+		}
+		self_type &operator=(self_type &_v)
+		{
+			std::lock_guard<decltype(mtx)> lock_self(mtx);
+			std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
+
+			_runtime_inside_call = _v._runtime_inside_call;
+			fncs.assign(_v.fncs.begin(), _v.fncs.end());
+			op_fncs.assign(_v.op_fncs.begin(), _v.op_fncs.end());
+			return *this;
+		}
 		self_type &operator=(const self_type &_v)
 		{
-			_runtime_inside_call = false;
+			std::lock_guard<decltype(mtx)> lock(mtx);
+
+			_runtime_inside_call = _v._runtime_inside_call;
 			fncs.assign(_v.fncs.begin(), _v.fncs.end());
 			op_fncs.assign(_v.op_fncs.begin(), _v.op_fncs.end());
 			return *this;
@@ -175,15 +215,19 @@ namespace EventCore
 		// rvalue assignment
 		Event(self_type &&_v)
 		{
-			_runtime_inside_call = false;
+			_runtime_inside_call = _v._runtime_inside_call;
 			fncs = std::move(_v.fncs);
 			op_fncs = std::move(_v.op_fncs);
 		}
 		self_type &operator=(self_type &&_v)
 		{
-			_runtime_inside_call = false;
+			std::lock_guard<decltype(mtx)> lock_self(mtx);
+			std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
+
+			_runtime_inside_call = _v._runtime_inside_call;
 			fncs = std::move(_v.fncs);
 			op_fncs = std::move(_v.op_fncs);
+
 			return *this;
 		}
 
@@ -199,12 +243,22 @@ namespace EventCore
 
 		bool operator==(nullptr_t) const
 		{
-			return !(*this);
+			return !(bool)(*this);
 		}
 
 		bool operator!=(nullptr_t) const
 		{
-			return (*this);
+			return (bool)(*this);
+		}
+
+		bool operator==(nullptr_t)
+		{
+			return !(bool)(*this);
+		}
+
+		bool operator!=(nullptr_t)
+		{
+			return (bool)(*this);
 		}
 
 		//////////////////////////
@@ -452,6 +506,8 @@ namespace EventCore
 
 		void clear()
 		{
+			std::lock_guard<decltype(mtx)> lock(mtx);
+
 			if (_runtime_inside_call)
 			{
 				op_fncs.push_back(__internal{});
@@ -470,7 +526,7 @@ namespace EventCore
 	template <typename _RetType, typename... _ArgsType, typename _BaseClassType>
 	bool operator==(nullptr_t, const Event<_RetType(_ArgsType...), _BaseClassType> &_a)
 	{
-		return !static_cast<bool>(_a);
+		return !(bool)(_a);
 	}
 	/*template<typename _RetType, typename ..._ArgsType, typename _BaseClassType>
 	bool operator!=(const Callback<_RetType(_ArgsType...), _BaseClassType>& _a, nullptr_t) {
@@ -479,7 +535,22 @@ namespace EventCore
 	template <typename _RetType, typename... _ArgsType, typename _BaseClassType>
 	bool operator!=(nullptr_t, const Event<_RetType(_ArgsType...), _BaseClassType> &_a)
 	{
+		return (bool)(_a);
+	}
+
+	template <typename _RetType, typename... _ArgsType, typename _BaseClassType>
+	bool operator==(nullptr_t, Event<_RetType(_ArgsType...), _BaseClassType> &_a)
+	{
+		return !(bool)(_a);
+	}
+	/*template<typename _RetType, typename ..._ArgsType, typename _BaseClassType>
+	bool operator!=(const Callback<_RetType(_ArgsType...), _BaseClassType>& _a, nullptr_t) {
 		return static_cast<bool>(_a);
+	}*/
+	template <typename _RetType, typename... _ArgsType, typename _BaseClassType>
+	bool operator!=(nullptr_t, Event<_RetType(_ArgsType...), _BaseClassType> &_a)
+	{
+		return (bool)(_a);
 	}
 
 }

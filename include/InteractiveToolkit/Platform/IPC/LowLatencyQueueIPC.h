@@ -37,7 +37,7 @@ namespace Platform
                     ITK_ABORT(f_lock != -1, "Trying to lock twice from constructor.\n");
 
                     // file lock ... to solve the dead semaphore reinitialization...
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
 
                     f_lock = open(global_lock_file.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                     ITK_ABORT(f_lock == -1, "Error to open f_lock. Error code: %s\n", strerror(errno));
@@ -226,7 +226,7 @@ namespace Platform
                     sem_unlink(sem_count_name.c_str());
 
                     // unlink the lock_f
-                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("aribeiro", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
+                    std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + this->name + std::string(".llq.f_lock");
                     unlink(global_lock_file.c_str());
                 }
 
@@ -242,6 +242,30 @@ namespace Platform
             Platform::Mutex shm_mutex;
 
         public:
+
+#if defined(__linux__) || defined(__APPLE__)
+            // unlink all resources
+            static void force_shm_unlink(const std::string &name)
+            {
+                printf("[LowLatencyQueueIPC] force_shm_unlink\n");
+
+                std::string header_name = std::string("/") + std::string(name) + std::string("_allqh");    // aribeiro_ll_queue_header
+                std::string buffer_name = std::string("/") + std::string(name) + std::string("_allqb");    // aribeiro_ll_queue_buffer
+                std::string semaphore_name = std::string("/") + std::string(name) + std::string("_allqs"); // aribeiro_ll_queue_semaphore
+                std::string semaphore_count_name = std::string(name) + std::string("_allqsc"); // aribeiro_ll_queue_semaphore_count
+                std::string sem_count_name = std::string("/") + semaphore_count_name;
+
+                shm_unlink(buffer_name.c_str());
+                shm_unlink(header_name.c_str());
+                sem_unlink(semaphore_name.c_str());
+                sem_unlink(sem_count_name.c_str());
+
+                // unlink the lock_f
+                std::string global_lock_file = ITKCommon::Path::getDocumentsPath("ITKLib", "lock") + ITKCommon::PATH_SEPARATOR + name + std::string(".llq.f_lock");
+                unlink(global_lock_file.c_str());
+            }
+#endif
+
             // unblocked if the containing threads have been interrupted...
             SemaphoreIPC *semaphore_ipc;
 
