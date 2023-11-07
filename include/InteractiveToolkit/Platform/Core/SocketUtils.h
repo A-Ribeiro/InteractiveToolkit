@@ -22,7 +22,7 @@ namespace Platform
 
 #if defined(_WIN32)
         bool startup_ok;
-        PlatformMutex mutex;
+        Platform::Mutex mutex;
 #endif
 
         SocketUtils()

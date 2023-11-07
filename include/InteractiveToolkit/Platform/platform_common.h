@@ -15,6 +15,13 @@
 // Thread
 #include <process.h>
 
+#include <signal.h>
+
+// #include <comdef.h>
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0
+#endif
+
 namespace ITKPlatformUtil
 {
 
@@ -108,11 +115,6 @@ namespace ITKPlatformUtil
 
 #undef closesocket
 #define closesocket(s) close(s)
-
-// #include <comdef.h>
-#ifndef MSG_DONTWAIT
-#define MSG_DONTWAIT 0
-#endif
 
 // environment variables location
 extern char **environ;

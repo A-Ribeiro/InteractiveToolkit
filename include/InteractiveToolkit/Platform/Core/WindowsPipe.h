@@ -140,7 +140,7 @@ namespace Platform
         // returns true if read something...
         // false the other case ...
         // need to call isSignaled if receive false
-        bool read(Plattform::ObjectBuffer *outputBuffer)
+        bool read(Platform::ObjectBuffer *outputBuffer)
 
         {
             if (read_fd == WIN_INVALID_FD || read_signaled)
@@ -153,7 +153,7 @@ namespace Platform
             // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
             // ReadFile
 
-            aRibeiro::PlatformThread *currentThread = aRibeiro::PlatformThread::getCurrentThread();
+            Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
             DWORD received = 0;
             bool bool_result = ::ReadFile(read_fd, outputBuffer->data, outputBuffer->size, &received, &overlapped);
@@ -332,12 +332,12 @@ namespace Platform
 
         bool isReadSignaled()
         {
-            return read_fd == WIN_INVALID_FD || read_signaled || aRibeiro::PlatformThread::isCurrentThreadInterrupted();
+            return read_fd == WIN_INVALID_FD || read_signaled || Platform::Thread::isCurrentThreadInterrupted();
         }
 
         bool isWriteSignaled()
         {
-            return write_fd == WIN_INVALID_FD || write_signaled || aRibeiro::PlatformThread::isCurrentThreadInterrupted();
+            return write_fd == WIN_INVALID_FD || write_signaled || Platform::Thread::isCurrentThreadInterrupted();
         }
 
         bool isReadBlocking()

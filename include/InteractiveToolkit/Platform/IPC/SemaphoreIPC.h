@@ -23,7 +23,7 @@ namespace Platform {
     #if defined(_WIN32)
         HANDLE semaphore;
 
-        PlatformMutex close_mutex;
+        Platform::Mutex close_mutex;
 
     #elif defined(__linux__) || defined(__APPLE__)
         sem_t* semaphore;
@@ -95,7 +95,7 @@ namespace Platform {
         }
         virtual ~SemaphoreIPC(){
     #if defined(_WIN32)
-            PlatformAutoLock autoLock(&close_mutex);
+            Platform::AutoLock autoLock(&close_mutex);
             if (semaphore != NULL)
                 CloseHandle(semaphore);
             semaphore = NULL;
@@ -317,7 +317,7 @@ namespace Platform {
         void forceCloseWindows() {
 
 #if defined(_WIN32)
-            /*PlatformAutoLock autoLock(&close_mutex);
+            /*Platform::AutoLock autoLock(&close_mutex);
             if (semaphore != NULL) {
                 CloseHandle(semaphore);
                 semaphore = NULL;

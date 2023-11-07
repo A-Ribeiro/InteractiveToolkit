@@ -40,20 +40,20 @@ namespace Platform
                 // Handle the CTRL-C signal.
             case CTRL_C_EVENT:
                 Platform::Signal::handle_signal_fnc(0);
-                Sleep(5000);
+                ::Sleep(5000);
                 return TRUE;
 
                 // CTRL-CLOSE: confirm that the user wants to exit.
             case CTRL_CLOSE_EVENT:
                 Platform::Signal::handle_signal_fnc(0);
-                Sleep(5000);
+                ::Sleep(5000);
                 return TRUE;
 
             case CTRL_BREAK_EVENT:
                 // Beep(900, 200);
                 // printf("Ctrl-Break event\n\n");
                 Platform::Signal::handle_signal_fnc(0);
-                Sleep(5000);
+                ::Sleep(5000);
                 return TRUE;
 
                 // Pass other signals to the next handler.
@@ -61,14 +61,14 @@ namespace Platform
                 // Beep(1000, 200);
                 // printf("Ctrl-Logoff event\n\n");
                 Platform::Signal::handle_signal_fnc(0);
-                Sleep(5000);
+                ::Sleep(5000);
                 return TRUE;
 
             case CTRL_SHUTDOWN_EVENT:
                 // Beep(750, 500);
                 // printf("Ctrl-Shutdown event\n\n");
                 Platform::Signal::handle_signal_fnc(0);
-                Sleep(5000);
+                ::Sleep(5000);
                 return TRUE;
             default:
                 return FALSE;

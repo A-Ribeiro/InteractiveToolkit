@@ -7,6 +7,7 @@
 #include "Thread.h"
 #include "Sleep.h"
 #include "../ITKCommon/Path.h"
+#include "IPC/LowLatencyQueueIPC.h"
 
 #if defined(_WIN32)
 #include "Core/WindowsPipe.h"
@@ -438,7 +439,7 @@ namespace Platform
 #if defined(_WIN32)
 
                 // check the process signal queue
-                PlatformLowLatencyQueueIPC queue(pid_str.c_str(), PlatformQueueIPC_WRITE, 16, sizeof(int));
+                Platform::IPC::LowLatencyQueueIPC queue(pid_str.c_str(), Platform::IPC::QueueIPC_WRITE, 16, sizeof(int));
                 queue.write((uint8_t *)&sig, sizeof(int), false);
 
                 if (WaitForSingleObject(processInformation.hProcess, force_horrible_terminate_after_ms) == WAIT_TIMEOUT)

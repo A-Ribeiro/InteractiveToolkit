@@ -14,7 +14,7 @@ namespace Platform
     /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
     /// using namespace aRibeiro;
     ///
-    /// PlatformMutex mutex;
+    /// Platform::Mutex mutex;
     ///
     /// // critical section begin
     /// mutex.lock();
