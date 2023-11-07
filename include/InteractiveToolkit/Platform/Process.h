@@ -17,7 +17,7 @@
 namespace Platform
 {
 
-    class PlatformProcess
+    class Process
     {
 
         Platform::Mutex mutex;
@@ -70,7 +70,7 @@ namespace Platform
                         {
                             if ((st.st_mode & S_IEXEC) != 0)
                             {
-                                printf("[PlatformProcess:ApplicationExists] Executable found at: %s\n", exe_path.c_str());
+                                printf("[Process:ApplicationExists] Executable found at: %s\n", exe_path.c_str());
                                 app_name = exe_path;
                                 return true;
                                 break;
@@ -88,7 +88,7 @@ namespace Platform
 #endif
         }
 
-        PlatformProcess(const std::string &_lpApplicationName, const std::vector<std::string> &vector_argv, int _force_horrible_terminate_after_ms = 5000
+        Process(const std::string &_lpApplicationName, const std::vector<std::string> &vector_argv, int _force_horrible_terminate_after_ms = 5000
 #if defined(_WIN32)
                         ,
                         WindowsPipe *pipe_stdin = NULL, WindowsPipe *pipe_stdout = NULL, WindowsPipe *pipe_stderr = NULL
@@ -200,7 +200,7 @@ namespace Platform
                         {
                             if ((st.st_mode & S_IEXEC) != 0)
                             {
-                                printf("[PlatformProcess] Executable found at: %s\n", exe_path.c_str());
+                                printf("[Process] Executable found at: %s\n", exe_path.c_str());
                                 lpApplicationName = exe_path;
                                 break;
                             }
@@ -249,7 +249,7 @@ namespace Platform
                 {
                     argv[i + 1] = &vector_argv_local[i][0];
                 }
-                // printf("[PlatformProcess] %s %s\n", lpApplicationName.c_str(), commandLine.c_str());
+                // printf("[Process] %s %s\n", lpApplicationName.c_str(), commandLine.c_str());
 
                 argv[0] = &lpApplicationName[0];
                 // char* const envp[] = { NULL,NULL };
@@ -477,7 +477,7 @@ namespace Platform
                     timer_acc += timer.deltaTimeMicro;
                     if (timer_acc > (int64_t)force_horrible_terminate_after_ms * (int64_t)1000)
                     {
-                        printf("[PlatformProcess] FORCE KILL CHILDREN TIMEOUT\n");
+                        printf("[Process] FORCE KILL CHILDREN TIMEOUT\n");
                         kill(created_pid, SIGKILL);
                         // clear defunct
                         waitpid(created_pid, &status, 0);
@@ -506,7 +506,7 @@ namespace Platform
             return exit_code;
         }
 
-        ~PlatformProcess()
+        ~Process()
         {
             signal(SIGINT);
         }
