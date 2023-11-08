@@ -11,6 +11,11 @@
 #include "HandleCallback.h"
 #include "STL_Tools.h"
 
+#if defined(_WIN32)
+#pragma warning( push )
+#pragma warning( disable : 4407)
+#endif
+
 namespace EventCore
 {
 
@@ -419,3 +424,7 @@ namespace EventCore
 	}
 
 }
+
+#if defined(_WIN32)
+#pragma warning( pop ) 
+#endif
