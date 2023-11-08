@@ -8,6 +8,7 @@ namespace ITKCommon
 
     class ITKAbort
     {
+        std::recursive_mutex mtx;
         bool abort_triggered;
         ITKAbort()
         {
@@ -19,6 +20,7 @@ namespace ITKCommon
 
         void triggeredAbort(const char *file, int line, const char *format, ...)
         {
+            std::lock_guard<decltype(mtx)> lock(mtx);
             if (abort_triggered)
             {
                 fprintf(stderr, "ERROR: Called abort inside the abort event...\n");
