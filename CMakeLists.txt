@@ -417,7 +417,7 @@ define_source_group(${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
 #add_library(${PROJECT_NAME} INTERFACE)
 #target_sources(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${SRC})
-add_custom_target(${PROJECT_NAME} SOURCES ${PUBLIC_HEADERS} ${SRC})
+add_custom_target(${PROJECT_NAME} SOURCES ${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
 # set the target's folder (for IDEs that support it, e.g. Visual Studio)
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIB")
