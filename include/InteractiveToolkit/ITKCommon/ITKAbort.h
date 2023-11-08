@@ -3,12 +3,16 @@
 #include "../common.h"
 #include "../EventCore/Event.h"
 
+#include "../Platform/Mutex.h"
+#include "../Platform/AutoLock.h"
+
 namespace ITKCommon
 {
 
     class ITKAbort
     {
-        std::recursive_mutex mtx;
+        //std::recursive_mutex mtx;
+        Platform::Mutex mutex;
         bool abort_triggered;
         ITKAbort()
         {
@@ -20,7 +24,9 @@ namespace ITKCommon
 
         void triggeredAbort(const char *file, int line, const char *format, ...)
         {
-            std::lock_guard<decltype(mtx)> lock(mtx);
+            //std::lock_guard<decltype(mtx)> lock(mtx);
+            Platform::AutoLock lock(&mutex);
+
             if (abort_triggered)
             {
                 fprintf(stderr, "ERROR: Called abort inside the abort event...\n");
@@ -75,3 +81,5 @@ namespace ITKCommon
 #define ITK_ABORT_FL(file, line, bool_exp, ...) \
     if (bool_exp)                               \
         ITKCommon::ITKAbort::Instance()->triggeredAbort(file, line, __VA_ARGS__);
+
+#include "../Platform/Mutex.inl"
