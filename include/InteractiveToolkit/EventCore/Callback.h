@@ -149,7 +149,12 @@ namespace EventCore
 
 		template <typename _unknown_type_,
 				  typename std::enable_if<
-					  std::is_assignable<std_function_functor, _unknown_type_>::value>::type * = nullptr>
+		
+			std::is_assignable<std_function_functor, _unknown_type_>::value
+			&&
+			!std::is_assignable<self_type, _unknown_type_>::value
+		
+		>::type * = nullptr>
 		Callback(_unknown_type_ &&_unknown_instance)
 		{
 
