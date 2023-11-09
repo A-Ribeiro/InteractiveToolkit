@@ -15,6 +15,7 @@
 #include "SocketTCP.h"
 #include "SocketUDP.h"
 #include "Thread.h"
+#include "ThreadPool.h"
 #include "ThreadWithParameters.h"
 #include "Time.h"
 
