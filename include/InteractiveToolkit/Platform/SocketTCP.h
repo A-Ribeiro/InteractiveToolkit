@@ -73,7 +73,7 @@ namespace Platform {
 
             // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
-            getsockname(fd, (sockaddr *)&addr_in, &len);
+            getsockname(fd, (struct sockaddr *)&addr_in, &len);
 
             if (read_aquired) read_semaphore.release();
             if (write_aquired) write_semaphore.release();
@@ -309,7 +309,11 @@ namespace Platform {
 
             // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
-            getsockname(fd, (sockaddr *)&addr_in, &len);
+            getsockname(fd, (struct sockaddr *)&addr_in, &len);
+
+            // get peername
+            //socklen_t len = sizeof(struct sockaddr_in);
+            getpeername(fd, (struct sockaddr *)&addr_out, &len);
 
             if (read_aquired) read_semaphore.release();
             if (write_aquired) write_semaphore.release();
@@ -842,7 +846,7 @@ namespace Platform {
 
             // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
-            getsockname(fd, (sockaddr *)&server_addr, &len);
+            getsockname(fd, (struct sockaddr *)&server_addr, &len);
 
             if (::listen(fd, incoming_queue_size) != 0) {
                 printf("Failed to listen socket. %s", SocketUtils::getLastSocketErrorMessage().c_str());
