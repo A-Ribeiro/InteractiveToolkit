@@ -39,7 +39,7 @@ namespace Platform {
 
 
 #if defined(_WIN32)
-        void initializeWithNewConnection(const SOCKET &fd, const struct sockaddr_in& addr_in) {
+        void initializeWithNewConnection(const SOCKET &fd, const struct sockaddr_in& _addr_in) {
 #else
         void initializeWithNewConnection(int fd, const struct sockaddr_in& _addr_in) {
 #endif
