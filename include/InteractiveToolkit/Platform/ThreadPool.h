@@ -7,12 +7,12 @@
 namespace Platform
 {
 
-    class ThreadPool: public EventCore::HandleCallback
+    class ThreadPool : public EventCore::HandleCallback
     {
-        public:
+    public:
         using CallbackType = typename EventCore::Callback<void()>;
-        private:
 
+    private:
         std::vector<Platform::Thread *> threads;
         Platform::ObjectQueue<CallbackType> tasks;
 
@@ -37,11 +37,10 @@ namespace Platform
             if (count <= 0)
                 count = 1;
 
-            
-            for (int i = 0; i < count; i++){
+            for (int i = 0; i < count; i++)
+            {
                 Platform::Thread *thread = new Platform::Thread(
-                    EventCore::CallbackWrapper( &ThreadPool::run, this)
-                );
+                    EventCore::CallbackWrapper(&ThreadPool::run, this));
                 threads.push_back(thread);
                 thread->start();
             }
@@ -61,15 +60,19 @@ namespace Platform
 
         void finish()
         {
+            // printf("interrupting threads\n");
+            for (auto thread : threads)
+                thread->interrupt();
+            // printf("deleting threads\n");
             for (auto thread : threads)
                 delete thread;
             threads.clear();
         }
 
-        int threadCount() const {
+        int threadCount() const
+        {
             return threads.size();
         }
-
     };
 
 }

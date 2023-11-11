@@ -34,7 +34,7 @@ namespace Platform
 
         // mark thread exited
         if (result != nullptr)
-            result->exited = true;
+            result->setExited();
     }
 
 }
