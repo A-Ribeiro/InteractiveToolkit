@@ -303,6 +303,7 @@ namespace Platform
                 return false;
             }
 
+            // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
             getsockname(fd, (sockaddr *)&addr_in, &len);
 

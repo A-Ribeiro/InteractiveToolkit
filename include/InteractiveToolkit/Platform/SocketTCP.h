@@ -26,6 +26,7 @@ namespace Platform {
         int fd;
 #endif
         struct sockaddr_in addr_in;
+        struct sockaddr_in addr_out;
 
         bool signaled;
 
@@ -40,7 +41,7 @@ namespace Platform {
 #if defined(_WIN32)
         void initializeWithNewConnection(const SOCKET &fd, const struct sockaddr_in& addr_in) {
 #else
-        void initializeWithNewConnection(int fd, const struct sockaddr_in& addr_in) {
+        void initializeWithNewConnection(int fd, const struct sockaddr_in& _addr_in) {
 #endif
         
             Platform::AutoLock auto_lock(&mutex);
@@ -51,7 +52,8 @@ namespace Platform {
             ITK_ABORT(this->fd != ITK_INVALID_SOCKET, "Cannot initialize a new connection with an already initialized socked.\n");
 
             this->fd = fd;
-            this->addr_in = addr_in;
+            //this->addr_in = _addr_in;
+            this->addr_out = _addr_in;
 
             read_timeout_ms = 0xffffffff;//INFINITE;
             write_timeout_ms = 0xffffffff;//INFINITE;
@@ -69,8 +71,17 @@ namespace Platform {
 
             signaled = false;
 
+            // get ephemeral port info
+            socklen_t len = sizeof(struct sockaddr_in);
+            getsockname(fd, (sockaddr *)&addr_in, &len);
+
             if (read_aquired) read_semaphore.release();
             if (write_aquired) write_semaphore.release();
+
+            // print stats
+            printf("[SocketTCP] Connected\n");
+            printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr),ntohs(addr_in.sin_port));
+            printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr),ntohs(addr_out.sin_port));
         }
 
         Platform::Mutex mutex;
@@ -161,14 +172,14 @@ namespace Platform {
             read_timeout_ms = 0xffffffff;//INFINITE;
             write_timeout_ms = 0xffffffff;//INFINITE;
 
-            addr_in.sin_family = AF_INET;
+            addr_out.sin_family = AF_INET;
             if (address_ip.size() == 0 || address_ip.compare("INADDR_ANY") == 0)
-                addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
+                addr_out.sin_addr.s_addr = htonl(INADDR_ANY);
             else if (address_ip.compare("INADDR_LOOPBACK") == 0)
-                addr_in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+                addr_out.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             else
-                addr_in.sin_addr.s_addr = inet_addr(address_ip.c_str());
-            addr_in.sin_port = htons(port);
+                addr_out.sin_addr.s_addr = inet_addr(address_ip.c_str());
+            addr_out.sin_port = htons(port);
 
 
 #if defined(_WIN32)
@@ -184,7 +195,7 @@ namespace Platform {
                 SocketUtils::getLastSocketErrorMessage().c_str()
             );
 
-            ::connect(fd, (struct sockaddr*)&addr_in, sizeof(struct sockaddr_in));
+            ::connect(fd, (struct sockaddr*)&addr_out, sizeof(struct sockaddr_in));
 
             bool connected = false;
 
@@ -270,7 +281,7 @@ namespace Platform {
             setBlocking(true);
 #else
 
-            if (::connect(fd, (struct sockaddr *)&addr_in, sizeof(struct sockaddr_in)) == -1) {
+            if (::connect(fd, (struct sockaddr *)&addr_out, sizeof(struct sockaddr_in)) == -1) {
                 printf("Failed to connect socket. %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
 
                 signaled = true;
@@ -296,8 +307,17 @@ namespace Platform {
 
             signaled = false;
 
+            // get ephemeral port info
+            socklen_t len = sizeof(struct sockaddr_in);
+            getsockname(fd, (sockaddr *)&addr_in, &len);
+
             if (read_aquired) read_semaphore.release();
             if (write_aquired) write_semaphore.release();
+
+            // print stats
+            printf("[SocketTCP] Connected\n");
+            printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr),ntohs(addr_in.sin_port));
+            printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr),ntohs(addr_out.sin_port));
 
             return true;
         }
@@ -612,17 +632,27 @@ namespace Platform {
             return fd;
         }
 
-        const struct sockaddr_in &getAddr() {
+        const struct sockaddr_in &getAddrIn() {
             return addr_in;
+        }
+
+        // valid only after a successfull connection to a server
+        const struct sockaddr_in &getAddrOut() {
+            return addr_out;
         }
 
         SocketTCP() :read_semaphore(1), write_semaphore(1) {
             SocketUtils::Instance()->InitSockets();
 
             fd = ITK_INVALID_SOCKET;
+            
             addr_in.sin_family = AF_INET;
             addr_in.sin_addr.s_addr = htonl(INADDR_NONE);
             addr_in.sin_port = htons(0);
+
+            addr_out.sin_family = AF_INET;
+            addr_out.sin_addr.s_addr = htonl(INADDR_NONE);
+            addr_out.sin_port = htons(0);
 
             signaled = false;
 #if defined(_WIN32)
@@ -809,6 +839,10 @@ namespace Platform {
                 "Failed to listen socket. %s",
                 SocketUtils::getLastSocketErrorMessage().c_str());
             */
+
+            // get ephemeral port info
+            socklen_t len = sizeof(struct sockaddr_in);
+            getsockname(fd, (sockaddr *)&server_addr, &len);
 
             if (::listen(fd, incoming_queue_size) != 0) {
                 printf("Failed to listen socket. %s", SocketUtils::getLastSocketErrorMessage().c_str());
