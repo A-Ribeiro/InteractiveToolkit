@@ -16,7 +16,11 @@ namespace Platform
 
     class SocketUDP
     {
+#if defined(_WIN32)
+        SOCKET fd;
+#else
         int fd;
+#endif
 
         int ttl;
         bool blocking;
@@ -40,10 +44,10 @@ namespace Platform
 
         void initialize(bool blocking, bool reuseAddress, int ttl)
         {
-            ITK_ABORT(this->fd != -1, "Cannot initialize a new connection with an already initialized socked.\n");
+            ITK_ABORT(this->fd != ITK_INVALID_SOCKET, "Cannot initialize a new connection with an already initialized socked.\n");
 
             fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-            ITK_ABORT(fd < 0, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
+            ITK_ABORT(fd == ITK_INVALID_SOCKET, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
 
 #if defined(_WIN32)
             disableUDPWrongConnectionReset();
@@ -77,7 +81,7 @@ namespace Platform
         {
             SocketUtils::Instance()->InitSockets();
 
-            fd = -1;
+            fd = ITK_INVALID_SOCKET;
             ttl = -1;
             blocking = false;
             reuseAddress = false;
@@ -88,11 +92,15 @@ namespace Platform
             write_timeout_ms = 0xffffffff; // INFINITE;
 
 #if defined(_WIN32)
-            wsa_read_event = NULL;
+            wsa_read_event = WSA_INVALID_EVENT;
 #endif
         }
 
+#if defined(_WIN32)
+        SOCKET getNativeFD()
+#else
         int getNativeFD()
+#endif
         {
             return fd;
         }
@@ -106,7 +114,7 @@ namespace Platform
         {
             Platform::AutoLock auto_lock(&mutex);
 
-            if (fd != -1)
+            if (fd != ITK_INVALID_SOCKET)
             {
                 printf("PlatformUDPSocket Close...\n");
 
@@ -115,14 +123,14 @@ namespace Platform
                     "closesocket error. %s",
                     SocketUtils::getLastSocketErrorMessage().c_str());
 
-                fd = -1;
+                fd = ITK_INVALID_SOCKET;
             }
 
 #if defined(_WIN32)
-            if (wsa_read_event != NULL)
+            if (wsa_read_event != WSA_INVALID_EVENT)
             {
                 ::WSACloseEvent(wsa_read_event);
-                wsa_read_event = NULL;
+                wsa_read_event = WSA_INVALID_EVENT;
             }
 #endif
 
@@ -136,7 +144,7 @@ namespace Platform
         void setBlocking(bool blocking)
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             this->blocking = blocking;
             SocketUtils::SetSocketBlockingEnabled(fd, this->blocking);
@@ -145,7 +153,7 @@ namespace Platform
         void setTTL(int ttl)
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             // set default ttl
             if (ttl == -1)
@@ -162,7 +170,7 @@ namespace Platform
         void setReuseAddress(bool reuseAddress)
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             this->reuseAddress = reuseAddress;
 
@@ -202,7 +210,7 @@ namespace Platform
         void setSendBroadcast(bool sendBroadcast)
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             this->sendBroadcast = sendBroadcast;
 
@@ -218,14 +226,14 @@ namespace Platform
         bool multicastAddMembership(const std::string &multicast_address_ip, const std::string &interface_address_ip = "INADDR_ANY")
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             struct ip_mreq mreq;
 
             mreq.imr_interface.s_addr = SocketUtils::ipv4_address_to_nl(interface_address_ip);
             mreq.imr_multiaddr.s_addr = inet_addr(multicast_address_ip.c_str());
 
-            if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) < 0)
+            if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) == -1)
             {
                 printf("setsockopt IP_ADD_MEMBERSHIP error. %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                 return false;
@@ -239,14 +247,14 @@ namespace Platform
         bool multicastDropMembership(const std::string &multicast_address_ip, const std::string &interface_address_ip = "INADDR_ANY")
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             struct ip_mreq mreq;
 
             mreq.imr_interface.s_addr = SocketUtils::ipv4_address_to_nl(interface_address_ip);
             mreq.imr_multiaddr.s_addr = inet_addr(multicast_address_ip.c_str());
 
-            if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) < 0)
+            if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) == -1)
             {
                 printf("setsockopt IP_DROP_MEMBERSHIP error. %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                 return false;
@@ -260,7 +268,7 @@ namespace Platform
         void disableUDPWrongConnectionReset()
         {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
             DWORD dwBytesReturned = 0;
             BOOL bNewBehavior = FALSE;
 // causes WSAECONNRESET
@@ -283,7 +291,7 @@ namespace Platform
         {
 
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             addr_in.sin_family = AF_INET;
             addr_in.sin_addr.s_addr = SocketUtils::ipv4_address_to_nl(address_ip);
@@ -308,6 +316,13 @@ namespace Platform
             const uint8_t *data, uint32_t size,
             uint32_t *write_feedback = NULL)
         {
+
+            if (isSignaled() || fd == ITK_INVALID_SOCKET)
+            {
+                if (write_feedback != NULL)
+                    *write_feedback = 0;
+                return false;
+            }
 
             int iResult = ::sendto(
                 fd,
@@ -357,7 +372,7 @@ namespace Platform
         bool read_buffer(struct sockaddr_in *source_address, uint8_t *data, uint32_t size, uint32_t *read_feedback)
         {
 
-            if (isSignaled() || fd == -1)
+            if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
                 if (read_feedback != NULL)
                     *read_feedback = 0;

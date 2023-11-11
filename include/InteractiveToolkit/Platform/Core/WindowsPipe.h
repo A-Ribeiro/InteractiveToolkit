@@ -11,6 +11,10 @@
 // #define PIPE_READ_FD 0
 // #define PIPE_WRITE_FD 1
 
+#pragma warning( push )
+#pragma warning( disable : 4996)
+
+
 namespace Platform
 {
 
@@ -407,3 +411,5 @@ namespace Platform
     };
 
 }
+
+#pragma warning( pop )

@@ -71,7 +71,7 @@ namespace Platform
 
         int threadCount() const
         {
-            return threads.size();
+            return (int)threads.size();
         }
     };
 

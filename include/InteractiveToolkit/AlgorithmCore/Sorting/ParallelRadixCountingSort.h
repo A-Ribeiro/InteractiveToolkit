@@ -173,7 +173,7 @@ namespace AlgorithmCore
             static void sortIndex(AlgorithmCore::Sorting::SortIndex<_type> *data,
                              const size_t &count,
                              Platform::ThreadPool *threadpool,
-                             int64_t thread_count = -1)
+                             int thread_count = -1)
             {
                 if (thread_count == -1)
                 {
@@ -186,10 +186,10 @@ namespace AlgorithmCore
                 }
 
                 Platform::ObjectBuffer buffer;
-                buffer.setSize(sizeof(AlgorithmCore::Sorting::SortIndex<_type>) * count);
+                buffer.setSize(sizeof(AlgorithmCore::Sorting::SortIndex<_type>) * (uint32_t)count);
                 AlgorithmCore::Sorting::SortIndex<_type> *aux = ((AlgorithmCore::Sorting::SortIndex<_type> *)buffer.data);
 
-                int job_thread_size = count / thread_count;
+                int job_thread_size = (int)count / thread_count;
                 if (job_thread_size == 0)
                     job_thread_size = 1;
 
@@ -201,8 +201,8 @@ namespace AlgorithmCore
                     {
                         int index_start = i;
                         int index_end_exclusive = i + job_thread_size;
-                        if (index_end_exclusive > count)
-                            index_end_exclusive = count;
+                        if (index_end_exclusive > (int)count)
+                            index_end_exclusive = (int)count;
 
                         task.data = data + index_start;
                         task.tmp_buffer = aux + index_start;
@@ -211,7 +211,7 @@ namespace AlgorithmCore
 
                         threadpool->postTask([task]()
                                              {
-                                            AlgorithmCore::Sorting::RadixCountingSort<_type>::sortIndex(task.data, task.count, task.tmp_buffer);
+                                            AlgorithmCore::Sorting::RadixCountingSort<_type>::sortIndex(task.data, (uint32_t)task.count, task.tmp_buffer);
                                             task.completion_semaphore->release(); });
                     }
 
@@ -245,8 +245,8 @@ namespace AlgorithmCore
                                                  {
                                                      int write_index = task.i;
                                                      int write_max = task.i + (task.element_count << 1);
-                                                     if (write_max > task.count)
-                                                         write_max = task.count;
+                                                     if (write_max > (int)task.count)
+                                                         write_max = (int)task.count;
 
                                                      int a_index = task.i;
                                                      int b_index = task.i + task.element_count;
@@ -254,10 +254,10 @@ namespace AlgorithmCore
                                                      int a_max = b_index;
                                                      int b_max = b_index + task.element_count;
 
-                                                     if (a_max > task.count)
-                                                         a_max = task.count;
-                                                     if (b_max > task.count)
-                                                         b_max = task.count;
+                                                     if (a_max > (int)task.count)
+                                                         a_max = (int)task.count;
+                                                     if (b_max > (int)task.count)
+                                                         b_max = (int)task.count;
 
                                                      while (write_index < write_max &&
                                                             a_index < a_max &&

@@ -20,7 +20,11 @@ namespace Platform {
         SocketTCP(const SocketTCP& v) :read_semaphore(1), write_semaphore(1) {}
         void operator=(const SocketTCP& v) {}
 
+#if defined(_WIN32)
+        SOCKET fd;
+#else
         int fd;
+#endif
         struct sockaddr_in addr_in;
 
         bool signaled;
@@ -32,13 +36,19 @@ namespace Platform {
         HANDLE wsa_read_event;
 #endif
 
-        void initializeWithNewConnection(int fd, const struct sockaddr_in &addr_in) {
+
+#if defined(_WIN32)
+        void initializeWithNewConnection(const SOCKET &fd, const struct sockaddr_in& addr_in) {
+#else
+        void initializeWithNewConnection(int fd, const struct sockaddr_in& addr_in) {
+#endif
+        
             Platform::AutoLock auto_lock(&mutex);
 
             bool read_aquired = read_semaphore.blockingAcquire();
             bool write_aquired = write_semaphore.blockingAcquire();
 
-            ITK_ABORT(this->fd != -1, "Cannot initialize a new connection with an already initialized socked.\n");
+            ITK_ABORT(this->fd != ITK_INVALID_SOCKET, "Cannot initialize a new connection with an already initialized socked.\n");
 
             this->fd = fd;
             this->addr_in = addr_in;
@@ -69,7 +79,7 @@ namespace Platform {
 
         void setTTL(int ttl) {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             //set default ttl
             if (ttl == -1)
@@ -132,7 +142,7 @@ namespace Platform {
 
         void setBlocking(bool blocking) {
             Platform::AutoLock auto_lock(&mutex);
-            ITK_ABORT(this->fd == -1, "Socket not initialized.\n");
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             SocketUtils::SetSocketBlockingEnabled(fd, blocking);
         }
@@ -143,10 +153,10 @@ namespace Platform {
             bool read_aquired = read_semaphore.blockingAcquire();
             bool write_aquired = write_semaphore.blockingAcquire();
 
-            ITK_ABORT(this->fd != -1, "Cannot initialize a new connection with an already initialized socked.\n");
+            ITK_ABORT(this->fd != ITK_INVALID_SOCKET, "Cannot initialize a new connection with an already initialized socked.\n");
 
             fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            ITK_ABORT(fd < 0, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
+            ITK_ABORT(fd == ITK_INVALID_SOCKET, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
 
             read_timeout_ms = 0xffffffff;//INFINITE;
             write_timeout_ms = 0xffffffff;//INFINITE;
@@ -297,7 +307,7 @@ namespace Platform {
 
         // this write is blocking...
         bool write_buffer(const uint8_t* data, uint32_t size, uint32_t *write_feedback = NULL) {
-            if (isSignaled() || fd == -1) {
+            if (isSignaled() || fd == ITK_INVALID_SOCKET) {
                 if (write_feedback != NULL)
                     *write_feedback = 0;
                 return false;
@@ -376,7 +386,7 @@ namespace Platform {
 
         // this read is blocking...
         bool read_buffer(uint8_t* data, uint32_t size, uint32_t *read_feedback = NULL) {
-            if (isSignaled() || fd == -1) {
+            if (isSignaled() || fd == ITK_INVALID_SOCKET) {
                 if (read_feedback != NULL)
                     *read_feedback = 0;
                 return false;
@@ -523,7 +533,7 @@ namespace Platform {
 
 
         bool read_uint8(uint8_t* v, bool blocking = true) {
-            if (signaled || fd == -1)
+            if (signaled || fd == ITK_INVALID_SOCKET)
                 return false;
             if (blocking)
                 return read_buffer(v, 1);
@@ -562,7 +572,7 @@ namespace Platform {
         }
 
         bool isClosed() {
-            return fd == -1;
+            return fd == ITK_INVALID_SOCKET;
         }
 
         void close() {
@@ -571,7 +581,7 @@ namespace Platform {
             bool read_aquired = read_semaphore.blockingAcquire();
             bool write_aquired = write_semaphore.blockingAcquire();
 
-            if (fd != -1) {
+            if (fd != ITK_INVALID_SOCKET) {
                 printf("PlatformTCPSocket Close...\n");
 
                 ITK_ABORT(
@@ -580,7 +590,7 @@ namespace Platform {
                     SocketUtils::getLastSocketErrorMessage().c_str()
                 );
 
-                fd = -1;
+                fd = ITK_INVALID_SOCKET;
             }
 
 #if defined(_WIN32)
@@ -593,7 +603,12 @@ namespace Platform {
             if (write_aquired) write_semaphore.release();
         }
 
-        int getNativeFD() {
+#if defined(_WIN32)
+        SOCKET getNativeFD() 
+#else
+        int getNativeFD()
+#endif
+        {
             return fd;
         }
 
@@ -604,14 +619,14 @@ namespace Platform {
         SocketTCP() :read_semaphore(1), write_semaphore(1) {
             SocketUtils::Instance()->InitSockets();
 
-            fd = -1;
+            fd = ITK_INVALID_SOCKET;
             addr_in.sin_family = AF_INET;
             addr_in.sin_addr.s_addr = htonl(INADDR_NONE);
             addr_in.sin_port = htons(0);
 
             signaled = false;
 #if defined(_WIN32)
-            wsa_read_event = NULL;
+            wsa_read_event = WSA_INVALID_EVENT;
 #endif
         }
 
@@ -624,7 +639,13 @@ namespace Platform {
         };
 
     class SocketTCPAccept {
+
+#if defined(_WIN32)
+        SOCKET fd;
+#else
         int fd;
+#endif
+
         Platform::Semaphore semaphore;
         struct sockaddr_in server_addr;
 
@@ -660,7 +681,7 @@ namespace Platform {
             listen = false;
 
             fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            ITK_ABORT(fd < 0, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
+            ITK_ABORT(fd == ITK_INVALID_SOCKET, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
 
             SocketUtils::SetSocketBlockingEnabled(fd, blocking);
 
@@ -698,7 +719,12 @@ namespace Platform {
 
     public:
 
-        int getNativeFD() {
+#if defined(_WIN32)
+        SOCKET getNativeFD()
+#else
+        int getNativeFD() 
+#endif
+        {
             return fd;
         }
 
@@ -711,7 +737,7 @@ namespace Platform {
         }
 
         bool isClosed() {
-            return fd == -1;
+            return fd == ITK_INVALID_SOCKET;
         }
 
         bool isListening() {
@@ -723,7 +749,7 @@ namespace Platform {
 
             listen = false;
 
-            if (fd != -1) {
+            if (fd != ITK_INVALID_SOCKET) {
                 printf("PlatformTCPAcceptSocket Close...\n");
                 ITK_ABORT(
                     ::closesocket(fd) != 0,
@@ -731,7 +757,7 @@ namespace Platform {
                     SocketUtils::getLastSocketErrorMessage().c_str()
                 );
 
-                fd = -1;
+                fd = ITK_INVALID_SOCKET;
             }
 
 #if defined(_WIN32)
@@ -751,7 +777,7 @@ namespace Platform {
         bool bindAndListen(const std::string &address_ip, uint16_t port, int incoming_queue_size = 10) {
             bool aquired = semaphore.blockingAcquire();
 
-            if (listen || fd == -1 || !aquired) {
+            if (listen || fd == ITK_INVALID_SOCKET || !aquired) {
                 if (aquired) semaphore.release();
                 return false;
             }
@@ -807,7 +833,7 @@ namespace Platform {
             if (blocking && !semaphore.blockingAcquire())
                 return false;
 
-            if (!listen || fd == -1) {
+            if (!listen || fd == ITK_INVALID_SOCKET) {
 
                 if (blocking)
                     semaphore.release();
@@ -868,7 +894,7 @@ namespace Platform {
                     struct sockaddr_in client_addr;
                     socklen_t addrlen = sizeof(struct sockaddr_in);
 
-                    int client_sockfd = ::accept(fd, (struct sockaddr *) &client_addr, &addrlen);
+                    SOCKET client_sockfd = ::accept(fd, (struct sockaddr *) &client_addr, &addrlen);
 
                     if (client_sockfd == INVALID_SOCKET) {
                         printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
@@ -893,9 +919,9 @@ namespace Platform {
                 struct sockaddr_in client_addr;
                 socklen_t addrlen = sizeof(struct sockaddr_in);
 
-                int client_sockfd = ::accept(fd, (struct sockaddr *) &client_addr, &addrlen);
+                SOCKET client_sockfd = ::accept(fd, (struct sockaddr *) &client_addr, &addrlen);
 
-                if (client_sockfd >= 0) {
+                if (client_sockfd  != INVALID_SOCKET) {
                     //valid client socket
                     result->initializeWithNewConnection(client_sockfd, client_addr);
 

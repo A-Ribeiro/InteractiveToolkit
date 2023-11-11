@@ -13,6 +13,13 @@
 
 #endif
 
+#if defined(_WIN32)
+#define ITK_INVALID_SOCKET INVALID_SOCKET
+#else
+#define ITK_INVALID_SOCKET -1
+#endif
+
+
 namespace Platform
 {
 
@@ -150,9 +157,13 @@ namespace Platform
         }
 
         // Returns true on success, or false if there was an error
+#if defined(_WIN32)
+        static bool SetSocketBlockingEnabled(const SOCKET &fd, bool blocking)
+#else
         static bool SetSocketBlockingEnabled(int fd, bool blocking)
+#endif
         {
-            if (fd < 0)
+            if (fd == ITK_INVALID_SOCKET)
                 return false;
 
 #if defined(_WIN32)

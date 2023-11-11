@@ -14,7 +14,7 @@ namespace Platform
         register_mutex.lock();
 
         // grab all semaphores
-        semaphore.acquireCount(threadData.size());
+        semaphore.acquireCount((uint32_t)threadData.size());
 
         Thread *result = nullptr;
         if (threadData.size() > 0)
@@ -28,7 +28,7 @@ namespace Platform
         }
 
         // release all semaphores
-        semaphore.releaseCount(threadData.size());
+        semaphore.releaseCount((uint32_t)threadData.size());
 
         register_mutex.unlock();
 
