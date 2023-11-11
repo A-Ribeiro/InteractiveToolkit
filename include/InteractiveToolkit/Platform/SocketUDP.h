@@ -303,6 +303,9 @@ namespace Platform
                 return false;
             }
 
+            socklen_t len = sizeof(struct sockaddr_in);
+            getsockname(fd, (sockaddr *)&addr_in, &len);
+
             // print stats
             printf("[SocketUDP] Bind OK\n");
             printf("          UDP Addr: %s\n", inet_ntoa(addr_in.sin_addr));
