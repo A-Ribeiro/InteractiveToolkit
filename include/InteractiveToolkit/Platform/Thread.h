@@ -497,7 +497,7 @@ namespace Platform
                                 {
                                     std::unique_lock<decltype(_instance->perThreadData.interrupt_m)> lock(_instance->perThreadData.interrupt_m);
                                     //printf("Trying to signal a thread with USR1. Name: %s\n", _instance->name.c_str());
-                                    //pthread_kill(*_instance->getNativeThread(), SIGUSR1);
+                                    pthread_kill(*_instance->getNativeThread(), SIGUSR1);
                                     while (_instance->perThreadData.opened_semaphores > 0)
                                     {
                                         if (_instance->perThreadData.interrupt_cv.wait_for(lock, std::chrono::milliseconds(200)) == std::cv_status::timeout){
