@@ -58,10 +58,11 @@ namespace Platform
 
             std::string name;
 
-            SemaphoreIPC(const std::string &name, int count, bool truncate = false)
+            SemaphoreIPC(const std::string &name, int count, bool truncate = false, bool on_abort_release_aquired = true)
             {
                 aquired_count = 0;
-                ITKCommon::ITKAbort::Instance()->OnAbort.add(&SemaphoreIPC::OnAbort_SemaphoreIPC, this);
+                if (on_abort_release_aquired)
+                    ITKCommon::ITKAbort::Instance()->OnAbort.add(&SemaphoreIPC::OnAbort_SemaphoreIPC, this);
 
                 this->name = name;
                 // signaled = false;
