@@ -7,6 +7,7 @@
 #include "../../ITKCommon/Path.h"
 #include "../../ITKCommon/ITKAbort.h"
 #include "../Signal.h"
+#include "ConditionIPC.h"
 
 namespace Platform
 {
@@ -741,7 +742,7 @@ namespace Platform
                 return false;
             }
 
-            bool read(ObjectBuffer *outputBuffer, bool blocking = true, bool ignore_first_lock = false)
+            bool read(ObjectBuffer *outputBuffer, bool blocking = true, bool ignore_first_lock = false, bool *_signaled = NULL)
             {
 
                 // Platform::AutoLock autoLock(&shm_mutex);
@@ -749,6 +750,8 @@ namespace Platform
                 if (queue_semaphore == NULL)
                 {
                     shm_mutex.unlock();
+                    if (_signaled != NULL)
+                        *_signaled = false;
                     return false;
                 }
 
@@ -763,8 +766,17 @@ namespace Platform
                         unlock();
                         shm_mutex.unlock();
 
-                        if (!blocking || Platform::Thread::isCurrentThreadInterrupted())
+                        if (!blocking){
+                            if (_signaled != NULL)
+                                *_signaled = false;
                             return false;
+                        }
+
+                        if (Platform::Thread::isCurrentThreadInterrupted()){
+                            if (_signaled != NULL)
+                                *_signaled = true;
+                            return false;
+                        }
 
                         Platform::Sleep::millis(1);
 
@@ -772,6 +784,8 @@ namespace Platform
                         if (queue_semaphore == NULL)
                         {
                             shm_mutex.unlock();
+                            if (_signaled != NULL)
+                                *_signaled = false;
                             return false;
                         }
                         lock();
@@ -786,6 +800,9 @@ namespace Platform
                 // if (!ignore_first_lock)
                 unlock();
                 shm_mutex.unlock();
+
+                if (_signaled != NULL)
+                    *_signaled = false;
 
                 return true;
             }

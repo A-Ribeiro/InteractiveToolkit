@@ -32,9 +32,10 @@ namespace Platform
 
                 ObjectBuffer buffer;
 
-                while (true)
+                while (!Platform::Thread::isCurrentThreadInterrupted())
                 {
-                    while (queue.read(&buffer))
+                    bool signaled;
+                    while (queue.read(&buffer, &signaled))
                     {
                         if (buffer.size > 0){
                             buffer.data[buffer.size-1] = 0;
@@ -42,7 +43,7 @@ namespace Platform
                             fflush(stdin);
                         }
                     }
-                    if (queue.isSignaled())
+                    if (signaled)
                         return;
                     Platform::Sleep::millis(1);
                 }

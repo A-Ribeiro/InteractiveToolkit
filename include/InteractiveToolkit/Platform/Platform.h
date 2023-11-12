@@ -21,6 +21,8 @@
 
 #include "AutoLockSemaphore.h"
 
+#include "Condition.h"
+
 //
 // IPC
 //
@@ -30,6 +32,8 @@
 #include "IPC/SemaphoreIPC.h"
 
 #include "IPC/AutoLockSemaphoreIPC.h"
+
+#include "IPC/ConditionIPC.h"
 
 //
 // Tool

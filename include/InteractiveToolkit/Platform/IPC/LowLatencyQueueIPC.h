@@ -2,6 +2,7 @@
 
 #include "QueueIPC.h"
 #include "SemaphoreIPC.h"
+#include "ConditionIPC.h"
 
 namespace Platform
 {
@@ -157,7 +158,7 @@ namespace Platform
                     if (queue_buffer_ptr != MAP_FAILED)
                         munmap(queue_buffer_ptr, queue_header_ptr->capacity);
                     close(queue_buffer_handle); // close FD
-                    // shm_unlink(buffer_name.c_str());
+                                                // shm_unlink(buffer_name.c_str());
 #endif
                     queue_buffer_handle = BUFFER_HANDLE_NULL;
                 }
@@ -175,7 +176,7 @@ namespace Platform
                     if (queue_header_ptr != MAP_FAILED)
                         munmap(queue_header_ptr, sizeof(Platform::IPC::QueueHeader));
                     close(queue_header_handle); // close FD
-                    // shm_unlink(header_name.c_str());
+                                                // shm_unlink(header_name.c_str());
 #endif
                     queue_header_handle = BUFFER_HANDLE_NULL;
                 }
@@ -200,6 +201,17 @@ namespace Platform
                     semaphore_ipc->forceCloseWindows();
                 }
 #endif
+
+                if (can_write_cond != NULL)
+                {
+                    delete can_write_cond;
+                    can_write_cond = NULL;
+                }
+                if (can_write_cond_mutex != NULL)
+                {
+                    delete can_write_cond_mutex;
+                    can_write_cond_mutex = NULL;
+                }
 
                 unlock();
 
@@ -242,7 +254,6 @@ namespace Platform
             Platform::Mutex shm_mutex;
 
         public:
-
 #if defined(__linux__) || defined(__APPLE__)
             // unlink all resources
             static void force_shm_unlink(const std::string &name)
@@ -252,7 +263,7 @@ namespace Platform
                 std::string header_name = std::string("/") + std::string(name) + std::string("_allqh");    // aribeiro_ll_queue_header
                 std::string buffer_name = std::string("/") + std::string(name) + std::string("_allqb");    // aribeiro_ll_queue_buffer
                 std::string semaphore_name = std::string("/") + std::string(name) + std::string("_allqs"); // aribeiro_ll_queue_semaphore
-                std::string semaphore_count_name = std::string(name) + std::string("_allqsc"); // aribeiro_ll_queue_semaphore_count
+                std::string semaphore_count_name = std::string(name) + std::string("_allqsc");             // aribeiro_ll_queue_semaphore_count
                 std::string sem_count_name = std::string("/") + semaphore_count_name;
 
                 shm_unlink(buffer_name.c_str());
@@ -286,14 +297,39 @@ namespace Platform
             QueueHeader *queue_header_ptr; // read/write queue header
             uint8_t *queue_buffer_ptr;     // readonly or writeonly
 
+            // write condition
+            ConditionIPC *can_write_cond;
+            SemaphoreIPC *can_write_cond_mutex;
+
             LowLatencyQueueIPC(const char *name = "default",
                                uint32_t mode = QueueIPC_READ | QueueIPC_WRITE,
                                uint32_t queue_size_ = 64,
                                uint32_t buffer_size_ = 1024,
-                               bool blocking_on_read_ = true)
+                               bool blocking_on_read_ = true,
+                               bool use_write_contition_variable = true)
             {
-
                 Platform::AutoLock autoLock(&shm_mutex);
+
+                can_write_cond = NULL;
+                can_write_cond_mutex = NULL;
+
+                if (use_write_contition_variable)
+                {
+                    can_write_cond = new ConditionIPC(name);
+                    can_write_cond_mutex = new SemaphoreIPC(std::string(name) + std::string("_cv_wc"), 1, can_write_cond->bufferIPC()->isFirstProcess());
+#if defined(__linux__) || defined(__APPLE__)
+                    can_write_cond->bufferIPC()->OnLastBufferFree.add([&](Platform::IPC::BufferIPC *)
+                                                                      {
+                                                                          Platform::AutoLock autoLock(&shm_mutex);
+                                                                          if (can_write_cond_mutex != NULL)
+                                                                          {
+                                                                              delete can_write_cond_mutex;
+                                                                              can_write_cond_mutex = NULL;
+                                                                          }
+                                                                          // SemaphoreIPC::force_shm_unlink(this->name + std::string("_cv_wc"));
+                                                                      });
+#endif
+                }
 
                 ITKCommon::ITKAbort::Instance()->OnAbort.add(&LowLatencyQueueIPC::onAbort, this);
 
@@ -693,29 +729,66 @@ namespace Platform
 
                 if (!ignore_first_lock)
                 {
-
-                    lock();
-                    uint32_t remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
-                    while (size_request > remaining_space)
+                    if (can_write_cond_mutex != NULL)
                     {
-                        unlock();
-                        shm_mutex.unlock();
-
-                        if (!blocking || Platform::Thread::isCurrentThreadInterrupted())
+                        //printf("trying to lock mutex cond\n");
+                        AutoLockSemaphoreIPC ipc_lock(can_write_cond_mutex);
+                        if (ipc_lock.signaled)
                             return false;
 
-                        // maybe the yield give us a better result...but increases the CPU usage
-                        // Platform::Sleep::millis(1);
-                        Platform::Sleep::yield();
-
-                        shm_mutex.lock();
-                        if (queue_semaphore == NULL)
-                        {
-                            shm_mutex.unlock();
-                            return false;
-                        }
+                        // use condition
                         lock();
-                        remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
+                        uint32_t remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
+                        while (size_request > remaining_space)
+                        {
+                            unlock();
+                            shm_mutex.unlock();
+
+                            if (!blocking)
+                                return false;
+
+                            //printf("wait cond\n");
+                            bool signaled = false;
+                            can_write_cond->wait(can_write_cond_mutex, &signaled);
+                            if (signaled)
+                                return false;
+
+                            shm_mutex.lock();
+                            if (queue_semaphore == NULL)
+                            {
+                                shm_mutex.unlock();
+                                return false;
+                            }
+                            lock();
+                            remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
+                        }
+                    }
+                    else
+                    {
+
+                        lock();
+                        uint32_t remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
+                        while (size_request > remaining_space)
+                        {
+                            unlock();
+                            shm_mutex.unlock();
+
+                            if (!blocking || Platform::Thread::isCurrentThreadInterrupted())
+                                return false;
+
+                            // maybe the yield give us a better result...but increases the CPU usage
+                            // Platform::Sleep::millis(1);
+                            Platform::Sleep::yield();
+
+                            shm_mutex.lock();
+                            if (queue_semaphore == NULL)
+                            {
+                                shm_mutex.unlock();
+                                return false;
+                            }
+                            lock();
+                            remaining_space = queue_header_ptr->capacity - queue_header_ptr->size;
+                        }
                     }
                 }
 
@@ -740,13 +813,17 @@ namespace Platform
                 return write(inputBuffer.data, inputBuffer.size, blocking, ignore_first_lock);
             }
 
-            bool read(ObjectBuffer *outputBuffer)
+            bool read(ObjectBuffer *outputBuffer, bool *_signaled = NULL)
             {
 
                 if (blocking_on_read)
                 {
-                    if (!semaphore_ipc->blockingAcquire())
+                    bool signaled = !semaphore_ipc->blockingAcquire();
+                    if (signaled){
+                        if (_signaled != NULL)
+                            *_signaled = signaled;
                         return false;
+                    }
                 }
 
                 shm_mutex.lock();
@@ -755,6 +832,8 @@ namespace Platform
                     if (blocking_on_read)
                         semaphore_ipc->release();
                     shm_mutex.unlock();
+                    if (_signaled != NULL)
+                        *_signaled = false;
                     return false;
                 }
 
@@ -764,6 +843,9 @@ namespace Platform
                 {
                     unlock();
                     shm_mutex.unlock();
+
+                    if (_signaled != NULL)
+                        *_signaled = false;
 
                     // printf("ERROR: Trying to read element from an empty queue.\n");
                     return false;
@@ -776,6 +858,21 @@ namespace Platform
 
                 unlock();
                 shm_mutex.unlock();
+
+
+                if (can_write_cond_mutex != NULL)
+                {
+                    //printf("trying to lock mutex cond\n");
+                    AutoLockSemaphoreIPC ipc_lock(can_write_cond_mutex);
+                    if (!ipc_lock.signaled) {
+                        // aquired critical area...
+                    }
+                    //printf("cond->notify_all\n");
+                    can_write_cond->notify_all();
+                }
+
+                if (_signaled != NULL)
+                    *_signaled = false;
                 return true;
             }
 
@@ -806,14 +903,14 @@ namespace Platform
 
             // only check if this queue is signaled for the current thread...
             // it may be active in another thread...
-            bool isSignaled()
-            {
-                Platform::AutoLock autoLock(&shm_mutex);
-                if (queue_semaphore == NULL)
-                    return true;
-                return Platform::Thread::isCurrentThreadInterrupted();
-                // return semaphore_ipc->isSignaled();
-            }
+            // bool isSignaled()
+            // {
+            //     Platform::AutoLock autoLock(&shm_mutex);
+            //     if (queue_semaphore == NULL)
+            //         return true;
+            //     return Platform::Thread::isCurrentThreadInterrupted();
+            //     // return semaphore_ipc->isSignaled();
+            // }
         };
 
     }
