@@ -17,8 +17,11 @@ namespace Platform
         // On linux the Semaphore IPC are persistent...
         // you need to create a logic with file_lock (lockf)
         // to ensure the correct initialization
-        class SemaphoreIPC
+        class SemaphoreIPC: public EventCore::HandleCallback
         {
+
+            Mutex aquireMutex;
+            int aquired_count;
 
             // bool signaled;
 
@@ -35,6 +38,13 @@ namespace Platform
             SemaphoreIPC(const SemaphoreIPC &v) {}
             void operator=(const SemaphoreIPC &v) {}
 
+
+            void OnAbort_SemaphoreIPC(const char *file, int line, const char *message){
+                Platform::AutoLock lock(&aquireMutex);
+                for(int i=0;i<aquired_count;i++)
+                    release();
+            }
+
         public:
 #if defined(__linux__) || defined(__APPLE__)
             // unlink all resources
@@ -50,6 +60,9 @@ namespace Platform
 
             SemaphoreIPC(const std::string &name, int count, bool truncate = false)
             {
+                aquired_count = 0;
+                ITKCommon::ITKAbort::Instance()->OnAbort.add(&SemaphoreIPC::OnAbort_SemaphoreIPC, this);
+
                 this->name = name;
                 // signaled = false;
 #if defined(_WIN32)
@@ -107,6 +120,8 @@ namespace Platform
             }
             virtual ~SemaphoreIPC()
             {
+                ITKCommon::ITKAbort::Instance()->OnAbort.remove(&SemaphoreIPC::OnAbort_SemaphoreIPC, this);
+
 #if defined(_WIN32)
                 Platform::AutoLock autoLock(&close_mutex);
                 if (semaphore != NULL)
@@ -123,6 +138,8 @@ namespace Platform
 
             bool tryToAcquire(uint32_t timeout_ms = 0)
             {
+                Platform::AutoLock lock(&aquireMutex);
+
                 // printf("[Semaphore] tryToAquire...\n");
 
                 Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
@@ -138,7 +155,9 @@ namespace Platform
 #if defined(__linux__) || defined(__APPLE__)
                     currentThread->semaphoreUnLock();
 #endif
-                    return false;
+
+                    bool aquired = false;
+                    return aquired;
                 }
 
 #if defined(_WIN32)
@@ -164,16 +183,23 @@ namespace Platform
                 if (dwWaitResult == WAIT_OBJECT_0 + 1)
                 {
                     // signaled = true;
+                    bool aquired = false;
                     return false;
                 }
 
                 // true if the semaphore is signaled (might have the interrupt or not...)
-                return dwWaitResult == WAIT_OBJECT_0 + 0;
+                bool aquired = (dwWaitResult == WAIT_OBJECT_0 + 0);
+                if (aquired)
+                    aquired_count++;
+                return aquired;
 #elif defined(__linux__)
                 if (timeout_ms == 0)
                 {
                     currentThread->semaphoreUnLock();
-                    return sem_trywait(semaphore) == 0;
+                    bool aquired = sem_trywait(semaphore) == 0;
+                    if (aquired)
+                        aquired_count++;
+                    return aquired;
                 }
 
                 struct timespec ts;
@@ -211,15 +237,22 @@ namespace Platform
 
                     // interrupt signaled
                     // signaled = true;
-                    return false;
+                    bool aquired = false;
+                    return aquired;
                 }
 
-                return s == 0;
+                bool aquired = (s == 0);
+                if (aquired)
+                    aquired_count++;
+                return aquired;
 #elif defined(__APPLE__)
                 if (timeout_ms == 0)
                 {
                     currentThread->semaphoreUnLock();
-                    return sem_trywait(semaphore) == 0;
+                    bool aquired = sem_trywait(semaphore) == 0;
+                    if (aquired)
+                        aquired_count++;
+                    return aquired;
                 }
 
                 currentThread->semaphoreWaitBegin(semaphore);
@@ -238,19 +271,28 @@ namespace Platform
 
                 currentThread->semaphoreWaitDone(semaphore);
 
-                return s == 0;
+                bool aquired = (s == 0);
+                if (aquired)
+                    aquired_count++;
+                return aquired;
 #endif
             }
 
             bool blockingAcquire()
             {
+                Platform::AutoLock lock(&aquireMutex);
+
 #if defined(_WIN32)
                 bool signaled = isSignaled();
                 while (!signaled && !tryToAcquire(UINT32_MAX))
                 {
                     signaled = isSignaled();
                 }
-                return !signaled;
+
+                bool aquired = !signaled;
+                if (aquired)
+                    aquired_count++;
+                return aquired;
                 /*
                 if (signaled || Platform::Thread::getCurrentThread()->isCurrentThreadInterrupted())
                     signaled = true;
@@ -306,12 +348,20 @@ namespace Platform
                     // signaled = signaled || currentThread->isCurrentThreadInterrupted();
                 }
 
-                return !signaled;
+                bool aquired = !signaled;
+                if (aquired)
+                    aquired_count++;
+                return aquired;
 #endif
             }
 
             void release()
             {
+                Platform::AutoLock lock(&aquireMutex);
+
+                if (aquired_count > 0)
+                    aquired_count--;
+
 #if defined(_WIN32)
                 // printf("[Semaphore] release...\n");
                 BOOL result = ReleaseSemaphore(semaphore, 1, NULL);

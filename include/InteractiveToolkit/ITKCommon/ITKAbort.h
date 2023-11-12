@@ -11,7 +11,7 @@ namespace ITKCommon
 
     class ITKAbort
     {
-        //std::recursive_mutex mtx;
+        // std::recursive_mutex mtx;
         Platform::Mutex mutex;
         bool abort_triggered;
         ITKAbort()
@@ -24,7 +24,7 @@ namespace ITKCommon
 
         void triggeredAbort(const char *file, int line, const char *format, ...)
         {
-            //std::lock_guard<decltype(mtx)> lock(mtx);
+            // std::lock_guard<decltype(mtx)> lock(mtx);
             Platform::AutoLock lock(&mutex);
 
             if (abort_triggered)
@@ -55,12 +55,11 @@ namespace ITKCommon
             int len = vsnprintf(char_buffer.data(), char_buffer.size(), format, args);
             va_end(args);
 
-            if (OnAbort == nullptr)
-            {
-                fprintf(stderr, "[%s:%i]\n", file, line);
-                fprintf(stderr, "%s\n", char_buffer.data());
-            }
-            else
+            // print abort reason
+            fprintf(stderr, "[%s:%i]\n", file, line);
+            fprintf(stderr, "%s\n", char_buffer.data());
+
+            if (OnAbort != nullptr)
                 OnAbort(file, line, char_buffer.data());
             exit(-1);
         }
