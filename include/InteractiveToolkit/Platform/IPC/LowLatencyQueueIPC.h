@@ -412,7 +412,7 @@ namespace Platform
                 {
 
                     printf("[LowLatencyQueueIPC] Not First Opened - Retrieving Shared Memory Information...\n");
-                    semaphore_ipc = new SemaphoreIPC(semaphore_count_name, 0);
+                    semaphore_ipc = new SemaphoreIPC(semaphore_count_name, 0, false, false);
 
 #if !defined(_WIN32)
                     // initialize semaphore
@@ -436,7 +436,7 @@ namespace Platform
                 {
                     printf("[LowLatencyQueueIPC] First Opened - Creating Shared Memory...\n");
 
-                    semaphore_ipc = new SemaphoreIPC(semaphore_count_name, 0, true);
+                    semaphore_ipc = new SemaphoreIPC(semaphore_count_name, 0, true, false);
 
 #if !defined(_WIN32)
                     // truncate semaphore before initialize it
