@@ -8,6 +8,8 @@
 #include "../../ITKCommon/ITKAbort.h"
 #include "../Signal.h"
 
+#include "../../EventCore/Event.h"
+
 namespace Platform
 {
 
@@ -20,8 +22,6 @@ namespace Platform
         class BufferIPC : public EventCore::HandleCallback
         {
 
-            std::string name;
-
             std::string semaphore_name;
             std::string buffer_name;
 
@@ -31,6 +31,8 @@ namespace Platform
 
             void releaseAll()
             {
+                int instance_count = -1;
+
                 Platform::AutoLock autoLock(&shm_mutex);
 
                 ITKCommon::ITKAbort::Instance()->OnAbort.remove(&BufferIPC::onAbort, this);
@@ -53,6 +55,8 @@ namespace Platform
 
                     uint32_t *count = (uint32_t *)&real_data_ptr[size];
                     (*count)--;
+
+                    instance_count = *count;
 
 #if defined(_WIN32)
                     if (real_data_ptr != 0)
@@ -97,6 +101,11 @@ namespace Platform
                     unlock(true);
 #endif
                 }
+
+
+                if (instance_count == 0)
+                    OnLastBufferFree(this);
+
             }
 
             void onAbort(const char *file, int line, const char *message)
@@ -115,11 +124,15 @@ namespace Platform
 
         public:
 
+            std::string name;
+
+            EventCore::Event<void(BufferIPC*)> OnLastBufferFree;
+            
 #if defined(__linux__) || defined(__APPLE__)
             // unlink all resources
             static void force_shm_unlink(const std::string &name)
             {
-                printf("[BufferIPC] force_shm_unlink\n");
+                printf("[BufferIPC] force_shm_unlink: %s\n", name.c_str());
 
                 std::string buffer_name = std::string("/") + std::string(name) + std::string("_abd");    // aribeiro_buffer_data
                 std::string semaphore_name = std::string("/") + std::string(name) + std::string("_abs"); // aribeiro_buffer_semaphore

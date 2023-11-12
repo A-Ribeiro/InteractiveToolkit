@@ -247,7 +247,7 @@ namespace Platform
             // unlink all resources
             static void force_shm_unlink(const std::string &name)
             {
-                printf("[QueueIPC] force_shm_unlink\n");
+                printf("[QueueIPC] force_shm_unlink: %s\n", name.c_str());
 
                 std::string header_name = std::string("/") + std::string(name) + std::string("_aqh");    // aribeiro_queue_header
                 std::string buffer_name = std::string("/") + std::string(name) + std::string("_aqb");    // aribeiro_queue_buffer

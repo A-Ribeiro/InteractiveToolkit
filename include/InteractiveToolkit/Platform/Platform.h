@@ -19,6 +19,8 @@
 #include "ThreadWithParameters.h"
 #include "Time.h"
 
+#include "AutoLockSemaphore.h"
+
 //
 // IPC
 //
@@ -26,6 +28,8 @@
 #include "IPC/LowLatencyQueueIPC.h"
 #include "IPC/QueueIPC.h"
 #include "IPC/SemaphoreIPC.h"
+
+#include "IPC/AutoLockSemaphoreIPC.h"
 
 //
 // Tool
