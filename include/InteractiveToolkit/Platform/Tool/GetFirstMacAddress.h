@@ -47,21 +47,27 @@ namespace Platform
                 PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo; // Contains pointer to current adapter info
                 do
                 {
-                    if (pAdapterInfo->AddressLength == 6)
+                    //if (pAdapterInfo->AddressLength == 6)
                     {
                         mac_addr.resize(pAdapterInfo->AddressLength);
-                        memcpy(&mac_addr[0], pAdapterInfo->Address, pAdapterInfo->AddressLength);
+                        memcpy(mac_addr.data(), pAdapterInfo->Address, pAdapterInfo->AddressLength);
 
                         printf("[%s:%i]\n", __FILE__, __LINE__);
-                        printf("Found HW Address: ");
-                        printf("%02X:%02X:%02X:%02X:%02X:%02X of: ",
-                               pAdapterInfo->Address[0], pAdapterInfo->Address[1],
-                               pAdapterInfo->Address[2], pAdapterInfo->Address[3],
-                               pAdapterInfo->Address[4], pAdapterInfo->Address[5]);
-
-                        printf("%s", pAdapterInfo->IpAddressList.IpAddress.String);
+                        printf("%s :", pAdapterInfo->IpAddressList.IpAddress.String);
+                        for (size_t i = 0; i < mac_addr.size(); i++){
+                            if (i>0)
+                                printf(":");
+                            printf("%02x", mac_addr[i]);
+                        }
                         printf("\n");
 
+                        //printf("Found HW Address: ");
+                        // printf("%02X:%02X:%02X:%02X:%02X:%02X of: ",
+                        //        pAdapterInfo->Address[0], pAdapterInfo->Address[1],
+                        //        pAdapterInfo->Address[2], pAdapterInfo->Address[3],
+                        //        pAdapterInfo->Address[4], pAdapterInfo->Address[5]);
+                        // printf("%s", pAdapterInfo->IpAddressList.IpAddress.String);
+                        // printf("\n");
                         break;
                     }
 
@@ -83,7 +89,11 @@ namespace Platform
             {
                 for (ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next)
                 {
-                    if (((ifaptr)->ifa_addr)->sa_family == AF_INET)
+#if defined(__linux__)
+                    if (((ifaptr)->ifa_addr)->sa_family == AF_PACKET)
+#elif defined(__APPLE__)
+                    if (((ifaptr)->ifa_addr)->sa_family == AF_LINK)
+#endif
                     {
 
                         int len = strlen((ifaptr)->ifa_name);
@@ -94,15 +104,27 @@ namespace Platform
                         if (memcmp((ifaptr)->ifa_name, "lo", len) == 0)
                             continue;
 
-                        ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)(ifaptr)->ifa_addr);
 
-                        mac_addr.resize(6);
-                        memcpy(&mac_addr[0], ptr, 6);
+#if defined(__linux__)  
+                        struct sockaddr_ll *addr_structure = (struct sockaddr_ll *)(ifaptr)->ifa_addr;
+                        ptr = (unsigned char *)LLADDR(addr_structure->sll_addr);
+                        mac_addr.resize(addr_structure->sll_halen);
+                        memcpy(mac_addr.data(), ptr, addr_structure->sll_halen);
+#elif defined(__APPLE__)
+                        struct sockaddr_dl *addr_structure = (struct sockaddr_dl *)(ifaptr)->ifa_addr;
+                        ptr = (unsigned char *)LLADDR(addr_structure->sdl_data);
+                        mac_addr.resize(addr_structure->sdl_alen);
+                        memcpy(mac_addr.data(), ptr, addr_structure->sdl_alen);
+#endif
 
                         printf("[%s:%i]\n", __FILE__, __LINE__);
-                        printf("%s: %02x:%02x:%02x:%02x:%02x:%02x\n",
-                               (ifaptr)->ifa_name,
-                               *ptr, *(ptr + 1), *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
+                        printf("%s: ", (ifaptr)->ifa_name);
+                        for (size_t i = 0; i < mac_addr.size(); i++){
+                            if (i>0)
+                                printf(":");
+                            printf("%02x", mac_addr[i]);
+                        }
+                        printf("\n");
 
                         break;
                     }

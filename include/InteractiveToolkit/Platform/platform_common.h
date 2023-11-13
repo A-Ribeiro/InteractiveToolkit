@@ -103,8 +103,14 @@ namespace ITKPlatformUtil
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
-// #include <net/if_dl.h>
 #include <ifaddrs.h>
+
+#if defined(__linux__)
+    #include <netpacket/packet.h>
+    #include <net/ethernet.h>
+#elif defined(__APPLE__)
+    #include <net/if_dl.h>
+#endif
 
 #ifndef LLADDR
 #define LLADDR
