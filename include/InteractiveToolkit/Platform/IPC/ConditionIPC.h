@@ -426,13 +426,17 @@ namespace Platform
 
                 mutex_semaphore->release();
 
-                bool signaled = !controller.semaphoresIPC[this_semaphore]->tryToAcquire(timeout_ms);
+                bool aquired = controller.semaphoresIPC[this_semaphore]->tryToAcquire(timeout_ms);
+                bool signaled = false;
+                if (!aquired)
+                    signaled = controller.semaphoresIPC[this_semaphore]->isSignaled();
 
                 bool mutex_signaled = !mutex_semaphore->blockingAcquire();
 
                 if (mutex_signaled)
                 {
-                    if (!signaled)
+                    //if (!signaled)
+                    if (aquired)
                         controller.semaphoresIPC[this_semaphore]->release();
 
                     controller.releaseSemaphore(this_semaphore, &signaled, true);
