@@ -53,7 +53,7 @@ namespace Platform
                         memcpy(mac_addr.data(), pAdapterInfo->Address, pAdapterInfo->AddressLength);
 
                         printf("[%s:%i]\n", __FILE__, __LINE__);
-                        printf("%s :", pAdapterInfo->IpAddressList.IpAddress.String);
+                        printf("%s: ", pAdapterInfo->IpAddressList.IpAddress.String);
                         for (size_t i = 0; i < mac_addr.size(); i++){
                             if (i>0)
                                 printf(":");
