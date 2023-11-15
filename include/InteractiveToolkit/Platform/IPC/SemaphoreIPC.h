@@ -137,7 +137,7 @@ namespace Platform
 #endif
             }
 
-            bool tryToAcquire(uint32_t timeout_ms = 0)
+            bool tryToAcquire(uint32_t timeout_ms = 0, bool ignore_signal = false)
             {
                 Platform::AutoLock lock(&aquireMutex);
 
@@ -150,7 +150,7 @@ namespace Platform
 #endif
 
                 // if (signaled || currentThread->isCurrentThreadInterrupted()) {
-                if (isSignaled())
+                if ((!ignore_signal) && isSignaled())
                 {
                     // signaled = true;
 #if defined(__linux__) || defined(__APPLE__)
@@ -173,8 +173,12 @@ namespace Platform
                     currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
                 };
 
+                int handle_to_test = 2;
+                if (ignore_signal)
+                    handle_to_test = 1;
+
                 dwWaitResult = WaitForMultipleObjects(
-                    2,                           // number of handles in array
+                    handle_to_test,              // number of handles in array
                     handles_threadInterrupt_sem, // array of thread handles
                     FALSE,                       // wait until all are signaled
                     (DWORD)timeout_ms            // INFINITE
@@ -229,6 +233,11 @@ namespace Platform
 
                 int s = sem_timedwait(semaphore, &ts);
 
+                if (ignore_signal){
+                    while ((s == -1 && errno != ETIMEDOUT))
+                        s = sem_timedwait(semaphore, &ts);
+                }
+
                 currentThread->semaphoreWaitDone(semaphore);
 
                 // currentThread->isCurrentThreadInterrupted() ||
@@ -247,6 +256,38 @@ namespace Platform
                     aquired_count++;
                 return aquired;
 #elif defined(__APPLE__)
+                // if (timeout_ms == 0)
+                // {
+                //     currentThread->semaphoreUnLock();
+                //     bool aquired = sem_trywait(semaphore) == 0;
+                //     if (aquired)
+                //         aquired_count++;
+                //     return aquired;
+                // }
+
+                // currentThread->semaphoreWaitBegin(semaphore);
+                // currentThread->semaphoreUnLock();
+
+                // int s = -1;
+                // int timeout_int = (int)timeout_ms;
+                // while (
+                //     (ignore_signal || !currentThread->isCurrentThreadInterrupted())
+                //     && timeout_int > 0)
+                // {
+                //     s = sem_trywait(semaphore);
+                //     if (s == 0)
+                //         break;
+                //     timeout_int -= 1;
+                //     Platform::Sleep::millis(1);
+                // }
+
+                // currentThread->semaphoreWaitDone(semaphore);
+
+                // bool aquired = (s == 0);
+                // if (aquired)
+                //     aquired_count++;
+                // return aquired;
+
                 if (timeout_ms == 0)
                 {
                     currentThread->semaphoreUnLock();
@@ -256,21 +297,49 @@ namespace Platform
                     return aquired;
                 }
 
+                struct timespec ts;
+                if (clock_gettime(CLOCK_REALTIME, &ts))
+                {
+                    currentThread->semaphoreUnLock();
+                    ITK_ABORT(true, "clock_gettime error\n");
+                }
+
+                struct timespec ts_increment;
+                ts_increment.tv_sec = timeout_ms / 1000;
+                ts_increment.tv_nsec = ((long)timeout_ms % 1000L) * 1000000L;
+
+                ts.tv_nsec += ts_increment.tv_nsec;
+                ts.tv_sec += ts.tv_nsec / 1000000000L;
+                ts.tv_nsec = ts.tv_nsec % 1000000000L;
+
+                ts.tv_sec += ts_increment.tv_sec;
+
                 currentThread->semaphoreWaitBegin(semaphore);
                 currentThread->semaphoreUnLock();
 
-                int s = -1;
-                int timeout_int = (int)timeout_ms;
-                while (!currentThread->isCurrentThreadInterrupted() && timeout_int > 0)
-                {
-                    s = sem_trywait(semaphore);
-                    if (s == 0)
-                        break;
-                    timeout_int -= 1;
-                    Platform::Sleep::millis(1);
+                // printf("wait for 10 s\n");
+                // Platform::Sleep::millis(10000);
+                // printf("10 s done...\n");
+
+                int s = sem_timedwait(semaphore, &ts);
+
+                if (ignore_signal){
+                    while ((s == -1 && errno != ETIMEDOUT))
+                        s = sem_timedwait(semaphore, &ts);
                 }
 
                 currentThread->semaphoreWaitDone(semaphore);
+
+                // currentThread->isCurrentThreadInterrupted() ||
+                if ((s == -1 && errno != ETIMEDOUT))
+                {
+                    // printf(". s: %s \n", strerror(errno));
+
+                    // interrupt signaled
+                    // signaled = true;
+                    bool aquired = false;
+                    return aquired;
+                }
 
                 bool aquired = (s == 0);
                 if (aquired)
@@ -279,15 +348,15 @@ namespace Platform
 #endif
             }
 
-            bool blockingAcquire()
+            bool blockingAcquire(bool ignore_signal = false)
             {
                 Platform::AutoLock lock(&aquireMutex);
 
 #if defined(_WIN32)
-                bool signaled = isSignaled();
-                while (!signaled && !tryToAcquire(UINT32_MAX))
+                bool signaled = (!ignore_signal) && isSignaled();
+                while (!signaled && !tryToAcquire(UINT32_MAX, ignore_signal))
                 {
-                    signaled = isSignaled();
+                    signaled = (!ignore_signal) && isSignaled();
                 }
 
                 bool aquired = !signaled;
@@ -333,7 +402,7 @@ namespace Platform
 
                 currentThread->semaphoreLock();
 
-                bool signaled = isSignaled();
+                bool signaled = (!ignore_signal) && isSignaled();
 
                 if (signaled)
                 {
@@ -344,7 +413,14 @@ namespace Platform
                 {
                     currentThread->semaphoreWaitBegin(semaphore);
                     currentThread->semaphoreUnLock();
-                    signaled = signaled || (sem_wait(semaphore) != 0);
+                    
+                    //signaled = signaled || (sem_wait(semaphore) != 0);
+                    signaled = (sem_wait(semaphore) != 0);
+                    if (ignore_signal){
+                        while(signaled)
+                            signaled = (sem_wait(semaphore) != 0);
+                    }
+
                     currentThread->semaphoreWaitDone(semaphore);
                     // signaled = signaled || currentThread->isCurrentThreadInterrupted();
                 }

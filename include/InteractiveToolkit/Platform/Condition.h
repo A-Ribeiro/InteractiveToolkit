@@ -3,6 +3,7 @@
 #include "platform_common.h"
 #include "Semaphore.h"
 #include "Mutex.h"
+#include "Core/ObjectPool.h"
 
 namespace Platform
 {
@@ -14,6 +15,8 @@ namespace Platform
         std::vector<Semaphore *> released;
         Mutex *mtx;
 
+        ObjectPool<Semaphore> local_semaphores;
+
     public:
         Condition()
         {
@@ -22,7 +25,9 @@ namespace Platform
 
         void wait(Mutex *mutex, bool *_signaled = NULL)
         {
-            Semaphore *this_semaphore = new Semaphore(0);
+            //Semaphore *this_semaphore = new Semaphore(0);
+
+            Semaphore *this_semaphore = local_semaphores.create(true);
 
             {
                 AutoLock lk(&internal_lock);
@@ -44,6 +49,11 @@ namespace Platform
                 {
                     //the semaphore was released before the thread interrupt/signaling...
                     released.erase(it);
+                    
+                    //force blocking aquire to make semaphore state to 0
+                    if (signaled)
+                        this_semaphore->blockingAcquire(true);
+
                     signaled = false;
                 }
 
@@ -61,7 +71,8 @@ namespace Platform
                 }
             }
 
-            delete this_semaphore;
+            //delete this_semaphore;
+            local_semaphores.release(this_semaphore);
         }
 
         void wait_for(Mutex *mutex, uint32_t timeout_ms, bool *_signaled = NULL)

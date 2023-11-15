@@ -74,7 +74,7 @@ namespace Platform
         return 0;
     }
 
-    static int fake_sem_wait(fake_sem_t *pxsem) {
+    static int fake_sem_wait(fake_sem_t *pxsem, bool ignore_signal = false) {
         int result, xresult;
         if (!pxsem)
             return EINVAL;
@@ -82,12 +82,15 @@ namespace Platform
         if (result)
             return result;
         xresult = 0;
-        while (!Platform::Thread::isCurrentThreadInterrupted() && pxsem->count == 0) {
+        while (
+        ( ignore_signal ||
+            !Platform::Thread::isCurrentThreadInterrupted()
+        ) && pxsem->count == 0) {
             xresult = pthread_cond_wait(&pxsem->cond_var, &pxsem->mutex);
             if (xresult) // any error...
                 break;
         }
-        if (Platform::Thread::isCurrentThreadInterrupted())
+        if (!ignore_signal && Platform::Thread::isCurrentThreadInterrupted())
             xresult = EINTR;
         if (!xresult && pxsem->count > 0)
             pxsem->count--;
@@ -123,7 +126,7 @@ namespace Platform
         return 0;
     }
 
-    static int fake_sem_timedwait(fake_sem_t *pxsem, const struct timespec *abstim) {
+    static int fake_sem_timedwait(fake_sem_t *pxsem, const struct timespec *abstim, bool ignore_signal = false) {
         int result, xresult;
         if (!pxsem)
             return EINVAL;
@@ -131,12 +134,16 @@ namespace Platform
         if (result)
             return result;
         xresult = 0;
-        while (!Platform::Thread::isCurrentThreadInterrupted() && pxsem->count == 0) {
+        while (
+            (
+                ignore_signal ||
+                !Platform::Thread::isCurrentThreadInterrupted()
+                ) && pxsem->count == 0) {
             xresult = pthread_cond_timedwait(&pxsem->cond_var, &pxsem->mutex, abstim);
             if (xresult) //ETIMEDOUT or any other error...
                 break;
         }
-        if (Platform::Thread::isCurrentThreadInterrupted())
+        if (!ignore_signal && Platform::Thread::isCurrentThreadInterrupted())
             xresult = EINTR;
         if (!xresult && pxsem->count > 0)
             pxsem->count--;

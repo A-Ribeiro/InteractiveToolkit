@@ -169,6 +169,8 @@ namespace Platform
 
                 void releaseSemaphore(int semaphore_index, bool *signaled, bool force_notify_to_another_process)
                 {
+                    bool _aquired = !(*signaled);
+
                     AutoLock lk(&mtx);
 
                     bufferIPC.lock();
@@ -182,6 +184,12 @@ namespace Platform
                             for (int j = i; j < buffer_ptr->released_count - 1; j++)
                                 buffer_ptr->released_list[j] = buffer_ptr->released_list[j + 1];
                             buffer_ptr->released_count--;
+
+                            // force aquire to keep semaphore with count 0
+                            if (!_aquired){
+                                semaphoresIPC[semaphore_index]->blockingAcquire(true);
+                            }
+
                             break;
                         }
                     }
@@ -404,8 +412,8 @@ namespace Platform
 
                 if (mutex_signaled)
                 {
-                    if (!signaled)
-                        controller.semaphoresIPC[this_semaphore]->release();
+                    // if (!signaled)
+                    //     controller.semaphoresIPC[this_semaphore]->release();
 
                     controller.releaseSemaphore(this_semaphore, &signaled, true);
 
