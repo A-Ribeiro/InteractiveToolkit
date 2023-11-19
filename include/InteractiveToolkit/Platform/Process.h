@@ -171,7 +171,7 @@ namespace Platform
             if (isCreated())
             {
                 char aux[64];
-                sprintf(aux, "p%u", processInformation.dwProcessId);
+                snprintf(aux, 64, "p%u", processInformation.dwProcessId);
                 pid_str = aux;
 
                 if (pipe_stdin != NULL)

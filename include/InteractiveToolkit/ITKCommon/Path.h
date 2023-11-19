@@ -281,7 +281,7 @@ namespace ITKCommon
 
             while ((ep = readdir(dp)) != NULL)
             {
-                sprintf(p_buf, "%s/%s", directory_name, ep->d_name);
+                snprintf(p_buf, 512, "%s/%s", directory_name, ep->d_name);
                 if (unixIsDirectory(p_buf))
                     unixRemovePath(p_buf);
                 else

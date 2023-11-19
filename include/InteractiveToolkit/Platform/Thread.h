@@ -2,6 +2,7 @@
 
 #include "platform_common.h"
 #include "Mutex.h"
+#include "Sleep.h"
 
 #include "../EventCore/Callback.h"
 #include "../ITKCommon/ITKAbort.h"
@@ -61,6 +62,8 @@ namespace Platform
     class Thread
     {
     public:
+        friend class ThreadDataSet;
+
         PerThreadData perThreadData;
 
     private:
@@ -909,7 +912,6 @@ namespace Platform
         }
 
     public:
-        friend class ThreadDataSet;
 
         static int QueryNumberOfSystemThreads()
         {
@@ -964,3 +966,6 @@ namespace Platform
 }
 
 #include "Core/ThreadDataSet.inl"
+#ifdef __APPLE__
+#include "Core/unamed_fake_sem.inl"
+#endif

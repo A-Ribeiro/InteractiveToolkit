@@ -74,7 +74,7 @@ namespace Platform
                         for (int i = 0; i < CONDITION_IPC_MAX_WAITS; i++)
                         {
                             char aux[64];
-                            sprintf(aux, "%s_s_%i", name.c_str(), i);
+                            snprintf(aux, 64, "%s_s_%i", name.c_str(), i);
                             semaphoresIPC.push_back(new SemaphoreIPC(aux, 0, true));
                         }
 
@@ -86,7 +86,7 @@ namespace Platform
                         for (int i = 0; i < CONDITION_IPC_MAX_WAITS; i++)
                         {
                             char aux[64];
-                            sprintf(aux, "%s_s_%i", name.c_str(), i);
+                            snprintf(aux, 64, "%s_s_%i", name.c_str(), i);
                             semaphoresIPC.push_back(new SemaphoreIPC(aux, 0, false));
                         }
 
@@ -103,7 +103,7 @@ namespace Platform
                             for (int i = 0; i < CONDITION_IPC_MAX_WAITS; i++)
                             {
                                 char aux[64];
-                                sprintf(aux, "%s_s_%i", bufferIPC->name.c_str(), i);
+                                snprintf(aux, 64, "%s_s_%i", bufferIPC->name.c_str(), i);
                                 SemaphoreIPC::force_shm_unlink(aux);
                             }
                         });
@@ -158,7 +158,7 @@ namespace Platform
 
                     // select the semaphore
                     if (strcmp(buffer_ptr->selected_semaphore_name, semaphore_to_select->name.c_str()) != 0)
-                        sprintf(buffer_ptr->selected_semaphore_name, "%s", semaphore_to_select->name.c_str());
+                        snprintf(buffer_ptr->selected_semaphore_name, 64 , "%s", semaphore_to_select->name.c_str());
 
                     //ensureSemaphoreCreation(buffer_ptr->selected_semaphore_name);
 

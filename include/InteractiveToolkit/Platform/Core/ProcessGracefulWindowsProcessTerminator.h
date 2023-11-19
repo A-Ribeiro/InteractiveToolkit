@@ -50,7 +50,7 @@ namespace Platform {
             dwProcessId = GetCurrentProcessId();
 
             char aux[64];
-            sprintf(aux, "p%u", dwProcessId);
+            snprintf(aux, 64, "p%u", dwProcessId);
             pid_str = aux;
 
             queue = new Platform::LowLatencyQueueIPC(pid_str.c_str(), PlatformQueueIPC_READ, 16, sizeof(int));

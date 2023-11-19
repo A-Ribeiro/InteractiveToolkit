@@ -34,7 +34,7 @@ namespace Platform
             static uint64_t uid = 0;
             Platform::AutoLock autoLock(&mutex);
             char aux[64];
-            sprintf(aux, "\\\\.\\pipe\\%" PRIu64, uid++);
+            snprintf(aux, 64, "\\\\.\\pipe\\%" PRIu64, uid++);
             return aux;
         }
 

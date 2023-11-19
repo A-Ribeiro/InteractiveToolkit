@@ -2,6 +2,18 @@
 
 #include "platform_common.h"
 
+#ifdef __APPLE__
+
+// for unamed semaphores on mac
+//#include "Core/unamed_fake_sem.h"
+
+#include <mach/mach_time.h>
+
+// Thread
+#include <sys/sysctl.h>
+
+#endif
+
 namespace Platform
 {
 

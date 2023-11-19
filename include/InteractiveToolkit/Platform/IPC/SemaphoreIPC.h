@@ -256,38 +256,6 @@ namespace Platform
                     aquired_count++;
                 return aquired;
 #elif defined(__APPLE__)
-                // if (timeout_ms == 0)
-                // {
-                //     currentThread->semaphoreUnLock();
-                //     bool aquired = sem_trywait(semaphore) == 0;
-                //     if (aquired)
-                //         aquired_count++;
-                //     return aquired;
-                // }
-
-                // currentThread->semaphoreWaitBegin(semaphore);
-                // currentThread->semaphoreUnLock();
-
-                // int s = -1;
-                // int timeout_int = (int)timeout_ms;
-                // while (
-                //     (ignore_signal || !currentThread->isCurrentThreadInterrupted())
-                //     && timeout_int > 0)
-                // {
-                //     s = sem_trywait(semaphore);
-                //     if (s == 0)
-                //         break;
-                //     timeout_int -= 1;
-                //     Platform::Sleep::millis(1);
-                // }
-
-                // currentThread->semaphoreWaitDone(semaphore);
-
-                // bool aquired = (s == 0);
-                // if (aquired)
-                //     aquired_count++;
-                // return aquired;
-
                 if (timeout_ms == 0)
                 {
                     currentThread->semaphoreUnLock();
@@ -297,54 +265,86 @@ namespace Platform
                     return aquired;
                 }
 
-                struct timespec ts;
-                if (clock_gettime(CLOCK_REALTIME, &ts))
-                {
-                    currentThread->semaphoreUnLock();
-                    ITK_ABORT(true, "clock_gettime error\n");
-                }
-
-                struct timespec ts_increment;
-                ts_increment.tv_sec = timeout_ms / 1000;
-                ts_increment.tv_nsec = ((long)timeout_ms % 1000L) * 1000000L;
-
-                ts.tv_nsec += ts_increment.tv_nsec;
-                ts.tv_sec += ts.tv_nsec / 1000000000L;
-                ts.tv_nsec = ts.tv_nsec % 1000000000L;
-
-                ts.tv_sec += ts_increment.tv_sec;
-
                 currentThread->semaphoreWaitBegin(semaphore);
                 currentThread->semaphoreUnLock();
 
-                // printf("wait for 10 s\n");
-                // Platform::Sleep::millis(10000);
-                // printf("10 s done...\n");
-
-                int s = sem_timedwait(semaphore, &ts);
-
-                if (ignore_signal){
-                    while ((s == -1 && errno != ETIMEDOUT))
-                        s = sem_timedwait(semaphore, &ts);
+                int s = -1;
+                int timeout_int = (int)timeout_ms;
+                while (
+                    (ignore_signal || !currentThread->isCurrentThreadInterrupted())
+                    && timeout_int > 0)
+                {
+                    s = sem_trywait(semaphore);
+                    if (s == 0)
+                        break;
+                    timeout_int -= 1;
+                    Platform::Sleep::millis(1);
                 }
 
                 currentThread->semaphoreWaitDone(semaphore);
-
-                // currentThread->isCurrentThreadInterrupted() ||
-                if ((s == -1 && errno != ETIMEDOUT))
-                {
-                    // printf(". s: %s \n", strerror(errno));
-
-                    // interrupt signaled
-                    // signaled = true;
-                    bool aquired = false;
-                    return aquired;
-                }
 
                 bool aquired = (s == 0);
                 if (aquired)
                     aquired_count++;
                 return aquired;
+
+                // if (timeout_ms == 0)
+                // {
+                //     currentThread->semaphoreUnLock();
+                //     bool aquired = sem_trywait(semaphore) == 0;
+                //     if (aquired)
+                //         aquired_count++;
+                //     return aquired;
+                // }
+
+                // struct timespec ts;
+                // if (clock_gettime(CLOCK_REALTIME, &ts))
+                // {
+                //     currentThread->semaphoreUnLock();
+                //     ITK_ABORT(true, "clock_gettime error\n");
+                // }
+
+                // struct timespec ts_increment;
+                // ts_increment.tv_sec = timeout_ms / 1000;
+                // ts_increment.tv_nsec = ((long)timeout_ms % 1000L) * 1000000L;
+
+                // ts.tv_nsec += ts_increment.tv_nsec;
+                // ts.tv_sec += ts.tv_nsec / 1000000000L;
+                // ts.tv_nsec = ts.tv_nsec % 1000000000L;
+
+                // ts.tv_sec += ts_increment.tv_sec;
+
+                // currentThread->semaphoreWaitBegin(semaphore);
+                // currentThread->semaphoreUnLock();
+
+                // // printf("wait for 10 s\n");
+                // // Platform::Sleep::millis(10000);
+                // // printf("10 s done...\n");
+
+                // int s = sem_timedwait(semaphore, &ts);
+
+                // if (ignore_signal){
+                //     while ((s == -1 && errno != ETIMEDOUT))
+                //         s = sem_timedwait(semaphore, &ts);
+                // }
+
+                // currentThread->semaphoreWaitDone(semaphore);
+
+                // // currentThread->isCurrentThreadInterrupted() ||
+                // if ((s == -1 && errno != ETIMEDOUT))
+                // {
+                //     // printf(". s: %s \n", strerror(errno));
+
+                //     // interrupt signaled
+                //     // signaled = true;
+                //     bool aquired = false;
+                //     return aquired;
+                // }
+
+                // bool aquired = (s == 0);
+                // if (aquired)
+                //     aquired_count++;
+                // return aquired;
 #endif
             }
 

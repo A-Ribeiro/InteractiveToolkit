@@ -2,6 +2,10 @@
 
 #include "../platform_common.h"
 
+#ifndef LLADDR
+#define LLADDR
+#endif
+
 namespace Platform
 {
 
@@ -107,12 +111,13 @@ namespace Platform
 
 #if defined(__linux__)  
                         struct sockaddr_ll *addr_structure = (struct sockaddr_ll *)(ifaptr)->ifa_addr;
-                        ptr = (unsigned char *)LLADDR(addr_structure->sll_addr);
+                        //ptr = (unsigned char *)LLADDR(addr_structure->sll_addr);
+                        ptr = (unsigned char *)(addr_structure->sll_addr);
                         mac_addr.resize(addr_structure->sll_halen);
                         memcpy(mac_addr.data(), ptr, addr_structure->sll_halen);
 #elif defined(__APPLE__)
                         struct sockaddr_dl *addr_structure = (struct sockaddr_dl *)(ifaptr)->ifa_addr;
-                        ptr = (unsigned char *)LLADDR(addr_structure->sdl_data);
+                        ptr = (unsigned char *)LLADDR(addr_structure);
                         mac_addr.resize(addr_structure->sdl_alen);
                         memcpy(mac_addr.data(), ptr, addr_structure->sdl_alen);
 #endif

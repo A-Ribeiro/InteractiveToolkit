@@ -4,6 +4,10 @@
 #include "Thread.h"
 #include "Sleep.h"
 
+#ifdef __APPLE__
+    #include "Core/unamed_fake_sem.h"
+#endif
+
 namespace Platform
 {
 
