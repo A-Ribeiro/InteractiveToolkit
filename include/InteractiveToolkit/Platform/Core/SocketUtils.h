@@ -15,8 +15,10 @@
 
 #if defined(_WIN32)
 #define ITK_INVALID_SOCKET INVALID_SOCKET
+#define ITK_SOCKET_SSIZE_T int
 #else
 #define ITK_INVALID_SOCKET -1
+#define ITK_SOCKET_SSIZE_T ssize_t
 #endif
 
 

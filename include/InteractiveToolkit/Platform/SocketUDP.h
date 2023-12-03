@@ -328,7 +328,7 @@ namespace Platform
                 return false;
             }
 
-            ssize_t iResult = ::sendto(
+            ITK_SOCKET_SSIZE_T iResult = ::sendto(
                 fd,
                 (const char *)data, size,
                 0,
@@ -456,7 +456,7 @@ namespace Platform
 #endif
 
                             socklen_t addr_len = sizeof(struct sockaddr_in);
-                            ssize_t iResult = ::recvfrom(
+                            ITK_SOCKET_SSIZE_T iResult = ::recvfrom(
                                 fd,
                                 (char *)data, size,
                                 0,
@@ -516,7 +516,7 @@ namespace Platform
                 // non-blocking code
 
                 socklen_t addr_len = sizeof(struct sockaddr_in);
-                ssize_t iResult = ::recvfrom(
+                ITK_SOCKET_SSIZE_T iResult = ::recvfrom(
                     fd,
                     (char *)data, size,
                     0,

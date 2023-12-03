@@ -564,7 +564,7 @@ namespace Platform {
                 return read_buffer(v, 1);
 
             // non-blocking read 1 uint8_t
-            ssize_t iResult = recv(fd, (char*)v, 1, MSG_PEEK | MSG_DONTWAIT);
+            ITK_SOCKET_SSIZE_T iResult = recv(fd, (char*)v, 1, MSG_PEEK | MSG_DONTWAIT);
             if (iResult == 1) {
                 recv(fd, (char*)v, 1, 0);
                 return true;
