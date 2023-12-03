@@ -344,7 +344,9 @@ namespace ITKCommon
                         result.push_back(aux);
                     aux = "";
                 }
-                else if (state == enter_string && (chr == '\\' && next_chr == '"' || chr == '\\' && next_chr == '\\'))
+                else if (state == enter_string && (
+                         (chr == '\\' && next_chr == '"') ||
+                         (chr == '\\' && next_chr == '\\')) )
                 {
                     // skip slash for inner string
                     state = include_next_str;

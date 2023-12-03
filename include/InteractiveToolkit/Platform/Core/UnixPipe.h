@@ -116,7 +116,7 @@ namespace Platform
             ssize_t received = ::read(read_fd, outputBuffer->data, outputBuffer->size);
             if (received > 0)
             {
-                outputBuffer->setSize(received);
+                outputBuffer->setSize(static_cast<uint32_t>(received));
                 return true;
             }
             outputBuffer->setSize(0);
