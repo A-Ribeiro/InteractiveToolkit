@@ -100,7 +100,7 @@ namespace Platform
 #endif
                     {
 
-                        int len = strlen((ifaptr)->ifa_name);
+                        size_t len = strlen((ifaptr)->ifa_name);
 
                         if (len > 2)
                             len = 2;

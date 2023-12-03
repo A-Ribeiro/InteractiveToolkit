@@ -84,7 +84,7 @@ namespace Platform
 #if defined(_WIN32)
             UseWindowsHighResolutionClock::sleep(millis);
 #elif defined(__APPLE__) || defined(__linux__)
-            usleep(millis * 1000);
+            usleep(static_cast<useconds_t>(millis * 1000));
 #endif
         }
 
@@ -116,7 +116,7 @@ namespace Platform
             {
             }
 #elif defined(__APPLE__) || defined(__linux__)
-            usleep(micros);
+            usleep(static_cast<useconds_t>(micros));
 #endif
         }
 

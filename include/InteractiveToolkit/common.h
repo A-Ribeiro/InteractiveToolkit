@@ -77,8 +77,32 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+#if defined(__APPLE__)
+
+static void* ITK_SYS_ALIGNED_ALLOC(size_t alignment, size_t size)
+{
+    size_t prt_plus_size = size + sizeof(intptr_t) + alignment;
+    intptr_t real_alloc = (intptr_t)malloc(prt_plus_size);
+    //starts after 1 ptr_t size
+    intptr_t alligned_block = real_alloc + sizeof(intptr_t);
+    intptr_t complete_16bytes = (alignment - alligned_block % alignment) % alignment;
+    alligned_block += complete_16bytes;
+    intptr_t* allocated_block_ref = (intptr_t*)alligned_block - 1;
+    allocated_block_ref[0] = real_alloc;
+    return (void*)alligned_block;
+}
+static void ITK_SYS_ALIGNED_FREE(void* data)
+{
+    intptr_t* real_alloc = (intptr_t*)data - 1;
+    free((void*)real_alloc[0]);
+}
+
+#else
+
 #define ITK_SYS_ALIGNED_ALLOC(alignment, size) (::aligned_alloc)(alignment, size)
 #define ITK_SYS_ALIGNED_FREE(data) (::free)(data)
+
+#endif
 
 #else
 

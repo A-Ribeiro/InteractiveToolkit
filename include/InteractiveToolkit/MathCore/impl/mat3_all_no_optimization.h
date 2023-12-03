@@ -422,8 +422,8 @@ namespace MathCore
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
-                              !std::is_same<_InputSimdTypeAux, _SimdType>::value ||
-                          !std::is_same<_InputType, _BaseType>::value,
+                          (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
+                          !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE void operator=(const mat3<_InputType, _InputSimdTypeAux> &m)
         {

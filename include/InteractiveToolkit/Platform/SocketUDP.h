@@ -328,7 +328,7 @@ namespace Platform
                 return false;
             }
 
-            int iResult = ::sendto(
+            ssize_t iResult = ::sendto(
                 fd,
                 (const char *)data, size,
                 0,
@@ -339,7 +339,7 @@ namespace Platform
             {
 
                 if (write_feedback != NULL)
-                    *write_feedback = iResult;
+                    *write_feedback = static_cast<uint32_t>(iResult);
 
                 return true;
             }
@@ -456,7 +456,7 @@ namespace Platform
 #endif
 
                             socklen_t addr_len = sizeof(struct sockaddr_in);
-                            int iResult = ::recvfrom(
+                            ssize_t iResult = ::recvfrom(
                                 fd,
                                 (char *)data, size,
                                 0,
@@ -471,7 +471,7 @@ namespace Platform
                             {
 
                                 if (read_feedback != NULL)
-                                    *read_feedback = iResult;
+                                    *read_feedback = static_cast<uint32_t>(iResult);
 
                                 return true;
                             }
@@ -516,7 +516,7 @@ namespace Platform
                 // non-blocking code
 
                 socklen_t addr_len = sizeof(struct sockaddr_in);
-                int iResult = ::recvfrom(
+                ssize_t iResult = ::recvfrom(
                     fd,
                     (char *)data, size,
                     0,
@@ -527,7 +527,7 @@ namespace Platform
                 {
 
                     if (read_feedback != NULL)
-                        *read_feedback = iResult;
+                        *read_feedback = static_cast<uint32_t>(iResult);
 
                     return true;
                 }

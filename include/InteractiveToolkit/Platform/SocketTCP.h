@@ -364,7 +364,7 @@ namespace Platform {
 #if defined(_WIN32)
                     int iResult = ::send(fd, (char*)&data[current_pos], size, 0);
 #else
-                    int iResult = ::send(fd, (char*)&data[current_pos], size, MSG_NOSIGNAL);
+                    ssize_t iResult = ::send(fd, (char*)&data[current_pos], size, MSG_NOSIGNAL);
 #endif
 
 #if !defined(_WIN32)
@@ -373,7 +373,7 @@ namespace Platform {
 
                     if (iResult > 0) {
                         //received some quantity of bytes...
-                        current_pos += iResult;
+                        current_pos += static_cast<uint32_t>(iResult);
                         if (write_feedback != NULL)
                             *write_feedback = current_pos;
                     }
@@ -516,13 +516,14 @@ namespace Platform {
                     currentThread->semaphoreWaitBegin(NULL);
                     currentThread->semaphoreUnLock();
 
-                    int iResult = recv(fd, (char*)&data[current_pos], size - current_pos, 0);
+                    ssize_t iResult = recv(fd, (char*)&data[current_pos],
+                                           static_cast<ssize_t>(size - current_pos), 0);
 
                     currentThread->semaphoreWaitDone(NULL);
 
                     if (iResult > 0) {
                         //received some quantity of bytes...
-                        current_pos += iResult;
+                        current_pos += static_cast<uint32_t>(iResult);
                         if (read_feedback != NULL)
                             *read_feedback = current_pos;
                     }
@@ -563,7 +564,7 @@ namespace Platform {
                 return read_buffer(v, 1);
 
             // non-blocking read 1 uint8_t
-            int iResult = recv(fd, (char*)v, 1, MSG_PEEK | MSG_DONTWAIT);
+            ssize_t iResult = recv(fd, (char*)v, 1, MSG_PEEK | MSG_DONTWAIT);
             if (iResult == 1) {
                 recv(fd, (char*)v, 1, 0);
                 return true;
