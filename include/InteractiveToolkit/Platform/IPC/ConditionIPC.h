@@ -389,6 +389,7 @@ namespace Platform
                 }
             }
 
+            // Not Tested
             void wait_for(SemaphoreIPC *mutex_semaphore, uint32_t timeout_ms, bool *_signaled = NULL)
             {
                 int this_semaphore = controller.getNextSemaphore();
@@ -407,15 +408,16 @@ namespace Platform
                     // if (!signaled)
                     // if (aquired && signaled)
                     //     controller.semaphoresIPC[this_semaphore]->release();
-
-                    controller.releaseSemaphore(this_semaphore, &signaled, true);
+                    bool aquired_inv = !aquired;
+                    controller.releaseSemaphore(this_semaphore, &aquired_inv, true);
 
                     if (_signaled != NULL)
                         *_signaled = true;
                     return;
                 }
 
-                controller.releaseSemaphore(this_semaphore, &signaled, false);
+                bool aquired_inv = !aquired;
+                controller.releaseSemaphore(this_semaphore, &aquired_inv, false);
 
                 if (_signaled != NULL)
                     *_signaled = signaled;
