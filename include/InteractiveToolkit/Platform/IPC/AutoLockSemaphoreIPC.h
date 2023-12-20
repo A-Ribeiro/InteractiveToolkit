@@ -27,6 +27,10 @@ namespace Platform
                     return;
                 this->semaphore->release();
             }
+
+            void cancelAutoRelease() {
+                signaled = true;
+            }
         };
 
     }

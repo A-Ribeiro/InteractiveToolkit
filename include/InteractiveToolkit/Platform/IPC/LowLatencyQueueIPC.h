@@ -750,8 +750,10 @@ namespace Platform
                             //printf("wait cond\n");
                             bool signaled = false;
                             can_write_cond->wait(can_write_cond_mutex, &signaled);
-                            if (signaled)
+                            if (signaled) {
+                                ipc_lock.cancelAutoRelease();
                                 return false;
+                            }
 
                             shm_mutex.lock();
                             if (queue_semaphore == NULL)
