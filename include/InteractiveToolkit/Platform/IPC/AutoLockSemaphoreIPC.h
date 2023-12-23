@@ -15,11 +15,11 @@ namespace Platform
 
         public:
             bool signaled;
-            AutoLockSemaphoreIPC(SemaphoreIPC *semaphore)
+            AutoLockSemaphoreIPC(SemaphoreIPC *semaphore, bool ignore_signal = false)
             {
                 signaled = false;
                 this->semaphore = semaphore;
-                signaled = !this->semaphore->blockingAcquire();
+                signaled = !this->semaphore->blockingAcquire(ignore_signal);
             }
             ~AutoLockSemaphoreIPC()
             {

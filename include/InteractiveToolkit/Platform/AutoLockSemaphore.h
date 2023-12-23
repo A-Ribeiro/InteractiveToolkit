@@ -12,17 +12,20 @@ namespace Platform
 
     public:
         bool signaled;
-        AutoLockSemaphore(Semaphore *semaphore)
+        AutoLockSemaphore(Semaphore *semaphore, bool ignore_signal = false)
         {
             signaled = false;
             this->semaphore = semaphore;
-            signaled = !this->semaphore->blockingAcquire();
+            signaled = !this->semaphore->blockingAcquire(ignore_signal);
         }
         ~AutoLockSemaphore()
         {
             if (signaled)
                 return;
             this->semaphore->release();
+        }
+        void cancelAutoRelease() {
+            signaled = true;
         }
     };
 
