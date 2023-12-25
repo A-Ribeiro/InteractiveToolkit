@@ -421,30 +421,51 @@ define_source_group(${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
 #add_library(${PROJECT_NAME} INTERFACE)
 #target_sources(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${SRC})
-add_custom_target(${PROJECT_NAME} SOURCES ${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
+#add_custom_target(${PROJECT_NAME} SOURCES ${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
+add_library(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
 # set the target's folder (for IDEs that support it, e.g. Visual Studio)
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIB")
 
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES COMPILE_DEFINITIONS
-                      "${ITK_COMPILE_DEFINITIONS}")
+set_property(TARGET ${PROJECT_NAME}
+            PROPERTY COMPILE_DEFINITIONS
+            ${ITK_COMPILE_DEFINITIONS})
 
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES COMPILE_OPTIONS
-                      "${ITK_COMPILE_OPTIONS}")
+set_property(TARGET ${PROJECT_NAME}
+            PROPERTY COMPILE_OPTIONS
+            ${ITK_COMPILE_OPTIONS})
 
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES INTERFACE_LINK_OPTIONS
-                      "${ITK_LINK_OPTIONS}")
+set_property(TARGET ${PROJECT_NAME}
+            PROPERTY INTERFACE_LINK_OPTIONS
+            ${ITK_LINK_OPTIONS})
 
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-                      "${ITK_INCLUDE_DIRECTORIES}")
+set_property(TARGET ${PROJECT_NAME}
+            PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+            ${ITK_INCLUDE_DIRECTORIES})
 
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES INTERFACE_LINK_LIBRARIES
-                      "${ITK_LINK_LIBRARIES}")
+set_property(TARGET ${PROJECT_NAME}
+            PROPERTY  INTERFACE_LINK_LIBRARIES
+            ${ITK_LINK_LIBRARIES})
+
+# set_target_properties(${PROJECT_NAME}
+#                       PROPERTIES COMPILE_DEFINITIONS
+#                       "${ITK_COMPILE_DEFINITIONS}")
+
+# set_target_properties(${PROJECT_NAME}
+#                       PROPERTIES COMPILE_OPTIONS
+#                       "${ITK_COMPILE_OPTIONS}")
+
+# set_target_properties(${PROJECT_NAME}
+#                       PROPERTIES INTERFACE_LINK_OPTIONS
+#                       "${ITK_LINK_OPTIONS}")
+
+# set_target_properties(${PROJECT_NAME}
+#                       PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+#                       "${ITK_INCLUDE_DIRECTORIES}")
+
+# set_target_properties(${PROJECT_NAME}
+#                       PROPERTIES INTERFACE_LINK_LIBRARIES
+#                       "${ITK_LINK_LIBRARIES}")
 
 #target_link_libraries(${PROJECT_NAME} INTERFACE ${ITK_LINK_LIBRARIES})
 
