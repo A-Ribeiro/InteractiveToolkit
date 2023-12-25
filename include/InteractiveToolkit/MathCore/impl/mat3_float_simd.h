@@ -495,6 +495,10 @@ namespace MathCore
 		{
 			return array[_col * 4 + _row];
 		}
+		ITK_INLINE const _BaseType& operator()(const int _row, const int _col) const
+		{
+			return array[_col * 4 + _row];
+		}
 		//---------------------------------------------------------------------------
 		/// \brief Matrix row access based
 		///

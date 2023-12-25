@@ -322,6 +322,10 @@ namespace MathCore
         {
             return array[_col * 3 + _row];
         }
+        ITK_INLINE const _BaseType& operator()(const int _row, const int _col) const
+        {
+            return array[_col * 3 + _row];
+        }
         //---------------------------------------------------------------------------
         /// \brief Matrix column access based
         ///

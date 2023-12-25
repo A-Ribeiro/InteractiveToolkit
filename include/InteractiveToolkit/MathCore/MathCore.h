@@ -81,11 +81,18 @@ namespace MathCore
 
     // template type instrospection
     template <typename _single_element_>
-    struct MathTypeInfo;
+    struct MathTypeInfo{
+        //static constexpr bool _is_valid = false;
+        using _is_valid = std::false_type;
+        using _is_vec = std::false_type;
+        using _type = _single_element_;
+
+    };
 
     template <typename __type, typename __simd>
     struct MathTypeInfo<vec2<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_vec2;
         using _is_vec = std::true_type;
         using _type = __type;
@@ -104,6 +111,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<vec3<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_vec3;
         using _is_vec = std::true_type;
         using _type = __type;
@@ -122,6 +130,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<vec4<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_vec4;
         using _is_vec = std::true_type;
         using _type = __type;
@@ -140,6 +149,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<quat<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_quat;
         using _is_vec = std::true_type;
         using _type = __type;
@@ -158,6 +168,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<mat2<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_mat2;
         using _is_vec = std::false_type;
         using _type = __type;
@@ -176,6 +187,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<mat3<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_mat3;
         using _is_vec = std::false_type;
         using _type = __type;
@@ -194,6 +206,7 @@ namespace MathCore
     template <typename __type, typename __simd>
     struct MathTypeInfo<mat4<__type, __simd>>
     {
+        using _is_valid = std::true_type;
         using _class = MathTypeClass::_class_mat4;
         using _is_vec = std::false_type;
         using _type = __type;
@@ -208,6 +221,31 @@ namespace MathCore
         using _mat3 = mat3<__type, __simd>;
         using _mat4 = mat4<__type, __simd>;
     };
+
+
+    // other types filtering
+    // #define MATH_CORE_DEFINE_ANY_TYPE(T_) template <> \
+    // struct MathTypeInfo<T_> \
+    // { \
+    //     using _is_valid = std::false_type; \
+    //     using _is_vec = std::false_type; \
+    //     using _type = T_; \
+    // };
+
+    // MATH_CORE_DEFINE_ANY_TYPE(uint8_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(int8_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(uint16_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(int16_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(uint32_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(int32_t)
+    // MATH_CORE_DEFINE_ANY_TYPE(float)
+    // MATH_CORE_DEFINE_ANY_TYPE(double)
+    // MATH_CORE_DEFINE_ANY_TYPE(bool)
+    // MATH_CORE_DEFINE_ANY_TYPE(std::string)
+
+    // #undef MATH_CORE_DEFINE_ANY_TYPE
+
+
 
 }
 
