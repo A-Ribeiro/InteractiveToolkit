@@ -6,7 +6,7 @@
 namespace Platform
 {
 
-    void ThreadDataSet::unregisterThread(Thread *thread)
+    inline void ThreadDataSet::unregisterThread(Thread *thread)
     {
         ThreadIdentifier tid = GetCurrentThreadId_Custom();
         MapT::iterator it;

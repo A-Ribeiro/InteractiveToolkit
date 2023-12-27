@@ -28,7 +28,7 @@ namespace Platform
         ///
         /// \author Alessandro Ribeiro
         ///
-        std::vector<unsigned char> getFirstMacAddress()
+        static std::vector<unsigned char> getFirstMacAddress()
         {
 #if defined(_WIN32)
 

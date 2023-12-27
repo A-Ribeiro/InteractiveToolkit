@@ -30,7 +30,7 @@ namespace Platform
         return tid;
     }
 
-    void platform_thread_signal_handler_usr1(int signal) {}
+    static void platform_thread_signal_handler_usr1(int signal) {}
 #elif defined(__linux__)
     typedef pid_t ThreadIdentifier;
     typedef pthread_t NativeThreadHandle;
@@ -39,7 +39,7 @@ namespace Platform
     {
         return syscall(SYS_gettid);
     }
-    void platform_thread_signal_handler_usr1(int signal) {}
+    static void platform_thread_signal_handler_usr1(int signal) {}
 #endif
 
     enum class ThreadPriority : uint8_t

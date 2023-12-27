@@ -16,7 +16,7 @@ namespace Platform
 {
 
     // STDOUT_FILENO | STDERR_FILENO
-    void SinkStdFD(int fd)
+    static void SinkStdFD(int fd)
     {
         if (fd == STDOUT_FILENO | fd == STDERR_FILENO)
         {

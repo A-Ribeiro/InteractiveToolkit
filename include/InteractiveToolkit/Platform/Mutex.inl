@@ -5,7 +5,7 @@
 namespace Platform
 {
 
-        void Mutex::lock()
+        inline void Mutex::lock()
         {
 #if defined(_WIN32)
             EnterCriticalSection(&mLock);
