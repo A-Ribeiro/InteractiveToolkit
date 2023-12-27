@@ -21,7 +21,7 @@
 typedef GUID KNOWNFOLDERID;
 #define REFKNOWNFOLDERID const KNOWNFOLDERID &
 
-HRESULT(_stdcall *SHGetKnownFolderPath)
+static HRESULT(_stdcall *SHGetKnownFolderPath)
 (
     REFKNOWNFOLDERID rfid,
     DWORD dwFlags,
@@ -48,7 +48,7 @@ LWSTDAPI_(BOOL)
 PathAppendW(__inout_ecount(MAX_PATH) LPWSTR pszPath, LPCWSTR pMore);
 #endif
 
-bool useKnownFolders(void)
+static bool useKnownFolders(void)
 {
     static bool result = false;
     static bool count = 0;
