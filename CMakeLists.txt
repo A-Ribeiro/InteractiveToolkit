@@ -526,6 +526,20 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/include"
 tool_make_global(CMAKE_MODULE_PATH)
 tool_make_global(CMAKE_PREFIX_PATH)
 
+MESSAGE(INFO "#######################################")
+MESSAGE(INFO "#         InteractiveToolkit          #")
+MESSAGE(INFO "#######################################")
+MESSAGE(INFO "#                                     #")
+MESSAGE(INFO "# You need to add the folowing        #")
+MESSAGE(INFO "# lines to your root 'CMakeLists.txt' #")
+MESSAGE(INFO "# before import this library:         #")
+MESSAGE(INFO "#                                     #")
+MESSAGE(INFO "# unset (CMAKE_MODULE_PATH CACHE)     #")
+MESSAGE(INFO "# unset (CMAKE_PREFIX_PATH CACHE)     #")
+MESSAGE(INFO "#                                     #")
+MESSAGE(INFO "#######################################")
+
+
 # get_directory_property(hasParent PARENT_DIRECTORY)
 # if(hasParent)
 #     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake-modules" PARENT_SCOPE)
