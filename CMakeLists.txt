@@ -425,7 +425,7 @@ define_source_group(${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 add_library(${PROJECT_NAME} INTERFACE ${PUBLIC_HEADERS} ${PUBLIC_INL} ${SRC})
 
 # set the target's folder (for IDEs that support it, e.g. Visual Studio)
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIB")
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "LIBS")
 
 set_property(TARGET ${PROJECT_NAME}
             PROPERTY COMPILE_DEFINITIONS
@@ -505,10 +505,31 @@ if( NOT MSVC AND NOT ITK_SKIP_INSTALL )
     )
 endif()
 
-get_directory_property(hasParent PARENT_DIRECTORY)
-if(hasParent)
-    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_LIST_DIR}/cmake-modules" PARENT_SCOPE)
-    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
-endif()
+# Export module path and prefix path
+#
+# The main app needs to use this pattern 
+# to avoid increase the module and prefix path each config time.
+# You need to add to your main project:
+#
+# set (CMAKE_MODULE_PATH "")
+# set (CMAKE_PREFIX_PATH "")
+# tool_make_global(CMAKE_MODULE_PATH)
+# tool_make_global(CMAKE_PREFIX_PATH)
+#
+
+macro ( tool_make_global _var )
+    set ( ${_var} ${${_var}} CACHE INTERNAL "hide this!" FORCE )
+endmacro( )
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/include")
+tool_make_global(CMAKE_MODULE_PATH)
+tool_make_global(CMAKE_PREFIX_PATH)
+
+# get_directory_property(hasParent PARENT_DIRECTORY)
+# if(hasParent)
+#     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake-modules" PARENT_SCOPE)
+#     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
+# endif()
 
 #find_package (InteractiveToolkit QUIET PATHS ${CMAKE_CURRENT_SOURCE_DIR}/include)
