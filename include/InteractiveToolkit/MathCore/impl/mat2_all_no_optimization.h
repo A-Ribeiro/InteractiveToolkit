@@ -8,18 +8,18 @@ namespace MathCore
 {
 
     /*
-    struct _SSE2_ALIGN_PRE {
+    struct  {
                 float _11, _21, _31, _41,
                     _12, _22, _32, _42,
                     _13, _23, _33, _43,
                     _14, _24, _34, _44;
-            }_SSE2_ALIGN_POS;
-            struct _SSE2_ALIGN_PRE {
+            };
+            struct  {
                 float a1, a2, a3, a4,
                     b1, b2, b3, b4,
                     c1, c2, c3, c4,
                     d1, d2, d3, d4;
-            }_SSE2_ALIGN_POS;
+            };
     */
 
     /// \brief Matrix with 4x4 components
@@ -54,15 +54,14 @@ namespace MathCore
         using vec2_compatible_type = vec2<_BaseType, _SimdType>;
 
     public:
-
         static constexpr int rows = 2;
-		static constexpr int cols = 2;
+        static constexpr int cols = 2;
 
         static constexpr int array_count = 4;
         static constexpr int array_stride = 2;
 
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -110,8 +109,8 @@ namespace MathCore
                 0, 1);
             *this = mat2_IdentityMatrix;
         }*/
-        constexpr ITK_INLINE mat2() :array{ 1, 0,
-            0, 1 } {}
+        constexpr ITK_INLINE mat2() : array{1, 0,
+                                            0, 1} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -134,8 +133,8 @@ namespace MathCore
             a1 = a2 =
                 b1 = b2 = value;
         }*/
-        constexpr ITK_INLINE mat2(const _BaseType& v) :array{ v, v,
-            v, v } {}
+        constexpr ITK_INLINE mat2(const _BaseType &v) : array{v, v,
+                                                              v, v} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -174,9 +173,9 @@ namespace MathCore
             b1 = _b1;
             b2 = _b2;
         }*/
-        constexpr ITK_INLINE mat2(const _BaseType& _a1, const _BaseType& _b1,
-            const _BaseType& _a2, const _BaseType& _b2) :array{ _a1, _a2,
-            _b1, _b2} {}
+        constexpr ITK_INLINE mat2(const _BaseType &_a1, const _BaseType &_b1,
+                                  const _BaseType &_a2, const _BaseType &_b2) : array{_a1, _a2,
+                                                                                      _b1, _b2} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -226,8 +225,8 @@ namespace MathCore
             b2 = b.y;
         }*/
 
-        constexpr ITK_INLINE mat2(const vec2_compatible_type& a, const vec2_compatible_type& b) :array{ a.x, a.y,
-            b.x, b.y } {}
+        constexpr ITK_INLINE mat2(const vec2_compatible_type &a, const vec2_compatible_type &b) : array{a.x, a.y,
+                                                                                                        b.x, b.y} {}
 
         //---------------------------------------------------------------------------
         /// \brief Matrix multiplication
@@ -287,11 +286,11 @@ namespace MathCore
         /// \param _col The column to get the element at index
         /// \return A reference to the matrix element
         ///
-        ITK_INLINE _BaseType& operator()(const int _row, const int _col)
+        ITK_INLINE _BaseType &operator()(const int _row, const int _col)
         {
             return array[_col * 2 + _row];
         }
-        ITK_INLINE const _BaseType& operator()(const int _row, const int _col) const
+        ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 2 + _row];
         }
@@ -376,7 +375,7 @@ namespace MathCore
             _BaseType accumulator = _BaseType();
             for (int i = 0; i < 4; i++)
                 accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
-                //accumulator += (std::abs)(array[i] - v.array[i]);
+            // accumulator += (std::abs)(array[i] - v.array[i]);
             return accumulator <= EPSILON<_BaseType>::high_precision;
         }
 
@@ -395,8 +394,8 @@ namespace MathCore
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
-                              (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
-                          !std::is_same<_InputType, _BaseType>::value),
+                          (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
+                           !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE void operator=(const mat2<_InputType, _InputSimdTypeAux> &m)
         {
@@ -551,8 +550,8 @@ namespace MathCore
         {
             _BaseType det = (a1 * b2 - b1 * a2);
 
-            //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
+            // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+            det = OP<_BaseType>::maximum(det, FloatTypeInfo<_BaseType>::min);
             det = (_BaseType)1.0 / det;
 
             return self_type(+b2 * det, -b1 * det,

@@ -132,7 +132,7 @@ namespace MathCore
             /*
         There are three ways to implement quaternion minimum angle:
 
-        aRibeiro::quat b_to_a = aRibeiro::normalize(a) ^ aRibeiro::inv(aRibeiro::normalize(b));
+        MathCore::quatf b_to_a = aRibeiro::normalize(a) ^ aRibeiro::inv(aRibeiro::normalize(b));
         float way1 = acos(aRibeiro::absv(aRibeiro::clamp(b_to_a.w, -1.0f, 1.0f))) * 2.0f;
 
         float way2 = asin(aRibeiro::clamp(sqrt( b_to_a.x*b_to_a.x+ b_to_a.y*b_to_a.y + b_to_a.z*b_to_a.z ), -1.0f, 1.0f)) * 2.0f;

@@ -8,18 +8,18 @@ namespace MathCore
 {
 
 	/*
-	struct _SSE2_ALIGN_PRE {
+	struct  {
 				float _11, _21, _31, _41,
 					_12, _22, _32, _42,
 					_13, _23, _33, _43,
 					_14, _24, _34, _44;
-			}_SSE2_ALIGN_POS;
-			struct _SSE2_ALIGN_PRE {
+			};
+			struct  {
 				float a1, a2, a3, a4,
 					b1, b2, b3, b4,
 					c1, c2, c3, c4,
 					d1, d2, d3, d4;
-			}_SSE2_ALIGN_POS;
+			};
 	*/
 
 	/// \brief Matrix with 4x4 components
@@ -46,19 +46,18 @@ namespace MathCore
 	///
 	template <typename _BaseType, typename _SimdType>
 	class mat4<_BaseType, _SimdType,
-		typename std::enable_if<
-		std::is_same<_SimdType, SIMD_TYPE::NONE>::value>::type>
+			   typename std::enable_if<
+				   std::is_same<_SimdType, SIMD_TYPE::NONE>::value>::type>
 	{
 		using self_type = mat4<_BaseType, _SimdType>;
 		using vec4_compatible_type = vec4<_BaseType, _SimdType>;
 
 	public:
-
 		static constexpr int rows = 4;
 		static constexpr int cols = 4;
 
 		static constexpr int array_count = 16;
-        static constexpr int array_stride = 4;
+		static constexpr int array_stride = 4;
 
 		using type = self_type;
 		using element_type = _BaseType;
@@ -113,10 +112,10 @@ namespace MathCore
 				0, 0, 0, 1);
 			*this = mat4_IdentityMatrix;
 		}*/
-		constexpr ITK_INLINE mat4() :array{ 1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1 } {}
+		constexpr ITK_INLINE mat4() : array{1, 0, 0, 0,
+											0, 1, 0, 0,
+											0, 0, 1, 0,
+											0, 0, 0, 1} {}
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -141,10 +140,10 @@ namespace MathCore
 				c1 = c2 = c3 = c4 =
 				d1 = d2 = d3 = d4 = value;
 		}*/
-		constexpr ITK_INLINE mat4(const _BaseType& v) :array{ v, v, v, v,
-			v, v, v, v,
-			v, v, v, v,
-			v, v, v, v } {}
+		constexpr ITK_INLINE mat4(const _BaseType &v) : array{v, v, v, v,
+															  v, v, v, v,
+															  v, v, v, v,
+															  v, v, v, v} {}
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -199,13 +198,13 @@ namespace MathCore
 			d3 = _d3;
 			d4 = _d4;
 		}*/
-		constexpr ITK_INLINE mat4(const _BaseType& _a1, const _BaseType& _b1, const _BaseType& _c1, const _BaseType& _d1,
-			const _BaseType& _a2, const _BaseType& _b2, const _BaseType& _c2, const _BaseType& _d2,
-			const _BaseType& _a3, const _BaseType& _b3, const _BaseType& _c3, const _BaseType& _d3,
-			const _BaseType& _a4, const _BaseType& _b4, const _BaseType& _c4, const _BaseType& _d4) :array{ _a1, _a2, _a3, _a4,
-			_b1, _b2, _b3, _b4,
-			_c1, _c2, _c3, _c4,
-			_d1, _d2, _d3, _d4 } {}
+		constexpr ITK_INLINE mat4(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1, const _BaseType &_d1,
+								  const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2, const _BaseType &_d2,
+								  const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3, const _BaseType &_d3,
+								  const _BaseType &_a4, const _BaseType &_b4, const _BaseType &_c4, const _BaseType &_d4) : array{_a1, _a2, _a3, _a4,
+																																  _b1, _b2, _b3, _b4,
+																																  _c1, _c2, _c3, _c4,
+																																  _d1, _d2, _d3, _d4} {}
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -233,7 +232,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \param m Matrix to assign to the instance
 		///
-		ITK_INLINE mat4(const self_type& m)
+		ITK_INLINE mat4(const self_type &m)
 		{
 			*this = m;
 		}
@@ -243,7 +242,6 @@ namespace MathCore
 			m.c1, m.c2, m.c3, m.c4,
 			m.d1, m.d2, m.d3, m.d4 }
 		{}*/
-
 
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
@@ -276,10 +274,10 @@ namespace MathCore
 			d4 = d.w;
 		}*/
 
-		constexpr ITK_INLINE mat4(const vec4_compatible_type& a, const vec4_compatible_type& b, const vec4_compatible_type& c, const vec4_compatible_type& d) :array{ a.x, a.y, a.z, a.w,
-			b.x, b.y, b.z, b.w,
-			c.x, c.y, c.z, c.w,
-			d.x, d.y, d.z, d.w } {}
+		constexpr ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d) : array{a.x, a.y, a.z, a.w,
+																																									  b.x, b.y, b.z, b.w,
+																																									  c.x, c.y, c.z, c.w,
+																																									  d.x, d.y, d.z, d.w} {}
 
 		//---------------------------------------------------------------------------
 		/// \brief Matrix multiplication
@@ -301,7 +299,7 @@ namespace MathCore
 		/// \param M the matrix to be multiplied by the current instance
 		/// \return A reference to the multiplied matrix current instance
 		///
-		ITK_INLINE self_type& operator*=(const self_type& M)
+		ITK_INLINE self_type &operator*=(const self_type &M)
 		{
 			_BaseType a, b, c, d;
 			a = a1;
@@ -363,11 +361,11 @@ namespace MathCore
 		/// \param _col The column to get the element at index
 		/// \return A reference to the matrix element
 		///
-		ITK_INLINE _BaseType& operator()(const int _row, const int _col)
+		ITK_INLINE _BaseType &operator()(const int _row, const int _col)
 		{
 			return array[_col * 4 + _row];
 		}
-		ITK_INLINE const _BaseType& operator()(const int _row, const int _col) const
+		ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
 		{
 			return array[_col * 4 + _row];
 		}
@@ -394,9 +392,9 @@ namespace MathCore
 		/// \param _col The column to get
 		/// \return A reference to the matrix row as vec4
 		///
-		ITK_INLINE vec4_compatible_type& operator[](const int _col)
+		ITK_INLINE vec4_compatible_type &operator[](const int _col)
 		{
-			return *((vec4_compatible_type*)&array[_col * 4]);
+			return *((vec4_compatible_type *)&array[_col * 4]);
 		}
 
 		/// \brief Matrix row access based
@@ -419,9 +417,9 @@ namespace MathCore
 		/// \param _col The column to get
 		/// \return A reference to the matrix row as vec4
 		///
-		ITK_INLINE const vec4_compatible_type& operator[](const int _col) const
+		ITK_INLINE const vec4_compatible_type &operator[](const int _col) const
 		{
-			return *((vec4_compatible_type*)&array[_col * 4]);
+			return *((vec4_compatible_type *)&array[_col * 4]);
 		}
 		//---------------------------------------------------------------------------
 		/// \brief Compare two matrix using the #EPSILON constant
@@ -445,21 +443,21 @@ namespace MathCore
 		/// \return true: the matrix is equal, considering the #EPSILON
 		///
 		template <class _Type = _BaseType,
-			typename std::enable_if<
-			std::is_floating_point<_Type>::value, bool>::type = true>
-		ITK_INLINE bool operator==(const self_type& v) const
+				  typename std::enable_if<
+					  std::is_floating_point<_Type>::value, bool>::type = true>
+		ITK_INLINE bool operator==(const self_type &v) const
 		{
 			_BaseType accumulator = _BaseType();
 			for (int i = 0; i < 16; i++)
 				accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
-				//accumulator += (std::abs)(array[i] - v.array[i]);
+			// accumulator += (std::abs)(array[i] - v.array[i]);
 			return accumulator <= EPSILON<_BaseType>::high_precision;
 		}
 
 		template <class _Type = _BaseType,
-			typename std::enable_if<
-			std::is_integral<_Type>::value, bool>::type = true>
-		ITK_INLINE bool operator==(const self_type& v) const
+				  typename std::enable_if<
+					  std::is_integral<_Type>::value, bool>::type = true>
+		ITK_INLINE bool operator==(const self_type &v) const
 		{
 			for (int i = 0; i < 16; i++)
 				if (array[i] != v.array[i])
@@ -469,11 +467,11 @@ namespace MathCore
 
 		// inter SIMD types converting...
 		template <typename _InputType, typename _InputSimdTypeAux,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			(!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
-			!std::is_same<_InputType, _BaseType>::value),
-			bool>::type = true>
+				  typename std::enable_if<
+					  std::is_convertible<_InputType, _BaseType>::value &&
+						  (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
+						   !std::is_same<_InputType, _BaseType>::value),
+					  bool>::type = true>
 		ITK_INLINE void operator=(const mat4<_InputType, _InputSimdTypeAux> &m)
 		{
 			*this = self_type(
@@ -484,11 +482,11 @@ namespace MathCore
 		}
 		// inter SIMD types converting...
 		template <typename _OutputType, typename _OutputSimdTypeAux,
-			typename std::enable_if<
-			std::is_convertible<_BaseType, _OutputType>::value &&
-			!(std::is_same<_OutputSimdTypeAux, _SimdType>::value&&
-				std::is_same<_OutputType, _BaseType>::value),
-			bool>::type = true>
+				  typename std::enable_if<
+					  std::is_convertible<_BaseType, _OutputType>::value &&
+						  !(std::is_same<_OutputSimdTypeAux, _SimdType>::value &&
+							std::is_same<_OutputType, _BaseType>::value),
+					  bool>::type = true>
 		ITK_INLINE operator mat4<_OutputType, _OutputSimdTypeAux>() const
 		{
 			return mat4<_OutputType, _OutputSimdTypeAux>(
@@ -518,7 +516,7 @@ namespace MathCore
 		/// \param v The other matrix to compare with
 		/// \return true: the matrix is not equal, considering the #EPSILON
 		///
-		ITK_INLINE bool operator!=(const self_type& v) const
+		ITK_INLINE bool operator!=(const self_type &v) const
 		{
 			return !((*this) == v);
 		}
@@ -540,7 +538,7 @@ namespace MathCore
 		/// \param v The other matrix used to add values
 		/// \return The matrix with the sum result
 		///
-		ITK_INLINE self_type& operator+=(const self_type& v)
+		ITK_INLINE self_type &operator+=(const self_type &v)
 		{
 			a1 += v.a1;
 			a2 += v.a2;
@@ -581,7 +579,7 @@ namespace MathCore
 		/// \param v The other matrix used to subtract values
 		/// \return The matrix with the subtract result
 		///
-		ITK_INLINE self_type& operator-=(const self_type& v)
+		ITK_INLINE self_type &operator-=(const self_type &v)
 		{
 			a1 -= v.a1;
 			a2 -= v.a2;
@@ -626,9 +624,9 @@ namespace MathCore
 		ITK_INLINE self_type operator-() const
 		{
 			return self_type(-a1, -b1, -c1, -d1,
-				-a2, -b2, -c2, -d2,
-				-a3, -b3, -c3, -d3,
-				-a4, -b4, -c4, -d4);
+							 -a2, -b2, -c2, -d2,
+							 -a3, -b3, -c3, -d3,
+							 -a4, -b4, -c4, -d4);
 		}
 
 		/// \brief Component-wise divide element
@@ -649,7 +647,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \return The matrix with the division result
 		///
-		ITK_INLINE self_type& operator/=(const self_type& v)
+		ITK_INLINE self_type &operator/=(const self_type &v)
 		{
 			(*this) *= v.inverse();
 			return *this;
@@ -709,8 +707,8 @@ namespace MathCore
 			vec4_compatible_type Dot0((*this)[0] * Row0);
 			_BaseType det = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
 
-			//MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-			det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
+			// MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+			det = OP<_BaseType>::maximum(det, FloatTypeInfo<_BaseType>::min);
 
 			_BaseType _1_over_det = (_BaseType)1.0 / det;
 
@@ -730,8 +728,8 @@ namespace MathCore
 			_BaseType det = (a1 * aux1 + a2 * aux2 + a3 * aux3);
 
 			// check det
-			//MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-			det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
+			// MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+			det = OP<_BaseType>::maximum(det, FloatTypeInfo<_BaseType>::min);
 
 			det = (_BaseType)1.0 / det;
 
@@ -758,7 +756,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \return The matrix with the sum of the elements
 		///
-		ITK_INLINE self_type& operator+=(const _BaseType& v)
+		ITK_INLINE self_type &operator+=(const _BaseType &v)
 		{
 			a1 += v;
 			a2 += v;
@@ -798,7 +796,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \return The matrix with the subtract of the elements
 		///
-		ITK_INLINE self_type& operator-=(const _BaseType& v)
+		ITK_INLINE self_type &operator-=(const _BaseType &v)
 		{
 			a1 -= v;
 			a2 -= v;
@@ -838,7 +836,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \return The matrix with the multiplication of the elements
 		///
-		ITK_INLINE self_type& operator*=(const _BaseType& v)
+		ITK_INLINE self_type &operator*=(const _BaseType &v)
 		{
 			a1 *= v;
 			a2 *= v;
@@ -878,7 +876,7 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \return The matrix with the division of the elements
 		///
-		ITK_INLINE self_type& operator/=(const _BaseType& v)
+		ITK_INLINE self_type &operator/=(const _BaseType &v)
 		{
 			a1 /= v;
 			a2 /= v;
