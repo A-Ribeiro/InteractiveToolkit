@@ -73,6 +73,13 @@ git clone https://github.com/A-Ribeiro/InteractiveToolkit.git libs/InteractiveTo
 In your CMakeLists.txt:
 
 ```cmake
+# at the beginning of yout root 'CMakeLists.txt':
+
+unset (CMAKE_MODULE_PATH CACHE)
+unset (CMAKE_PREFIX_PATH CACHE)
+
+# include the lib:
+
 add_subdirectory(libs/InteractiveToolkit "${CMAKE_BINARY_DIR}/lib/InteractiveToolkit")
 ```
 
@@ -86,6 +93,13 @@ git clone git@github.com:A-Ribeiro/InteractiveToolkit.git libs/InteractiveToolki
 In your CMakeLists.txt:
 
 ```cmake
+# at the beginning of yout root 'CMakeLists.txt':
+
+unset (CMAKE_MODULE_PATH CACHE)
+unset (CMAKE_PREFIX_PATH CACHE)
+
+# include the lib:
+
 add_subdirectory(libs/InteractiveToolkit "${CMAKE_BINARY_DIR}/lib/InteractiveToolkit")
 ```
 
@@ -102,6 +116,13 @@ git submodule add https://github.com/A-Ribeiro/InteractiveToolkit.git libs/Inter
 In your CMakeLists.txt:
 
 ```cmake
+# at the beginning of yout root 'CMakeLists.txt':
+
+unset (CMAKE_MODULE_PATH CACHE)
+unset (CMAKE_PREFIX_PATH CACHE)
+
+# include the lib:
+
 add_subdirectory(libs/InteractiveToolkit "${CMAKE_BINARY_DIR}/lib/InteractiveToolkit")
 ```
 
@@ -122,6 +143,13 @@ git submodule add git@github.com:A-Ribeiro/InteractiveToolkit.git libs/Interacti
 In your CMakeLists.txt:
 
 ```cmake
+# at the beginning of yout root 'CMakeLists.txt':
+
+unset (CMAKE_MODULE_PATH CACHE)
+unset (CMAKE_PREFIX_PATH CACHE)
+
+# include the lib:
+
 add_subdirectory(libs/InteractiveToolkit "${CMAKE_BINARY_DIR}/lib/InteractiveToolkit")
 ```
 
