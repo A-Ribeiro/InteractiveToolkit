@@ -6,6 +6,8 @@
 #include <locale>
 #include <codecvt>
 
+#define UTF32_STR(utf32_literal) ITKCommon::StringUtil::utf32_to_utf8(utf32_literal).c_str()
+
 namespace ITKCommon
 {
     /// \brief Common string operation for use with the font renderer and generic string tests
@@ -148,6 +150,22 @@ namespace ITKCommon
             std::wstring_convert<convert_typeX, wchar_t> converterX;
 
             return converterX.to_bytes(wstr);
+        }
+
+        static ITK_INLINE std::u32string utf8_to_utf32(const std::string &str)
+        {
+            //return std::wstring(str.begin(), str.end());
+            using convert_typeX = std::codecvt_utf8<char32_t>;
+            std::wstring_convert<convert_typeX, char32_t> converterX;
+            return converterX.from_bytes(str);
+        }
+
+        static ITK_INLINE std::string utf32_to_utf8(const std::u32string &str)
+        {
+            //return std::wstring(str.begin(), str.end());
+            using convert_typeX = std::codecvt_utf8<char32_t>;
+            std::wstring_convert<convert_typeX, char32_t> converterX;
+            return converterX.to_bytes(str);
         }
 
         /// \brief test if a string starts with another string
