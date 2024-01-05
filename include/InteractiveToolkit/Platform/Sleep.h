@@ -1,6 +1,7 @@
 #pragma once
 
-#include "platform_common.h"
+// #include "platform_common.h"
+#include "../common.h"
 #include "Time.h"
 
 namespace Platform
