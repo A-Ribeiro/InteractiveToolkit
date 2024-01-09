@@ -3,8 +3,9 @@
 #include "../common.h"
 #include "../AlgorithmCore/PatternMatch/array_index_of.h"
 
-#include <locale>
-#include <codecvt>
+// #include <locale>
+// #include <codecvt>
+#include "3rdparty/utf8proc/header-only/utf8proc.h"
 
 #define UTF32_STR(utf32_literal) ITKCommon::StringUtil::utf32_to_utf8(utf32_literal).c_str()
 
@@ -134,38 +135,81 @@ namespace ITKCommon
         /// \param str char string
         /// \return wchar_t string
         ///
-        static ITK_INLINE std::wstring toWString(const std::string &str)
-        {
-            //return std::wstring(str.begin(), str.end());
-            using convert_typeX = std::codecvt_utf8<wchar_t>;
-            std::wstring_convert<convert_typeX, wchar_t> converterX;
+        // static ITK_INLINE std::wstring toWString(const std::string &str)
+        // {
+        //     //return std::wstring(str.begin(), str.end());
+        //     using convert_typeX = std::codecvt_utf8<wchar_t>;
+        //     std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-            return converterX.from_bytes(str);
-        }
+        //     return converterX.from_bytes(str);
+        // }
 
-        static ITK_INLINE std::string toString(const std::wstring &wstr)
-        {
-            //return std::string(wstr.begin(), wstr.end());
-            using convert_typeX = std::codecvt_utf8<wchar_t>;
-            std::wstring_convert<convert_typeX, wchar_t> converterX;
+        // static ITK_INLINE std::string toString(const std::wstring &wstr)
+        // {
+        //     //return std::string(wstr.begin(), wstr.end());
+        //     using convert_typeX = std::codecvt_utf8<wchar_t>;
+        //     std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-            return converterX.to_bytes(wstr);
-        }
+        //     return converterX.to_bytes(wstr);
+        // }
 
         static ITK_INLINE std::u32string utf8_to_utf32(const std::string &str)
         {
-            //return std::wstring(str.begin(), str.end());
-            using convert_typeX = std::codecvt_utf8<char32_t>;
-            std::wstring_convert<convert_typeX, char32_t> converterX;
-            return converterX.from_bytes(str);
+            // return std::wstring(str.begin(), str.end());
+
+            // using convert_typeX = std::codecvt_utf8<char32_t>;
+            // std::wstring_convert<convert_typeX, char32_t> converterX;
+            // return converterX.from_bytes(str);
+            std::vector<char32_t> output;
+            utf8proc_ssize_t input_total_bytes = (utf8proc_ssize_t)str.length();
+            if (input_total_bytes == 0)
+                return U"";
+            const utf8proc_uint8_t *input_const_ptr = (const utf8proc_uint8_t *)&str[0];
+            utf8proc_ssize_t total_bytes_readed = 0;
+
+            utf8proc_int32_t readed_char_utf32;
+            utf8proc_ssize_t readed_bytes;
+            while (total_bytes_readed < input_total_bytes)
+            {
+                readed_bytes = utf8proc_iterate( 
+                    input_const_ptr + total_bytes_readed,
+                    input_total_bytes - total_bytes_readed,
+                    &readed_char_utf32);
+                if (readed_bytes <= 0)
+                {
+                    // error occured on reading UTF8 Data
+                    fprintf(stderr, "[ITKCommon::StringUtil] error to read utf-8 data.\n");
+                    break;
+                }
+                total_bytes_readed += readed_bytes;
+                // valid codepoint readed
+                if (readed_char_utf32 >= 0)
+                    output.push_back((char32_t)readed_char_utf32);
+            }
+            return std::u32string(output.data(), output.size());
         }
 
         static ITK_INLINE std::string utf32_to_utf8(const std::u32string &str)
         {
-            //return std::wstring(str.begin(), str.end());
-            using convert_typeX = std::codecvt_utf8<char32_t>;
-            std::wstring_convert<convert_typeX, char32_t> converterX;
-            return converterX.to_bytes(str);
+            // return std::wstring(str.begin(), str.end());
+
+            // using convert_typeX = std::codecvt_utf8<char32_t>;
+            // std::wstring_convert<convert_typeX, char32_t> converterX;
+            // return converterX.to_bytes(str);
+
+            std::vector<char> output;
+
+            utf8proc_uint8_t dst[4];
+            utf8proc_ssize_t bytes_written;
+            for (auto _input_codepoint : str)
+            {
+                bytes_written = utf8proc_encode_char((utf8proc_int32_t)_input_codepoint, dst);
+                if (bytes_written == 0)
+                    continue;
+                output.insert(output.end(), (char *)dst, (char *)(dst + bytes_written));
+            }
+
+            return std::string(output.data(), output.size());
         }
 
         /// \brief test if a string starts with another string
@@ -218,15 +262,23 @@ namespace ITKCommon
 
         static ITK_INLINE std::string toLower(const std::string str)
         {
-            std::string aux = str;
-            std::transform(aux.begin(), aux.end(), aux.begin(), ::tolower);
-            return aux;
+            // std::string aux = str;
+            // std::transform(aux.begin(), aux.end(), aux.begin(), ::tolower);
+            // return aux;
+            std::u32string _upper = utf8_to_utf32(str);
+            for (auto &c : _upper)
+                c = utf8proc_tolower(c);
+            return utf32_to_utf8(_upper);
         }
         static ITK_INLINE std::string toUpper(const std::string str)
         {
-            std::string aux = str;
-            std::transform(aux.begin(), aux.end(), aux.begin(), ::toupper);
-            return aux;
+            // std::string aux = str;
+            // std::transform(aux.begin(), aux.end(), aux.begin(), ::toupper);
+            // return aux;
+            std::u32string _upper = utf8_to_utf32(str);
+            for (auto &c : _upper)
+                c = utf8proc_toupper(c);
+            return utf32_to_utf8(_upper);
         }
 
         static ITK_INLINE bool contains(const std::string str, const std::string v)
@@ -362,9 +414,8 @@ namespace ITKCommon
                         result.push_back(aux);
                     aux = "";
                 }
-                else if (state == enter_string && (
-                         (chr == '\\' && next_chr == '"') ||
-                         (chr == '\\' && next_chr == '\\')) )
+                else if (state == enter_string && ((chr == '\\' && next_chr == '"') ||
+                                                   (chr == '\\' && next_chr == '\\')))
                 {
                     // skip slash for inner string
                     state = include_next_str;
