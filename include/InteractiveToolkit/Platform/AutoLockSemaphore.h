@@ -1,6 +1,7 @@
 #pragma once
 
-#include "platform_common.h"
+//#include "platform_common.h"
+#include "../common.h"
 #include "Semaphore.h"
 
 namespace Platform

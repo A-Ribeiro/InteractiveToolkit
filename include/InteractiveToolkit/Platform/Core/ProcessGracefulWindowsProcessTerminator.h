@@ -4,7 +4,8 @@
 #error ERROR: Including Windows Gracefull Process Terminator in a Non-Windows OS
 #endif
 
-#include "platform_common.h"
+//#include "platform_common.h"
+#include "../../common.h"
 #include "../Thread.h"
 #include "../IPC/LowLatencyQueueIPC.h"
 

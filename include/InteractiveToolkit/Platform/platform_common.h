@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../common.h"
-#include "../ITKCommon/ITKCommon.h"
+//#include "../ITKCommon/ITKCommon.h"
 
 #if defined(_WIN32)
 // Sleep

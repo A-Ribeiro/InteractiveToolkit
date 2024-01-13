@@ -1,6 +1,8 @@
 #pragma once
 
-#include "platform_common.h"
+//#include "platform_common.h"
+#include "../common.h"
+#include "AutoLock.h"
 #include "Semaphore.h"
 #include "Mutex.h"
 #include "Core/ObjectPool.h"
