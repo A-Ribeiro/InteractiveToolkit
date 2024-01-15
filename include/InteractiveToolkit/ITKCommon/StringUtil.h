@@ -8,7 +8,6 @@
 #include "3rdparty/utf8proc/header-only/utf8proc.h"
 #include "3rdparty/utf8proc/header-only/utf16proc.inl"
 
-
 #define UTF32_STR(utf32_literal) ITKCommon::StringUtil::utf32_to_utf8(utf32_literal).c_str()
 
 namespace ITKCommon
@@ -220,10 +219,10 @@ namespace ITKCommon
             size_t input_total_bytes = str.length();
             if (input_total_bytes == 0)
                 return U"";
-            const char16_t *input_const_ptr = (const char16_t *)&str[0];
+            const uint16_t *input_const_ptr = (const uint16_t *)&str[0];
             size_t total_bytes_readed = 0;
 
-            char32_t readed_char_utf32;
+            uint32_t readed_char_utf32;
             size_t readed_bytes;
             while (total_bytes_readed < input_total_bytes)
             {
@@ -240,7 +239,7 @@ namespace ITKCommon
                 total_bytes_readed += readed_bytes;
                 // valid codepoint readed
                 if (readed_char_utf32 != 0)
-                    output.push_back(readed_char_utf32);
+                    output.push_back((char32_t)readed_char_utf32);
             }
             return std::u32string(output.data(), output.size());
         }
@@ -249,14 +248,14 @@ namespace ITKCommon
         {
             std::vector<char16_t> output;
 
-            char16_t dst[2];
+            uint16_t dst[2];
             size_t elements_written;
             for (auto _input_codepoint : str)
             {
-                elements_written = utf16proc_encode_char(_input_codepoint, dst);
+                elements_written = utf16proc_encode_char((uint32_t)_input_codepoint, dst);
                 if (elements_written == 0)
                     continue;
-                output.insert(output.end(), dst, (dst + elements_written));
+                output.insert(output.end(), (char16_t *)dst, (char16_t *)(dst + elements_written));
             }
 
             return std::u16string(output.data(), output.size());

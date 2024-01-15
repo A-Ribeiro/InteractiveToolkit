@@ -12,22 +12,24 @@
 
 // can read maximum of char16_t[2]
 // return = 0, means you need to iterate one character ahead on input...
-static size_t utf16proc_iterate(const char16_t *str, size_t strlen, char32_t *codepoint_ref)
+static size_t utf16proc_iterate(const uint16_t *utf16_str, size_t strlen, uint32_t *codepoint_ref)
 {
     if (strlen == 0)
         return 0;
 
-    char16_t _utf16_code_a = str[0];
+    uint32_t _utf16_code_a = (uint32_t)utf16_str[0];
+    // high surrogates (0xD800–0xDBFF)
     if (_utf16_code_a >= 0xD800 && _utf16_code_a <= 0xDBFF)
     {
         // need two chars to read the complete codepoint.
         if (strlen >= 2)
         {
-            char16_t _utf16_code_b = str[1];
+            uint32_t _utf16_code_b = (uint32_t)utf16_str[1];
+            // low surrogates (0xDC00–0xDFFF)
             if (_utf16_code_b >= 0xDC00 && _utf16_code_b <= 0xDFFF)
             {
-                // normal reading, skipping 2 bytes
-                *codepoint_ref = (((char32_t)_utf16_code_a - 0xD800) << 10) + ((char32_t)_utf16_code_b - 0xDC00) + 0x10000;
+                // normal reading, skipping 2 elements
+                *codepoint_ref = ((_utf16_code_a - 0xD800) << 10) + (_utf16_code_b - 0xDC00) + 0x10000;
                 return 2;
             }
         }
@@ -35,7 +37,7 @@ static size_t utf16proc_iterate(const char16_t *str, size_t strlen, char32_t *co
     else
     {
         // normal case, the code is the same UTF16 and UTF32
-        *codepoint_ref = (char32_t)_utf16_code_a;
+        *codepoint_ref = _utf16_code_a;
         return 1;
     }
 
@@ -44,29 +46,35 @@ static size_t utf16proc_iterate(const char16_t *str, size_t strlen, char32_t *co
     return 1;
 }
 
-// can generate maximum of char16_t[2]
-static size_t utf16proc_encode_char(char32_t codepoint, char16_t *dst)
+// can generate maximum of uint16_t[2]
+static size_t utf16proc_encode_char(uint32_t codepoint, uint16_t *dst)
 {
     if (codepoint <= 0xFFFF)
     {
         // single character
-        if (codepoint < 0xD800 || codepoint > 0xDFFF)
+        if (codepoint <= 0xD7FF || codepoint >= 0xE000)
         {
             // the character is the same on both sides
-            dst[0] = (char16_t)codepoint;
+            dst[0] = (uint16_t)codepoint;
             return 1;
         }
     }
-    else if (codepoint <= 0x10FFFF)
-    { // codepoint > 0xFFFF &&
+    else if (codepoint <= 0x10FFFF) // codepoint > 0xFFFF &&
+    {
         // range 0xFFFF - 0x10FFFF
+
+        // Subtract 0x10000 from the code point
         codepoint -= 0x10000;
-        dst[0] = (char16_t)((codepoint >> 10) + 0xD800);
-        dst[1] = (char16_t)((codepoint & 0x3FF) + 0xDC00);
+
+        // For the high surrogate, shift right by 10 (divide by 0x400), then add 0xD800
+        dst[0] = (uint16_t)((codepoint >> 10) + 0xD800);
+
+        // For the low surrogate, take the low 10 bits (remainder of dividing by 0x400 or bitwise-and 0x3FF), then add 0xDC00
+        dst[1] = (uint16_t)((codepoint & 0x3FF) + 0xDC00);
         return 2;
     }
 
     // unknown character
-    dst[0] = 0xFFFD;
+    dst[0] = (uint16_t)0xFFFD;
     return 1;
 }
