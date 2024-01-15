@@ -53,7 +53,7 @@ namespace Platform {
             released = false;
         }
 
-        virtual ~ObjectPool() {
+        ~ObjectPool() {
             
             Platform::AutoLock autoLock(&mutex);
 

@@ -807,7 +807,7 @@ namespace Platform
                 return true;
             }
 
-            virtual ~QueueIPC()
+            ~QueueIPC()
             {
                 releaseAll();
             }

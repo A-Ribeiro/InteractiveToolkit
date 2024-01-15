@@ -62,7 +62,7 @@ namespace Platform
         ///
         /// \author Alessandro Ribeiro
         ///
-        virtual ~Mutex()
+        ~Mutex()
         {
 #if defined(_WIN32)
             DeleteCriticalSection(&mLock);

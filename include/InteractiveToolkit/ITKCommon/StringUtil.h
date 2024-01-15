@@ -6,6 +6,8 @@
 // #include <locale>
 // #include <codecvt>
 #include "3rdparty/utf8proc/header-only/utf8proc.h"
+#include "3rdparty/utf8proc/header-only/utf16proc.inl"
+
 
 #define UTF32_STR(utf32_literal) ITKCommon::StringUtil::utf32_to_utf8(utf32_literal).c_str()
 
@@ -171,7 +173,7 @@ namespace ITKCommon
             utf8proc_ssize_t readed_bytes;
             while (total_bytes_readed < input_total_bytes)
             {
-                readed_bytes = utf8proc_iterate( 
+                readed_bytes = utf8proc_iterate(
                     input_const_ptr + total_bytes_readed,
                     input_total_bytes - total_bytes_readed,
                     &readed_char_utf32);
@@ -210,6 +212,54 @@ namespace ITKCommon
             }
 
             return std::string(output.data(), output.size());
+        }
+
+        static ITK_INLINE std::u32string utf16_to_utf32(const std::u16string &str)
+        {
+            std::vector<char32_t> output;
+            size_t input_total_bytes = str.length();
+            if (input_total_bytes == 0)
+                return U"";
+            const char16_t *input_const_ptr = (const char16_t *)&str[0];
+            size_t total_bytes_readed = 0;
+
+            char32_t readed_char_utf32;
+            size_t readed_bytes;
+            while (total_bytes_readed < input_total_bytes)
+            {
+                readed_bytes = utf16proc_iterate(
+                    input_const_ptr + total_bytes_readed,
+                    input_total_bytes - total_bytes_readed,
+                    &readed_char_utf32);
+                if (readed_bytes <= 0)
+                {
+                    // error occured on reading UTF8 Data
+                    fprintf(stderr, "[ITKCommon::StringUtil] error to read utf-16 data.\n");
+                    break;
+                }
+                total_bytes_readed += readed_bytes;
+                // valid codepoint readed
+                if (readed_char_utf32 != 0)
+                    output.push_back(readed_char_utf32);
+            }
+            return std::u32string(output.data(), output.size());
+        }
+
+        static ITK_INLINE std::u16string utf32_to_utf16(const std::u32string &str)
+        {
+            std::vector<char16_t> output;
+
+            char16_t dst[2];
+            size_t elements_written;
+            for (auto _input_codepoint : str)
+            {
+                elements_written = utf16proc_encode_char(_input_codepoint, dst);
+                if (elements_written == 0)
+                    continue;
+                output.insert(output.end(), dst, (dst + elements_written));
+            }
+
+            return std::u16string(output.data(), output.size());
         }
 
         /// \brief test if a string starts with another string

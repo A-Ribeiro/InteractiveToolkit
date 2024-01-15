@@ -119,7 +119,7 @@ namespace Platform
                 ITK_ABORT(semaphore == SEM_FAILED, "Error to create global semaphore. Error code: %s\n", strerror(errno));
 #endif
             }
-            virtual ~SemaphoreIPC()
+            ~SemaphoreIPC()
             {
                 ITKCommon::ITKAbort::Instance()->OnAbort.remove(&SemaphoreIPC::OnAbort_SemaphoreIPC, this);
 

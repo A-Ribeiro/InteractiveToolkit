@@ -878,7 +878,7 @@ namespace Platform
                 return true;
             }
 
-            virtual ~LowLatencyQueueIPC()
+            ~LowLatencyQueueIPC()
             {
                 releaseAll(true);
             }

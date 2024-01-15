@@ -438,7 +438,7 @@ namespace Platform
                 shm_mutex.unlock();
             }
 
-            virtual ~BufferIPC()
+            ~BufferIPC()
             {
                 releaseAll();
             }

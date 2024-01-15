@@ -665,7 +665,7 @@ namespace Platform {
 #endif
         }
 
-        virtual ~SocketTCP() {
+        ~SocketTCP() {
             close();
         }
 
@@ -805,7 +805,7 @@ namespace Platform {
             if (aquired) semaphore.release();
         }
 
-        virtual ~SocketTCPAccept() {
+        ~SocketTCPAccept() {
             close();
         }
 

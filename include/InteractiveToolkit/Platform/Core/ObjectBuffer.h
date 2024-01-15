@@ -47,7 +47,7 @@ namespace Platform {
 			constructed_from_external_buffer = false;
 		}
 
-		virtual ~ObjectBuffer() {
+		~ObjectBuffer() {
 			free();
 		}
 

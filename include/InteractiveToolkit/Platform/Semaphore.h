@@ -45,7 +45,7 @@ namespace Platform
             fake_sem_init(&semaphore, 0, count);
 #endif
         }
-        virtual ~Semaphore()
+        ~Semaphore()
         {
 #if defined(_WIN32)
             if (semaphore != NULL)
