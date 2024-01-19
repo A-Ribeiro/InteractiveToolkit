@@ -42,7 +42,7 @@ namespace EventCore
     /// Example example;
     ///
     /// // set the value
-    /// example.Size = vec2(1.0);
+    /// example.Size = MathCore::vec2f(1.0);
     ///
     /// // get the value
     /// vec2 aux = (vec2)example.Size;
@@ -91,46 +91,55 @@ namespace EventCore
         ITK_INLINE void operator+=(const T &v) const
         {
             _set(_get() + v);
-            //return _get();
+            // return _get();
         }
         ITK_INLINE void operator-=(const T &v) const
         {
             _set(_get() - v);
-            //return _get();
+            // return _get();
         }
         ITK_INLINE void operator*=(const T &v) const
         {
             _set(_get() * v);
-            //return _get();
+            // return _get();
         }
         ITK_INLINE void operator/=(const T &v) const
         {
             _set(_get() / v);
-            //return _get();
+            // return _get();
         }
         ITK_INLINE void operator^=(const T &v) const
         {
             _set(_get() ^ v);
-            //return _get();
+            // return _get();
         }
-
     };
 
-    #define _declare_vproperty_operator(OP)                                                    \
-    template <typename T>                                                                 \
-    static ITK_INLINE T operator OP(const T &a, const VirtualProperty<T> &b) noexcept           \
-    {                                                                                     \
-        return a OP (T)b;                                                              \
-    }                                                                                     \
-    template <typename T>                                                                 \
-    static ITK_INLINE T operator OP(const VirtualProperty<T> &a, const T &b) noexcept           \
-    {                                                                                     \
-        return (T)a OP b;                                                              \
-    }                                                                                     \
-    template <typename T>                                                                 \
+#define _declare_vproperty_operator(OP)                                                                \
+    template <typename T>                                                                              \
+    static ITK_INLINE T operator OP(const T &a, const VirtualProperty<T> &b) noexcept                  \
+    {                                                                                                  \
+        return a OP(T) b;                                                                              \
+    }                                                                                                  \
+    template <typename T>                                                                              \
+    static ITK_INLINE T operator OP(const VirtualProperty<T> &a, const T &b) noexcept                  \
+    {                                                                                                  \
+        return (T)a OP b;                                                                              \
+    }                                                                                                  \
+    template <typename T>                                                                              \
     static ITK_INLINE T operator OP(const VirtualProperty<T> &a, const VirtualProperty<T> &b) noexcept \
-    {                                                                                     \
-        return (T)a OP (T)b;                                                        \
+    {                                                                                                  \
+        return (T)a OP(T) b;                                                                           \
+    }                                                                                                  \
+    template <typename T, typename _T>                                                                 \
+    static ITK_INLINE _T operator OP(const _T &a, const VirtualProperty<T> &b) noexcept                \
+    {                                                                                                  \
+        return a OP(T) b;                                                                              \
+    }                                                                                                  \
+    template <typename T, typename _T>                                                                 \
+    static ITK_INLINE _T operator OP(const VirtualProperty<T> &a, const _T &b) noexcept                \
+    {                                                                                                  \
+        return (T)a OP b;                                                                              \
     }
 
     _declare_vproperty_operator(+);
@@ -142,6 +151,6 @@ namespace EventCore
     _declare_vproperty_operator(&&);
     _declare_vproperty_operator(||);
 
-    #undef _declare_vproperty_operator
+#undef _declare_vproperty_operator
 
 }

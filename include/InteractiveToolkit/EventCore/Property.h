@@ -3,7 +3,6 @@
 #include "../common.h"
 #include "Event.h"
 
-
 namespace EventCore
 {
 
@@ -34,7 +33,7 @@ namespace EventCore
     /// Size.OnChange.add(MyListeningFunction);
     ///
     /// // trigger the property change
-    /// Size = vec2(1.0f);
+    /// Size = MathCore::vec2f(1.0f);
     /// \endcode
     ///
     /// \author Alessandro Ribeiro
@@ -51,8 +50,7 @@ namespace EventCore
         T value;    ///< The property current value
 
     public:
-        
-        Event<void(const T&value, const T&oldValue)> OnChange; ///< Called when a modification occurs
+        Event<void(const T &value, const T &oldValue)> OnChange; ///< Called when a modification occurs
 
         /// \brief Construct this property with an initial value.
         ///
@@ -62,7 +60,7 @@ namespace EventCore
         /// #include <aRibeiroCore/aRibeiroCore.h>
         /// using namespace aRibeiro;
         ///
-        /// Property<vec2> Size = Property<vec2>( vec2(1.0f) );
+        /// Property<vec2> Size = Property<vec2>( MathCore::vec2f(1.0f) );
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -102,7 +100,7 @@ namespace EventCore
         /// Size.OnChange.add(MyListeningFunction);
         ///
         /// // trigger the property change
-        /// Size = vec2(1.0f);
+        /// Size = MathCore::vec2f(1.0f);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -125,7 +123,7 @@ namespace EventCore
         /// ...
         ///
         /// // Set the property value
-        /// Size = vec2(1.0f);
+        /// Size = MathCore::vec2f(1.0f);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -136,7 +134,7 @@ namespace EventCore
             {
                 oldValue = value;
                 value = v;
-                OnChange(value, oldValue);//OnChange(this);
+                OnChange(value, oldValue); // OnChange(this);
             }
         }
 
@@ -162,82 +160,122 @@ namespace EventCore
             return value;
         }
 
-        ITK_INLINE bool operator==(const T &param) const {
+        ITK_INLINE bool operator==(const T &param) const
+        {
             return value == param;
         }
 
-        ITK_INLINE bool operator!=(const T &param) const {
+        ITK_INLINE bool operator!=(const T &param) const
+        {
             return value != param;
         }
-
 
         ITK_INLINE void operator+=(const T &v)
         {
             oldValue = value;
             value += v;
-            if (value != oldValue){
-                OnChange(value, oldValue);//OnChange(this);
+            if (value != oldValue)
+            {
+                OnChange(value, oldValue); // OnChange(this);
             }
-            //return value;
+            // return value;
         }
         ITK_INLINE void operator-=(const T &v)
         {
             oldValue = value;
             value -= v;
-            if (value != oldValue){
-                OnChange(value, oldValue);//OnChange(this);
+            if (value != oldValue)
+            {
+                OnChange(value, oldValue); // OnChange(this);
             }
-            //return value;
+            // return value;
         }
         ITK_INLINE void operator*=(const T &v)
         {
             oldValue = value;
             value *= v;
-            if (value != oldValue){
-                OnChange(value, oldValue);//OnChange(this);
+            if (value != oldValue)
+            {
+                OnChange(value, oldValue); // OnChange(this);
             }
-            //return value;
+            // return value;
         }
         ITK_INLINE void operator/=(const T &v)
         {
             oldValue = value;
             value /= v;
-            if (value != oldValue){
-                OnChange(value, oldValue);//OnChange(this);
+            if (value != oldValue)
+            {
+                OnChange(value, oldValue); // OnChange(this);
             }
-            //return value;
+            // return value;
         }
         ITK_INLINE void operator^=(const T &v)
         {
             oldValue = value;
             value ^= v;
-            if (value != oldValue){
-                OnChange(value, oldValue);//OnChange(this);
+            if (value != oldValue)
+            {
+                OnChange(value, oldValue); // OnChange(this);
             }
-            //return value;
+            // return value;
         }
 
-        ITK_INLINE const T* operator->()const {
+        // ITK_INLINE const T* operator->()const {
+        //     return &value;
+        // }
+
+        ITK_INLINE const T *c_ptr() const
+        {
             return &value;
         }
 
+        ITK_INLINE const T &c_val() const
+        {
+            return value;
+        }
+
+        ITK_INLINE void forceTriggerOnChange() const
+        {
+            OnChange(value, value);
+        }
+
+        ITK_INLINE void setValueNoCallback(const T &v)
+        {
+            if (value != v)
+            {
+                oldValue = value;
+                value = v;
+                //OnChange(value, oldValue); // OnChange(this);
+            }
+        }
     };
 
-#define _declare_property_operator(OP)                                                    \
-    template <typename T>                                                                 \
+#define _declare_property_operator(OP)                                                   \
+    template <typename T>                                                                \
     static ITK_INLINE T operator OP(const T &a, const Property<T> &b) noexcept           \
-    {                                                                                     \
-        return a OP (T)b;                                                              \
-    }                                                                                     \
-    template <typename T>                                                                 \
+    {                                                                                    \
+        return a OP(T) b;                                                                \
+    }                                                                                    \
+    template <typename T>                                                                \
     static ITK_INLINE T operator OP(const Property<T> &a, const T &b) noexcept           \
-    {                                                                                     \
-        return (T)a OP b;                                                              \
-    }                                                                                     \
-    template <typename T>                                                                 \
+    {                                                                                    \
+        return (T)a OP b;                                                                \
+    }                                                                                    \
+    template <typename T>                                                                \
     static ITK_INLINE T operator OP(const Property<T> &a, const Property<T> &b) noexcept \
-    {                                                                                     \
-        return (T)a OP (T)b;                                                        \
+    {                                                                                    \
+        return (T)a OP(T) b;                                                             \
+    }                                                                                    \
+    template <typename T, typename _T>                                                   \
+    static ITK_INLINE _T operator OP(const _T &a, const Property<T> &b) noexcept         \
+    {                                                                                    \
+        return a OP(T) b;                                                                \
+    }                                                                                    \
+    template <typename T, typename _T>                                                   \
+    static ITK_INLINE _T operator OP(const Property<T> &a, const _T &b) noexcept         \
+    {                                                                                    \
+        return (T)a OP b;                                                                \
     }
 
     _declare_property_operator(+);
@@ -249,6 +287,6 @@ namespace EventCore
     _declare_property_operator(&&);
     _declare_property_operator(||);
 
-    #undef _declare_property_operator
+#undef _declare_property_operator
 
 }
