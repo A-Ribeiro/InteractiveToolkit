@@ -428,6 +428,12 @@ namespace EventCore
 		return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, instance);
 	}
 
+	template <typename _RetType, typename... _ArgsType, typename _BaseClassType = HandleCallback, typename _ClassType>
+	Callback<_RetType(_ArgsType...), _BaseClassType> CallbackWrapper(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
+	{
+		return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, instance);
+	}
+
 }
 
 #if defined(_WIN32)
