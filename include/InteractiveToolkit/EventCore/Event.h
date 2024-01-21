@@ -12,8 +12,8 @@
 #include "STL_Tools.h"
 
 #if defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable : 4407)
+#pragma warning(push)
+#pragma warning(disable : 4407)
 #endif
 
 namespace EventCore
@@ -186,7 +186,7 @@ namespace EventCore
 		Event(self_type &_v)
 		{
 			std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
-			
+
 			_runtime_inside_call = _v._runtime_inside_call;
 			fncs.assign(_v.fncs.begin(), _v.fncs.end());
 			op_fncs.assign(_v.op_fncs.begin(), _v.op_fncs.end());
@@ -402,6 +402,12 @@ namespace EventCore
 			specialAdd(class_member, instance, Indices());
 		}
 
+		template <typename _ClassType, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+		void add(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
+		{
+			specialAdd((_RetType(_ClassType::*)(_ArgsType...))class_member, instance, Indices());
+		}
+
 	private:
 		template <typename _ClassType, std::size_t... I>
 		void specialAdd(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassType *instance, STL_Tools::index_sequence<I...>)
@@ -509,6 +515,12 @@ namespace EventCore
 			_remove(std::move(struct_));
 		}
 
+		template <typename _ClassType>
+		void remove(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
+		{
+			remove((_RetType(_ClassType::*)(_ArgsType...))class_member, instance);
+		}
+
 		void clear()
 		{
 			std::lock_guard<decltype(mtx)> lock(mtx);
@@ -561,5 +573,5 @@ namespace EventCore
 }
 
 #if defined(_WIN32)
-#pragma warning( pop ) 
+#pragma warning(pop)
 #endif

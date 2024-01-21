@@ -235,7 +235,7 @@ namespace EventCore
             return value;
         }
 
-        ITK_INLINE void forceTriggerOnChange() const
+        ITK_INLINE void forceTriggerOnChange()
         {
             OnChange(value, value);
         }

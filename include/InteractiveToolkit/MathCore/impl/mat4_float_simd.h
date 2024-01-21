@@ -1338,9 +1338,9 @@ namespace MathCore
 #if defined(ITK_SSE2)
 
             self_type result(
-                (vec4_compatible_type(c3, a3, b3) * vec4_compatible_type(b2, c2, a2) - vec4_compatible_type(b3, c3, a3) * vec4_compatible_type(c2, a2, b2)),
-                (vec4_compatible_type(b3, c3, a3) * vec4_compatible_type(c1, a1, b1) - vec4_compatible_type(c3, a3, b3) * vec4_compatible_type(b1, c1, a1)),
-                (vec4_compatible_type(c2, a2, b2) * vec4_compatible_type(b1, c1, a1) - vec4_compatible_type(b2, c2, a2) * vec4_compatible_type(c1, a1, b1)),
+                (vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b2, c2, a2, 0) - vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c2, a2, b2, 0)),
+                (vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c1, a1, b1, 0) - vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b1, c1, a1, 0)),
+                (vec4_compatible_type(c2, a2, b2, 0) * vec4_compatible_type(b1, c1, a1, 0) - vec4_compatible_type(b2, c2, a2, 0) * vec4_compatible_type(c1, a1, b1, 0)),
                 _vec4_0001_sse
             );
 
@@ -1373,9 +1373,9 @@ namespace MathCore
 #elif defined(ITK_NEON)
 
             self_type result(
-                (vec4_compatible_type(c3, a3, b3) * vec4_compatible_type(b2, c2, a2) - vec4_compatible_type(b3, c3, a3) * vec4_compatible_type(c2, a2, b2)),
-                (vec4_compatible_type(b3, c3, a3) * vec4_compatible_type(c1, a1, b1) - vec4_compatible_type(c3, a3, b3) * vec4_compatible_type(b1, c1, a1)),
-                (vec4_compatible_type(c2, a2, b2) * vec4_compatible_type(b1, c1, a1) - vec4_compatible_type(b2, c2, a2) * vec4_compatible_type(c1, a1, b1)),
+                (vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b2, c2, a2, 0) - vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c2, a2, b2, 0)),
+                (vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c1, a1, b1, 0) - vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b1, c1, a1, 0)),
+                (vec4_compatible_type(c2, a2, b2, 0) * vec4_compatible_type(b1, c1, a1, 0) - vec4_compatible_type(b2, c2, a2, 0) * vec4_compatible_type(c1, a1, b1, 0)),
                 _neon_0001
             );
             

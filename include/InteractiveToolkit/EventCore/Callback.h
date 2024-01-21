@@ -259,6 +259,12 @@ namespace EventCore
 			setCallback(class_member, instance, Indices());
 		}
 
+		template <typename _ClassType, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+		Callback(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
+		{
+			setCallback((_RetType (_ClassType::*)(_ArgsType...))class_member, instance, Indices());
+		}
+
 	private:
 		template <typename _ClassType, std::size_t... I>
 		void setCallback(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassType *instance, STL_Tools::index_sequence<I...>)

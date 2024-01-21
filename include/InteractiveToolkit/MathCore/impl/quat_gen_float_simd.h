@@ -300,7 +300,7 @@ namespace MathCore
         static ITK_INLINE quatT lookAtRotationRH(const type3 &front, const type3 &up) noexcept
         {
             type3 x, y, z;
-            z = front * -1;
+            z = front * (_type)-1;
             x = OP<type3>::cross(up, z);
             y = OP<type3>::cross(z, x);
             // all parameters will be normalized in the fromMat3 implementation
@@ -370,7 +370,7 @@ namespace MathCore
         static ITK_INLINE quatT lookAtRotationRH(const type4 &front, const type4 &up) noexcept
         {
             type3 x, y, z;
-            z = *(const type3 *)&front * -1;
+            z = *(const type3 *)&front * (_type)-1;
             x = OP<type3>::cross(*(const type3 *)&up, z);
             y = OP<type3>::cross(z, x);
             // all parameters will be normalized in the fromMat3 implementation
