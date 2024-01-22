@@ -1363,10 +1363,16 @@ namespace MathCore
             det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
             det = (_BaseType)1.0 / det;
 
+            __m128 _det_result = _mm_set_ps1(det);
+
+            _a = _mm_mul_ps(_a, _det_result);
+            _b = _mm_mul_ps(_b, _det_result);
+            _c = _mm_mul_ps(_c, _det_result);
+
             return self_type(
-                _a * det,
-                _b * det,
-                _c * det,
+                _a,
+                _b,
+                _c,
                 _vec4_0001_sse
             );
 
@@ -1394,10 +1400,16 @@ namespace MathCore
             det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
             det = (_BaseType)1.0 / det;
             
+            float32x4_t _det_result = vset1(det);
+
+            a_ = vmulq_f32(a_, _det_result);
+            b_ = vmulq_f32(b_, _det_result);
+            c_ = vmulq_f32(c_, _det_result);
+
             return self_type(
-                a_ * det,
-                b_ * det,
-                c_ * det,
+                a_,
+                b_,
+                c_,
                 _neon_0001
             );
 
