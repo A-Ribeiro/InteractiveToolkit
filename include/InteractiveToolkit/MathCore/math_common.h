@@ -74,9 +74,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
     {                                                                                                                                                  \
@@ -84,9 +82,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
     {                                                                                                                                                  \
@@ -99,9 +95,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator*(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
     {                                                                                                                                                  \
@@ -109,9 +103,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator*(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
     {                                                                                                                                                  \
@@ -124,9 +116,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator+(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
     {                                                                                                                                                  \
@@ -134,9 +124,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator+(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
     {                                                                                                                                                  \
@@ -149,9 +137,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator-(const TTYPE<_BaseType, _SimdType> &vec, const _InputType &value) noexcept                  \
     {                                                                                                                                                  \
@@ -159,9 +145,7 @@ namespace MathCore
     }                                                                                                                                                  \
     template <typename _BaseType, typename _InputType, typename _SimdType,                                                                             \
               typename std::enable_if<                                                                                                                 \
-                  std::is_convertible<_InputType, _BaseType>::value &&                                                                                 \
-                      (std::is_integral<_InputType>::value && std::is_integral<_BaseType>::value ||                                                    \
-                       std::is_floating_point<_InputType>::value && std::is_floating_point<_BaseType>::value),                                         \
+                  std::is_convertible<_InputType, _BaseType>::value,                                                                                   \
                   bool>::type = true>                                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator-(const _InputType &value, const TTYPE<_BaseType, _SimdType> &vec) noexcept                  \
     {                                                                                                                                                  \
