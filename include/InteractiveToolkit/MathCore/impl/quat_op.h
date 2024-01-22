@@ -216,7 +216,7 @@ namespace MathCore
         {
             _type lerp = OP<_type>::clamp(_lerp, (_type)0, (_type)1);
 
-            _type _cos = self_type::dot(a, b);
+            _type _cos = OP<_type>::clamp( self_type::dot(a, b), (_type)-1, (_type)1);
             quatT _new_b_(b);
 
             _type sign_cos = OP<_type>::sign(_cos);
