@@ -325,6 +325,7 @@ if (ITK_OPENMP)
     list(APPEND ITK_COMPILE_OPTIONS "${OpenMP_CXX_FLAGS}")
     # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
     list(APPEND ITK_LINK_OPTIONS "${OpenMP_EXE_LINKER_FLAGS}")
+    list(APPEND ITK_LINK_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 endif()
 ############################################################################
 # Detect SSE2 compatible environment
