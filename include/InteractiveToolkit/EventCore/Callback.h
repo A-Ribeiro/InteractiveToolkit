@@ -276,7 +276,7 @@ namespace EventCore
 			static_assert(std::is_base_of<_BaseClassType, _ClassType>::value,
 						  "instance need to derive HandleCallback "
 						  "to be used in the Callback class. "
-						  "Example 'class Obj:public HandleCallback'");
+						  "Example 'class Obj:public EventCore::HandleCallback'");
 
 			/*static_assert(std::is_same<_RetType(_BaseClassType::*)(_ArgsType...), ptr_class_member>::value,
 				"parameter does not match the Callback signature (ptr_class_member)."
