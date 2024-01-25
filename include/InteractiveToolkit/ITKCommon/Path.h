@@ -8,7 +8,7 @@
 //
 #if defined(_WIN32)
 
-#define SHGetFolderPath SHGetFolderPathW
+#define SHGetFolderPath_Custom SHGetFolderPathW
 #ifndef PathAppend
 #define PathAppend PathAppendW
 #endif
@@ -21,7 +21,7 @@
 typedef GUID KNOWNFOLDERID;
 #define REFKNOWNFOLDERID const KNOWNFOLDERID &
 
-static HRESULT(_stdcall *SHGetKnownFolderPath)
+static HRESULT(_stdcall *SHGetKnownFolderPath_Custom)
 (
     REFKNOWNFOLDERID rfid,
     DWORD dwFlags,
@@ -63,7 +63,7 @@ static bool useKnownFolders(void)
         DLLVERSIONINFO version;
         version.cbSize = sizeof(DLLVERSIONINFO);
         // DllGetVersion = GetProcAddress(shell32, TEXT("DllGetVersion"));
-        SHGetKnownFolderPath = (HRESULT(_stdcall *)(
+        SHGetKnownFolderPath_Custom = (HRESULT(_stdcall *)(
             REFKNOWNFOLDERID rfid,
             DWORD dwFlags,
             HANDLE hToken,
@@ -141,7 +141,7 @@ namespace ITKCommon
             if (useKnownFolders())
             { // Vista+ has a "Saved Games" known folder
                 PWSTR wdest;
-                SHGetKnownFolderPath(FOLDERID_SavedGames, 0, NULL, &wdest);
+                SHGetKnownFolderPath_Custom(FOLDERID_SavedGames, 0, NULL, &wdest);
                 // copy to szpath
                 // wsprintfW(szPath, TEXT("%s"), wdest);
                 wsprintfW(szPath, L"%s", wdest);
@@ -149,7 +149,7 @@ namespace ITKCommon
             }
             else
             { // use My Documents\My Games\<baseDirName>
-                SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
+                SHGetFolderPath_Custom(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
                 // PathAppendW(szPath, TEXT("My Games"));
                 PathAppendW(szPath, L"My Games");
                 CreateDirectoryW(szPath, NULL);
@@ -176,7 +176,7 @@ namespace ITKCommon
             if (useKnownFolders())
             { // Vista+ has a "Saved Games" known folder
                 PWSTR wdest;
-                SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &wdest);
+                SHGetKnownFolderPath_Custom(FOLDERID_Documents, 0, NULL, &wdest);
                 // copy to szpath
                 // wsprintfW(szPath, TEXT("%s"), wdest);
                 wsprintfW(szPath, L"%s", wdest);
@@ -184,7 +184,7 @@ namespace ITKCommon
             }
             else
             { // use My Documents\My Games\<baseDirName>
-                SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
+                SHGetFolderPath_Custom(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
                 // PathAppendW(szPath, L"My Games");
                 // CreateDirectoryW(szPath, NULL);
             }
