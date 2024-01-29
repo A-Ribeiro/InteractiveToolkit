@@ -17,7 +17,7 @@ namespace Platform
         std::vector<Semaphore *> released;
         Mutex *mtx;
 
-        ObjectPool<Semaphore> local_semaphores;
+        Platform::ObjectPool<Semaphore> local_semaphores;
 
     public:
         Condition()
