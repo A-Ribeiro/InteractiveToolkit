@@ -152,6 +152,9 @@ macro(configure_build_flags projectname inputfile outputfile)
     #
     to_unique_list(aux ${target_INCLUDE_DIRECTORIES})
     foreach(var ${aux})
+        if (var STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}/include")
+            continue()
+        endif()
         set(configure_INCLUDE_DIRECTORIES "${configure_INCLUDE_DIRECTORIES}    list(APPEND INTERACTIVETOOLKIT_INCLUDE_DIRS \"${var}\")\n")
     endforeach()
 
@@ -447,6 +450,30 @@ set_property(TARGET ${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME}
             PROPERTY  INTERFACE_LINK_LIBRARIES
             ${ITK_LINK_LIBRARIES})
+
+#
+# for direct reference to project
+#
+target_compile_options(${PROJECT_NAME} 
+INTERFACE
+    ${ITK_COMPILE_OPTIONS}
+)
+
+target_link_options(${PROJECT_NAME} 
+INTERFACE
+    ${ITK_LINK_OPTIONS}
+)
+
+target_include_directories(${PROJECT_NAME} 
+INTERFACE
+    ${ITK_INCLUDE_DIRECTORIES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(${PROJECT_NAME} 
+INTERFACE 
+    ${ITK_LINK_LIBRARIES}
+)
 
 # set_target_properties(${PROJECT_NAME}
 #                       PROPERTIES COMPILE_DEFINITIONS
