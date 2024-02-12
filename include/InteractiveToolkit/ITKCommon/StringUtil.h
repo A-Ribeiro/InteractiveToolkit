@@ -261,7 +261,7 @@ namespace ITKCommon
             return std::u16string(output.data(), output.size());
         }
 
-        std::string wString_to_String(const std::wstring& str) {
+        static ITK_INLINE std::string wString_to_String(const std::wstring& str) {
             if (sizeof(wchar_t) == 2)
             {
                 auto u32 = ITKCommon::StringUtil::utf16_to_utf32((char16_t*)str.c_str());
@@ -271,7 +271,7 @@ namespace ITKCommon
                 return ITKCommon::StringUtil::utf32_to_utf8((char32_t*)str.c_str());
         }
 
-        std::wstring string_to_WString(const std::string& str) {
+        static ITK_INLINE std::wstring string_to_WString(const std::string& str) {
             if (sizeof(wchar_t) == 2)
             {
                 auto u32 = ITKCommon::StringUtil::utf8_to_utf32(str);
