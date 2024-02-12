@@ -89,6 +89,9 @@ namespace Platform
 
         Thread *getThreadByID(const ThreadIdentifier &tid)
         {
+            if (threadData.size() <= 0)
+                return NULL;
+
             Thread *result = NULL;
 
             // threadDataLock.lock();

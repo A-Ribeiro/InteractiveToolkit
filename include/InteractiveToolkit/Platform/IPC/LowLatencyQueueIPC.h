@@ -733,8 +733,10 @@ namespace Platform
                     {
                         //printf("trying to lock mutex cond\n");
                         AutoLockSemaphoreIPC ipc_lock(can_write_cond_mutex);
-                        if (ipc_lock.signaled)
+                        if (ipc_lock.signaled) {
+                            shm_mutex.unlock();
                             return false;
+                        }
 
                         // use condition
                         lock();
