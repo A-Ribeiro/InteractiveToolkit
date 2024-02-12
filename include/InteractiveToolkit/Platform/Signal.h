@@ -28,14 +28,21 @@ namespace Platform
 
         Signal(){
             signal_set = false;
+            ignore_default = FALSE;
         }
 
         bool signal_set;
         EventCore::Callback<void(int)> signalFunction;
 
 #if defined(_WIN32)
+
+        BOOL ignore_default;
+
         static BOOL WINAPI HandlerRoutine_exit(_In_ DWORD dwCtrlType)
         {
+            if (Instance()->ignore_default)
+                return FALSE;
+
             switch (dwCtrlType)
             {
                 // Handle the CTRL-C signal.
@@ -95,6 +102,7 @@ namespace Platform
 #if defined(_WIN32)
             //SetConsoleCtrlHandler(Platform::Signal::HandlerRoutine_exit, false);
             SetConsoleCtrlHandler(Platform::Signal::HandlerRoutine_exit, true);
+            Instance()->ignore_default = false;
 #else
             signal(SIGQUIT, handle_signal_fnc);
 #endif
@@ -114,7 +122,8 @@ namespace Platform
             signal(SIGTERM, SIG_DFL);
 
 #if defined(_WIN32)
-            SetConsoleCtrlHandler(Platform::Signal::HandlerRoutine_exit, false);
+            //SetConsoleCtrlHandler(Platform::Signal::HandlerRoutine_exit, false);
+            Instance()->ignore_default = true;
 #else
             signal(SIGQUIT, SIG_DFL);
 #endif
