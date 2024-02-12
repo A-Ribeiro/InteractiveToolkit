@@ -28,7 +28,9 @@ namespace Platform
 
         Signal(){
             signal_set = false;
+#if defined(_WIN32)
             ignore_default = FALSE;
+#endif
         }
 
         bool signal_set;
