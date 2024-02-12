@@ -261,6 +261,26 @@ namespace ITKCommon
             return std::u16string(output.data(), output.size());
         }
 
+        std::string wString_to_String(const std::wstring& str) {
+            if (sizeof(wchar_t) == 2)
+            {
+                auto u32 = ITKCommon::StringUtil::utf16_to_utf32((char16_t*)str.c_str());
+                return ITKCommon::StringUtil::utf32_to_utf8(u32);
+            }
+            else
+                return ITKCommon::StringUtil::utf32_to_utf8((char32_t*)str.c_str());
+        }
+
+        std::wstring string_to_WString(const std::string& str) {
+            if (sizeof(wchar_t) == 2)
+            {
+                auto u32 = ITKCommon::StringUtil::utf8_to_utf32(str);
+                return (wchar_t*)ITKCommon::StringUtil::utf32_to_utf16(u32).c_str();
+            }
+            else
+                return (wchar_t*)ITKCommon::StringUtil::utf8_to_utf32(str).c_str();
+        }
+
         /// \brief test if a string starts with another string
         ///
         /// \code
