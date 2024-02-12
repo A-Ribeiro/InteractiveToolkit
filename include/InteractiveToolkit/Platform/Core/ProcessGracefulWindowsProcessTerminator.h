@@ -16,12 +16,12 @@ namespace Platform {
     // This Class is needed only in windows systems.... 
     // that does not have a way to signaling a process...
     //
-    class PlatformProcessGracefulWindowsProcessTerminator {
+    class ProcessGracefulWindowsProcessTerminator : public EventCore::HandleCallback {
 
         DWORD dwProcessId;
         std::string pid_str;
 
-        Platform::LowLatencyQueueIPC* queue;
+        Platform::IPC::LowLatencyQueueIPC* queue;
 
         Platform::Thread thread;
 
@@ -30,8 +30,9 @@ namespace Platform {
         void threadRun() {
 
             ObjectBuffer signal;
-            queue->read(&signal);
-            if (queue->isSignaled())
+            bool signaled = false;
+            queue->read(&signal, &signaled);
+            if (signaled)
                 return;
 
             int signal_int = SIGINT;
@@ -44,8 +45,8 @@ namespace Platform {
         }
 
     public:
-        PlatformProcessGracefulWindowsProcessTerminator(void(*_fnc)(int)) :
-            thread(this, &PlatformProcessGracefulWindowsProcessTerminator::threadRun),
+        ProcessGracefulWindowsProcessTerminator(void(*_fnc)(int)) :
+            thread( EventCore::CallbackWrapper(&ProcessGracefulWindowsProcessTerminator::threadRun, this) ),
             fnc(_fnc) {
             queue = NULL;
             dwProcessId = GetCurrentProcessId();
@@ -54,12 +55,12 @@ namespace Platform {
             snprintf(aux, 64, "p%u", dwProcessId);
             pid_str = aux;
 
-            queue = new Platform::LowLatencyQueueIPC(pid_str.c_str(), PlatformQueueIPC_READ, 16, sizeof(int));
+            queue = new Platform::IPC::LowLatencyQueueIPC(pid_str.c_str(), Platform::IPC::QueueIPC_READ, 16, sizeof(int));
             thread.setShouldDisposeThreadByItself(true);
             thread.start();
         }
 
-        ~PlatformProcessGracefulWindowsProcessTerminator() {
+        ~ProcessGracefulWindowsProcessTerminator() {
             thread.interrupt();
             thread.wait();
         }
