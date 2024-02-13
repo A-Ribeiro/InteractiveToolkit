@@ -66,6 +66,11 @@ namespace Platform
 
         MapT threadData;
 
+        ThreadDataSet() {
+            // make 1 available
+            semaphore.releaseCount(1);
+        }
+
         void registerThread(Thread *thread)
         {
             ThreadIdentifier tid = GetCurrentThreadId_Custom();
@@ -73,12 +78,12 @@ namespace Platform
             register_mutex.lock();
 
             // grab all semaphores
-            semaphore.acquireCount((uint32_t)threadData.size());
+            semaphore.acquireCount((uint32_t)threadData.size() + 1);
 
             threadData[tid] = (Thread *)(thread);
 
             // release all semaphores
-            semaphore.releaseCount((uint32_t)threadData.size());
+            semaphore.releaseCount((uint32_t)threadData.size() + 1);
 
             register_mutex.unlock();
 
@@ -89,8 +94,8 @@ namespace Platform
 
         Thread *getThreadByID(const ThreadIdentifier &tid)
         {
-            if (threadData.size() <= 0)
-                return NULL;
+            // if (threadData.size() <= 0)
+            //     return NULL;
 
             Thread *result = NULL;
 

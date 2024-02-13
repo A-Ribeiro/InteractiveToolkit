@@ -11,18 +11,23 @@ namespace ITKCommon
         std::condition_variable contition;
         uint32_t count = 0;
 
+        uint32_t aquiring_count = 0;
+
     public:
         void release()
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
             count++;
-            contition.notify_one();
+            if (aquiring_count)
+                contition.notify_all();
+            else
+                contition.notify_one();
         }
 
         void acquire()
         {
             std::unique_lock<decltype(mtx)> lock(mtx);
-            while (!count) // spurious wake-ups
+            while (!count || aquiring_count) // spurious wake-ups
                 contition.wait(lock);
             count--;
         }
@@ -30,7 +35,7 @@ namespace ITKCommon
         bool try_acquire()
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
-            if (count)
+            if (count && !aquiring_count)
             {
                 count--;
                 return true;
@@ -42,7 +47,7 @@ namespace ITKCommon
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
             count += amount;
-            if (amount > 1)
+            if (amount > 1 || aquiring_count)
                 contition.notify_all();
             else
                 contition.notify_one();
@@ -51,6 +56,12 @@ namespace ITKCommon
         void acquireCount(uint32_t amount)
         {
             std::unique_lock<decltype(mtx)> lock(mtx);
+
+            while (aquiring_count) // spurious wake-ups
+                contition.wait(lock);
+
+            aquiring_count++;
+
             while (amount > 0){
                 while (!count) // spurious wake-ups
                     contition.wait(lock);
@@ -67,6 +78,9 @@ namespace ITKCommon
                     count = 0;
                 }
             }
+
+            aquiring_count--;
+            contition.notify_all();
         }
     };
 
