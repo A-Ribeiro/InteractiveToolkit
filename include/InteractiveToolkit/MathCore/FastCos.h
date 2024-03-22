@@ -199,7 +199,7 @@ namespace MathCore
         const int number_of_samples = 90 * 100;
         // const int number_of_samples = 32 * 1024;//32k
 
-        const float number_of_samples_float = (float)(number_of_samples << 2);
+        const float number_of_samples_float_times_4 = (float)(number_of_samples << 2);
         std::vector<float> cos_values;
 
         // number_of_samples =>
@@ -250,40 +250,45 @@ namespace MathCore
             float angle_query = angle_queryp;
             angle_query *= inv_2pi;
             angle_query -= OP<float>::floor(angle_query);
-            angle_query *= number_of_samples_float;
+            angle_query *= number_of_samples_float_times_4;
             angle_query += 0.5f;
 
             int32_t int_angle = (int32_t)angle_query;
 
-            const int32_t num_samples_90 = number_of_samples;
-            //const float num_samples_90f = (float)num_samples_90;
-            //const float num_samples_90f_inv = 1.0f / num_samples_90f;
+            int32_t region = int_angle / number_of_samples;
+            int32_t real_index = int_angle - region * number_of_samples;
 
-            int32_t region = int_angle / num_samples_90;
-            int32_t real_index = int_angle - region * num_samples_90;
+            int32_t is_to_invert_mask = -(region & 0x01);
+            int32_t inverted_index = number_of_samples - real_index;
+            real_index = inverted_index & is_to_invert_mask |
+                        real_index & ~is_to_invert_mask;
 
-#if !defined(NDEBUG)
-            if (region != 4 && (real_index < 0 || real_index > number_of_samples))
-                throw std::runtime_error("x out of bounds exception.");
-#endif
+            int32_t sig = 1 - ( (region ^ (region << 1)) & 0x02 );
 
-            switch (region)
-            {
-            case 0:
-                return cos_values[real_index];
-            case 1:
-                real_index = num_samples_90 - real_index;
-                return -cos_values[real_index];// * -OP<int32_t>::sign(real_index - number_of_samples);
-            case 2:
-                return -cos_values[real_index];// * -OP<int32_t>::sign(real_index - number_of_samples);
-            case 3:
-                real_index = num_samples_90 - real_index;
-                return cos_values[real_index];
-            case 4:
-                return 1.0f;
-            default:
-                return NAN;
-            }
+            return (float)sig * cos_values[real_index];
+
+// #if !defined(NDEBUG)
+//             if (region != 4 && (real_index < 0 || real_index > number_of_samples))
+//                 throw std::runtime_error("x out of bounds exception.");
+// #endif
+
+//             switch (region)
+//             {
+//             case 0:
+//                 return cos_values[real_index];
+//             case 1:
+//                 real_index = num_samples_90 - real_index;
+//                 return -cos_values[real_index];// * -OP<int32_t>::sign(real_index - number_of_samples);
+//             case 2:
+//                 return -cos_values[real_index];// * -OP<int32_t>::sign(real_index - number_of_samples);
+//             case 3:
+//                 real_index = num_samples_90 - real_index;
+//                 return cos_values[real_index];
+//             case 4:
+//                 return 1.0f;
+//             default:
+//                 return NAN;
+//             }
 
             // int32_t real_index_inverse = num_samples_90 - real_index;
             // int32_t idx_array[5] = {real_index,real_index_inverse,real_index,real_index_inverse,0};

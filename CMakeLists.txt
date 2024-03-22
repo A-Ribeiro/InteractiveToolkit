@@ -365,7 +365,7 @@ endif()
 # Select trigonometric optimization
 ############################################################################
 if( NOT ITK_TRIGONOMETRIC )
-    set( ITK_TRIGONOMETRIC FASTEST_MORE_MEMORY CACHE STRING
+    set( ITK_TRIGONOMETRIC FAST_LESS_MEMORY CACHE STRING
                 "Choose the type of trigonometric optimizations."
                 FORCE )
 endif()
