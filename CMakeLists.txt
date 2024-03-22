@@ -354,10 +354,26 @@ if (ITK_SSE2)
         endif()
     endif()
 endif()
-
+############################################################################
+# Turn on RSQRT algorithm
+############################################################################
 set(ITK_FORCE_USE_RSQRT_CARMACK ON CACHE BOOL "Force use of the alternative RSQRT algorithm.")
 if (ITK_FORCE_USE_RSQRT_CARMACK)
     list(APPEND ITK_COMPILE_DEFINITIONS ITK_FORCE_USE_RSQRT_CARMACK)
+endif()
+############################################################################
+# Select trigonometric optimization
+############################################################################
+if( NOT ITK_TRIGONOMETRIC )
+    set( ITK_TRIGONOMETRIC FASTEST_MORE_MEMORY CACHE STRING
+                "Choose the type of trigonometric optimizations."
+                FORCE )
+endif()
+set_property(CACHE ITK_TRIGONOMETRIC PROPERTY STRINGS FASTEST_MORE_MEMORY FAST_LESS_MEMORY STANDARD_LIBRARY)
+if(ITK_TRIGONOMETRIC STREQUAL FASTEST_MORE_MEMORY)
+    list(APPEND ITK_COMPILE_DEFINITIONS ITK_TRIGONOMETRIC_FASTEST_MORE_MEMORY)
+elseif(ITK_TRIGONOMETRIC STREQUAL FAST_LESS_MEMORY)
+    list(APPEND ITK_COMPILE_DEFINITIONS ITK_TRIGONOMETRIC_FAST_LESS_MEMORY)
 endif()
 
 ############################################################################
