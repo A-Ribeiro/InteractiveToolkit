@@ -8,84 +8,218 @@ namespace MathCore
 
 #if defined(ITK_TRIGONOMETRIC_FASTEST_MORE_MEMORY) || defined(ITK_TRIGONOMETRIC_FAST_LESS_MEMORY)
 
-    class FastArc
-    {
+    // precision problem with values near 270º
 
-        const int number_of_samples_cos = 180 * 100;
-        const float number_of_samples_cos_float = (float)number_of_samples_cos;
+    // class FastArc
+    // {
 
-        const int number_of_samples_sin = 90 * 100;
-        const float number_of_samples_sin_float = (float)number_of_samples_sin;
+    //     const int number_of_samples_cos = 180 * 100;
+    //     const float number_of_samples_cos_float = (float)number_of_samples_cos;
 
-        std::vector<float> acos_values;
-        std::vector<float> asin_values;
+    //     //const float one_sample_above_1_0 = 1.0f + 1.0f / number_of_samples_cos_float;
 
-        // number_of_samples_cos =>
-        //    90 degrees
-        //    times the number of places of precision (100) [you can query angles like these: 90.23]
-        //    times 2 (to double that precision)
-        //    = 90 * 100 * 2
-        FastArc() : acos_values(number_of_samples_cos + 1),
-                    asin_values(number_of_samples_sin + 1)
-        {
 
-            int32_t values_size_int32 = (int)number_of_samples_cos;
-            double values_size_double = (double)values_size_int32;
+    //     const int number_of_samples_sin = 90 * 100;
+    //     const float number_of_samples_sin_float = (float)number_of_samples_sin;
 
-            for (int i = 0; i < values_size_int32 + 1; i++)
-            {
-                double _cs = (double)i / values_size_double;
-                _cs = _cs * 2.0 - 1.0;
-                _cs = OP<double>::clamp(_cs, -1.0, 1.0);
-                acos_values[i] = (float)::acos(_cs);
+    //     //const float one_sample_above_1_0_sin = 1.0f + 1.0f / number_of_samples_sin_float;
 
-                if (i > number_of_samples_sin)
-                    continue;
+    //     std::vector<float> acos_values;
+    //     std::vector<float> asin_values;
 
-                _cs = OP<double>::clamp(1.0 + _cs, -1.0, 1.0);
+    //     // number_of_samples_cos =>
+    //     //    90 degrees
+    //     //    times the number of places of precision (100) [you can query angles like these: 90.23]
+    //     //    times 2 (to double that precision)
+    //     //    = 90 * 100 * 2
+    //     FastArc() : acos_values(number_of_samples_cos + 1),
+    //                 asin_values(number_of_samples_sin + 1)
+    //     {
 
-                asin_values[i] = (float)::asin(_cs);
-            }
-        }
+    //         for (int i = 0; i < number_of_samples_cos + 1; i++)
+    //         {
+    //             double _cs = (double)i / (double)number_of_samples_cos;
 
-    public:
-        float ITK_INLINE acos(const float &_csp)
-        {
-            float _abs = OP<float>::abs(_csp);
+    //             // [-1..1]
+    //             _cs = _cs * 2.0 - 1.0;
 
-            if (_abs > 1.0f)
-                return NAN;
+    //             _cs = array_map_2_cos(_cs);
 
-            // float _cs = (_csp + 1.0f) * 0.5f;
-            float _cs = _csp * 0.5f + 0.5f;
-            _cs = _cs * number_of_samples_cos_float + 0.5f;
+    //             _cs = OP<double>::clamp(_cs, -1.0, 1.0);
 
-            int32_t array_index = (int32_t)_cs;
+    //             acos_values[i] = (float)::acos(_cs);
+    //         }
+    //         acos_values[number_of_samples_cos] = acos_values[number_of_samples_cos-1];
 
-            return acos_values[array_index];
-        }
 
-        float inline asin(float _csp)
-        {
-            float _abs = OP<float>::abs(_csp);
+    //         for (int i = 0; i < number_of_samples_sin + 1; i++)
+    //         {
+    //             double _cs = (double)i / (double)number_of_samples_sin;
+    //             _cs = _cs * 2.0 - 1.0;
 
-            if (_abs > 1.0f)
-                return NAN;
+    //             float sign = OP<double>::sign(_cs);
+    //             _cs = OP<double>::sqrt( OP<double>::abs(_cs) ) * sign;
+                
+    //             _cs = OP<double>::clamp(_cs, -1.0, 1.0);
+    //             asin_values[i] = (float)::asin(_cs);
+    //         }
 
-            float sign = OP<float>::sign(_csp);
-            float _cs = _abs * number_of_samples_sin_float + 0.5f;
+    //     }
 
-            int32_t array_index = (int32_t)_cs;
+    // public:
 
-            return sign * asin_values[array_index];
-        }
+    //     // [-1..1]
+    //     static float ITK_INLINE array_map_2_cos(const double &_csp) {
 
-        static FastArc *Instance()
-        {
-            static FastArc fastACos;
-            return &fastACos;
-        }
-    };
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         double sign_baixo_cima = OP<double>::sign(_csp);
+    
+    //         // circ_sqrt
+    //         double _cs = sign_baixo_cima - _csp;
+    //         _cs = OP<double>::sqrt( 1.0 - _cs*_cs );
+
+    //         // graph 0..1 to 0..0.5
+    //         _cs *= sign_baixo_cima;
+
+    //         return _cs;
+    //     }
+
+    //     // [-1..1]
+    //     static float ITK_INLINE cos_map_2_array(const float &_csp) {
+
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         float sign_baixo_cima = OP<float>::sign(_csp);
+    
+    //         // circ_sqrt
+    //         float _cs = 1.0f - OP<float>::sqrt( 1.0f - _csp*_csp );
+
+    //         // graph 0..1 to 0..0.5
+    //         _cs *= sign_baixo_cima;
+
+    //         float dt = _cs - _csp;
+
+    //         return _cs;
+    //     }
+
+    //     static float ITK_INLINE array_map_2_cos2(const double &v) {
+    //         double _cs = v;
+
+    //         // [-1..1]
+    //         //_cs = _cs * 2.0 - 1.0;
+
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         double sign_baixo_cima = OP<double>::sign(_cs);
+    
+    //         // half_space_calc: [-1..1]
+    //         _cs = OP<double>::abs(_cs);
+    //         _cs = _cs * 2.0 - 1.0;
+            
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         double sign_half_space = OP<double>::sign(_cs);
+
+    //         // circ_sqrt
+    //         // back operation
+    //         _cs = sign_half_space - _cs;
+    //         double sqrt_ = OP<double>::sqrt( 1.0 - _cs*_cs );
+
+    //         //if (sign_half_space > 0)
+    //         double sign_half_space_selector = sign_half_space * 0.5 + 0.5;
+    //         sqrt_ = OP<double>::lerp(1.0 - sqrt_, sqrt_, sign_half_space_selector);
+
+    //         // graph 0..1 to 0..0.5
+    //         sqrt_ = (sqrt_ - 0.5) * 0.5;
+
+    //         sqrt_ += sign_half_space * 0.25 + 0.5;
+
+    //         sqrt_ *= sign_baixo_cima;
+
+    //         _cs = sqrt_;
+
+    //         return _cs;
+
+    //     }
+
+    //     static float ITK_INLINE cos_map_2_array2(const float &v) {
+
+    //         float _cs = v;
+
+    //         // [-1..1]
+    //         //_cs = _cs * 2.0 - 1.0;
+
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         float sign_baixo_cima = OP<float>::sign(_cs);
+    
+    //         // half_space_calc: [-1..1]
+    //         _cs = OP<float>::abs(_cs);
+    //         _cs = _cs * 2.0 - 1.0;
+            
+    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
+    //         float sign_half_space = OP<float>::sign(_cs);
+
+    //         // circ_sqrt
+    //         float sqrt_ = OP<float>::sqrt( 1.0 - _cs*_cs );
+
+    //         //if (sign_half_space > 0)
+    //         float sign_half_space_selector = sign_half_space * 0.5 + 0.5;
+    //         sqrt_ = OP<float>::lerp(sqrt_, 1.0 - sqrt_, sign_half_space_selector);
+
+    //         // graph 0..1 to 0..0.5
+    //         sqrt_ = (sqrt_ - 0.5) * 0.5;
+
+    //         sqrt_ += sign_half_space * 0.25 + 0.5;
+
+    //         sqrt_ *= sign_baixo_cima;
+
+    //         _cs = sqrt_;
+
+    //         return _cs;
+    //     }
+
+
+
+    //     float ITK_INLINE acos(const float &_csp) const
+    //     {
+    //         float _abs = OP<float>::abs(_csp);
+
+    //         if (_abs > 1.0f)
+    //             return NAN;
+
+    //         float _cs = cos_map_2_array(_abs);
+
+    //         _cs = _cs * 0.5f + 0.5f;
+    //         _cs *= number_of_samples_cos_float;
+    //         _cs += 0.5f;
+
+    //         int32_t array_index = (int32_t)_cs;
+
+    //         return acos_values[array_index];
+    //     }
+
+    //     float inline asin(const float &_csp) const
+    //     {
+    //         //float _abs_squared = OP<float>::abs(_csp);
+    //         float _abs_squared = _csp * _csp;
+    //         if (_abs_squared > 1.0f)
+    //             return NAN;
+
+    //         float sign = OP<float>::sign(_csp);
+            
+    //         //_abs_squared *= _abs_squared;
+
+    //         float _cs = _abs_squared * number_of_samples_sin_float;
+    //         _cs += 0.5f;
+
+    //         int32_t array_index = (int32_t)_cs;
+
+    //         return sign * asin_values[array_index];
+    //     }
+
+    //     static FastArc *Instance()
+    //     {
+    //         static FastArc fastACos;
+    //         return &fastACos;
+    //     }
+    // };
 #endif
 
 #if defined(ITK_TRIGONOMETRIC_FASTEST_MORE_MEMORY)
