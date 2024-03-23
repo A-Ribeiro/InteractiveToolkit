@@ -101,79 +101,46 @@ namespace MathCore
     //         return _cs;
     //     }
 
-    //     static float ITK_INLINE array_map_2_cos2(const double &v) {
-    //         double _cs = v;
+        // // [-1..1]
+        // static double ITK_INLINE array_map_2_cos2(const double &_csp) {
 
-    //         // [-1..1]
-    //         //_cs = _cs * 2.0 - 1.0;
-
-    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
-    //         double sign_baixo_cima = OP<double>::sign(_cs);
-    
-    //         // half_space_calc: [-1..1]
-    //         _cs = OP<double>::abs(_cs);
-    //         _cs = _cs * 2.0 - 1.0;
+        //     // [ < 0 => -1 baixo , > 0 => 1 cima ]
+        //     double sign_baixo_cima = OP<double>::sign(_csp);
+        //     double _cs = OP<double>::abs(_csp)*2.0f - 1.0f;
+        //     double _second_sign = OP<double>::sign(_cs);
             
-    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
-    //         double sign_half_space = OP<double>::sign(_cs);
+        //     // circ_sqrt
+        //     _cs = _second_sign - _cs;
+        //     _cs = OP<double>::sqrt( 1.0f - _cs*_cs );
+        //     _cs *= _second_sign;
 
-    //         // circ_sqrt
-    //         // back operation
-    //         _cs = sign_half_space - _cs;
-    //         double sqrt_ = OP<double>::sqrt( 1.0 - _cs*_cs );
+        //     _cs = _cs + 1.0f;
 
-    //         //if (sign_half_space > 0)
-    //         double sign_half_space_selector = sign_half_space * 0.5 + 0.5;
-    //         sqrt_ = OP<double>::lerp(1.0 - sqrt_, sqrt_, sign_half_space_selector);
+        //     // graph 0..1 to 0..0.5
+        //     _cs *= sign_baixo_cima*0.5f;
 
-    //         // graph 0..1 to 0..0.5
-    //         sqrt_ = (sqrt_ - 0.5) * 0.5;
+        //     return _cs;
+        // }
 
-    //         sqrt_ += sign_half_space * 0.25 + 0.5;
+        // // [-1..1]
+        // static float ITK_INLINE cos_map_2_array2(const float &_csp) {
 
-    //         sqrt_ *= sign_baixo_cima;
-
-    //         _cs = sqrt_;
-
-    //         return _cs;
-
-    //     }
-
-    //     static float ITK_INLINE cos_map_2_array2(const float &v) {
-
-    //         float _cs = v;
-
-    //         // [-1..1]
-    //         //_cs = _cs * 2.0 - 1.0;
-
-    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
-    //         float sign_baixo_cima = OP<float>::sign(_cs);
-    
-    //         // half_space_calc: [-1..1]
-    //         _cs = OP<float>::abs(_cs);
-    //         _cs = _cs * 2.0 - 1.0;
+        //     // [ < 0 => -1 baixo , > 0 => 1 cima ]
+        //     float sign_baixo_cima = OP<float>::sign(_csp);
+        //     float _cs = OP<float>::abs(_csp)*2.0f - 1.0f;
+        //     float _second_sign = OP<float>::sign(_cs);
             
-    //         // [ < 0 => -1 baixo , > 0 => 1 cima ]
-    //         float sign_half_space = OP<float>::sign(_cs);
+        //     // circ_sqrt
+        //     _cs = 1.0 - OP<float>::sqrt( 1.0f - _cs*_cs );
+        //     _cs *= _second_sign;
 
-    //         // circ_sqrt
-    //         float sqrt_ = OP<float>::sqrt( 1.0 - _cs*_cs );
+        //     _cs = _cs + 1.0f;
 
-    //         //if (sign_half_space > 0)
-    //         float sign_half_space_selector = sign_half_space * 0.5 + 0.5;
-    //         sqrt_ = OP<float>::lerp(sqrt_, 1.0 - sqrt_, sign_half_space_selector);
+        //     // graph 0..1 to 0..0.5
+        //     _cs *= sign_baixo_cima*0.5f;
 
-    //         // graph 0..1 to 0..0.5
-    //         sqrt_ = (sqrt_ - 0.5) * 0.5;
-
-    //         sqrt_ += sign_half_space * 0.25 + 0.5;
-
-    //         sqrt_ *= sign_baixo_cima;
-
-    //         _cs = sqrt_;
-
-    //         return _cs;
-    //     }
+        //     return _cs;
+        // }
 
 
 
