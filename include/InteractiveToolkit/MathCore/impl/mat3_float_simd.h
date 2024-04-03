@@ -883,8 +883,9 @@ namespace MathCore
 #endif
 			// check det
 			//MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-			det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
-			det = (_BaseType)1.0 / det;
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+			det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+			det = sign_det / det;
 
 			return result * det;
 		}
@@ -898,8 +899,9 @@ namespace MathCore
 			_BaseType det = (a1 * b2 - b1 * a2);
 
 			//MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-			det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
-			det = (_BaseType)1.0 / det;
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+			det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+			det = sign_det / det;
 
 			return self_type(+b2 * det, -a2 * det, 0,
 				-b1 * det, +a1 * det, 0,

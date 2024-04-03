@@ -1080,9 +1080,10 @@ namespace MathCore
             // }
 
             _BaseType det = _mm_f32_(Det0, 0);
-            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
 
-            __m128 Rcp0 = _mm_set1_ps(1.0f / det);
+            __m128 Rcp0 = _mm_set1_ps( sign_det / det );
             //__m128 Rcp0 = _mm_div_ps(_mm_set1_ps(1.0f), Det0);
             //__m128 Rcp0 = _mm_rcp_ps(Det0);
 
@@ -1310,9 +1311,10 @@ namespace MathCore
             // }
 
             _BaseType det = Det0[0];
-            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
 
-            float32x4_t Rcp0 = vset1(1.0f / det); //_mm_div_ps(_mm_set1_ps(1.0f), Det0);
+            float32x4_t Rcp0 = vset1(sign_det / det); //_mm_div_ps(_mm_set1_ps(1.0f), Det0);
             //__m128 Rcp0 = _mm_rcp_ps(Det0);
 
             //    Inverse /= Determinant;
@@ -1360,8 +1362,9 @@ namespace MathCore
 
             // check det
             //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
-            det = (_BaseType)1.0 / det;
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = sign_det / det;
 
             __m128 _det_result = _mm_set_ps1(det);
 
@@ -1397,8 +1400,9 @@ namespace MathCore
 
             // check det
             //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
-            det = OP<_BaseType>::maximum(det,FloatTypeInfo<_BaseType>::min);
-            det = (_BaseType)1.0 / det;
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = sign_det / det;
             
             float32x4_t _det_result = vset1(det);
 
