@@ -655,15 +655,11 @@ namespace MathCore
         static ITK_INLINE float cos(const float& v) noexcept;
 
 
-        static ITK_INLINE float acos(const float& v) noexcept{
-            return ::acosf(v);
-        }
+        static ITK_INLINE float acos(const float& v) noexcept;
 
         static ITK_INLINE float sin(const float& v) noexcept;
 
-        static ITK_INLINE float asin(const float& v) noexcept{
-            return ::asinf(v);
-        }
+        static ITK_INLINE float asin(const float& v) noexcept;
 
         static ITK_INLINE float tan(const float& v) noexcept
         {
@@ -1176,6 +1172,10 @@ namespace MathCore
         return fastCos->sin(v);
     }
 
+    #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
+        #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
+    #endif
+
 #elif defined(ITK_TRIGONOMETRIC_FAST_LESS_MEMORY)
 
     //static FastArc* fastArc = FastArc::Instance();
@@ -1198,6 +1198,10 @@ namespace MathCore
         return fastCos->sin(v);
     }
 
+    #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
+        #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
+    #endif
+
 #else
 
     template<typename _type, typename _Algorithm>
@@ -1214,6 +1218,47 @@ namespace MathCore
     _Algorithm>::sin(const float& v) noexcept
     {
         return ::sinf(v);
+    }
+
+#endif
+
+
+#if defined(ITK_TRIGONOMETRIC_USE_FAST_ARCH)
+
+    static FastArc *fastArc = FastArc::Instance();
+
+    template<typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type, 
+    typename std::enable_if<std::is_same<_type, float>::value>::type, 
+    _Algorithm>::acos(const float& v) noexcept
+    {
+        return fastArc->acos(v);
+    }
+
+    template<typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type, 
+    typename std::enable_if<std::is_same<_type, float>::value>::type, 
+    _Algorithm>::asin(const float& v) noexcept
+    {
+        return fastArc->asin(v);
+    }
+
+#else
+
+    template<typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type, 
+    typename std::enable_if<std::is_same<_type, float>::value>::type, 
+    _Algorithm>::acos(const float& v) noexcept
+    {
+        return ::acosf(v);
+    }
+
+    template<typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type, 
+    typename std::enable_if<std::is_same<_type, float>::value>::type, 
+    _Algorithm>::asin(const float& v) noexcept
+    {
+        return ::asinf(v);
     }
 
 #endif
