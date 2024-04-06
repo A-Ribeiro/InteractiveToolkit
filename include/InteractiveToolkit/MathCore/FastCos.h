@@ -323,10 +323,14 @@ namespace MathCore
             int32_t region = int_angle / number_of_samples;
             int32_t real_index = int_angle - region * number_of_samples;
 
-            int32_t is_to_invert_mask = -(region & 0x01);
+            
             int32_t inverted_index = number_of_samples - real_index;
-            real_index = inverted_index & is_to_invert_mask |
-                        real_index & ~is_to_invert_mask;
+            
+            //int32_t is_to_invert_mask = -(region & 0x01);
+            //real_index = inverted_index & is_to_invert_mask |
+            //             real_index & ~is_to_invert_mask;
+
+            real_index = (region & 0x01)?inverted_index:real_index;
 
             int32_t sig = 1 - ( (region ^ (region << 1)) & 0x02 );
 
