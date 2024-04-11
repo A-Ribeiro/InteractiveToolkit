@@ -357,7 +357,7 @@ endif()
 ############################################################################
 # Turn on RSQRT algorithm
 ############################################################################
-set(ITK_FORCE_USE_RSQRT_CARMACK ON CACHE BOOL "Force use of the alternative RSQRT algorithm.")
+set(ITK_FORCE_USE_RSQRT_CARMACK OFF CACHE BOOL "Force use of the alternative RSQRT algorithm.")
 if (ITK_FORCE_USE_RSQRT_CARMACK)
     list(APPEND ITK_COMPILE_DEFINITIONS ITK_FORCE_USE_RSQRT_CARMACK)
 endif()
