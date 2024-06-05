@@ -514,7 +514,7 @@ namespace EventCore
 			struct_._ptr_class_member = callback._ptr_class_member;
 			// struct_._std_function_class_member = nullptr;
 
-			_add(std::move(struct_));
+			_remove(std::move(struct_));
         }
 
 		void remove(ptr_functor ptr_functor_ref)

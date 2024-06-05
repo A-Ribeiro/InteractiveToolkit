@@ -76,6 +76,11 @@ namespace EventCore
 				   _ptr_instance != nullptr;
 		}
 
+        ITK_INLINE std_function_functor toFunction() const
+        {
+            return _std_function_functor;
+        }
+
 		//////////////////////////
 		// COPY CONSTRUCTOR
 		// COPY OPERATOR
