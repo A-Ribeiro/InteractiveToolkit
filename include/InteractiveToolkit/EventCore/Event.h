@@ -11,6 +11,8 @@
 #include "HandleCallback.h"
 #include "STL_Tools.h"
 
+#include "Callback.h"
+
 #if defined(_WIN32)
 #pragma warning(push)
 #pragma warning(disable : 4407)
@@ -37,6 +39,8 @@ namespace EventCore
 
 		// using std_function_class_member = typename std::function<_RetType(_BaseClassType*, _ArgsType...)>;
 		using ptr_class_member = _RetType (_BaseClassType::*)(_ArgsType...);
+
+        using compatible_callback = Callback<_RetType(_ArgsType...), _BaseClassType>;
 
 		struct __internal
 		{
@@ -336,6 +340,38 @@ namespace EventCore
 		// 	_add(struct_);
 		// }
 
+        void add(const compatible_callback &callback)
+        {
+            __internal struct_;
+
+			// functor
+			struct_._ptr_functor = callback._ptr_functor;
+			struct_._std_function_functor = callback._std_function_functor;
+
+			// object
+			struct_._ptr_instance = callback._ptr_instance;
+			struct_._ptr_class_member = callback._ptr_class_member;
+			// struct_._std_function_class_member = nullptr;
+
+			_add(std::move(struct_));
+        }
+
+        void add(compatible_callback &&callback)
+        {
+            __internal struct_;
+
+			// functor
+			struct_._ptr_functor = callback._ptr_functor;
+			struct_._std_function_functor = std::move(callback._std_function_functor);
+
+			// object
+			struct_._ptr_instance = callback._ptr_instance;
+			struct_._ptr_class_member = callback._ptr_class_member;
+			// struct_._std_function_class_member = nullptr;
+
+			_add(std::move(struct_));
+        }
+
 		void add(ptr_functor ptr_functor_ref)
 		{
 			//
@@ -465,6 +501,22 @@ namespace EventCore
 			// );
 		}
 
+        void remove(const compatible_callback &callback)
+        {
+            __internal struct_;
+
+			// functor
+			struct_._ptr_functor = callback._ptr_functor;
+			struct_._std_function_functor = nullptr;// callback._std_function_functor;
+
+			// object
+			struct_._ptr_instance = callback._ptr_instance;
+			struct_._ptr_class_member = callback._ptr_class_member;
+			// struct_._std_function_class_member = nullptr;
+
+			_add(std::move(struct_));
+        }
+
 		void remove(ptr_functor ptr_functor_ref)
 		{
 			//
@@ -475,7 +527,7 @@ namespace EventCore
 
 			// functor
 			struct_._ptr_functor = ptr_functor_ref;
-			struct_._std_function_functor = ptr_functor_ref; // std_function_functor(struct_._ptr_functor);
+			struct_._std_function_functor = nullptr; //ptr_functor_ref; // std_function_functor(struct_._ptr_functor);
 
 			// object
 			struct_._ptr_instance = nullptr;

@@ -19,6 +19,10 @@
 namespace EventCore
 {
 
+    //forward template
+    template <typename _single_fnc_, typename _BaseClassType>
+	class Event;
+
 	template <typename _single_fnc_, typename _BaseClassType = HandleCallback>
 	class Callback
 	{
@@ -412,6 +416,11 @@ namespace EventCore
 		{
 			return !((*this) == _c);
 		}
+        public:
+
+        //class Event<_RetType(_ArgsType...), _BaseClassType>;
+        friend class Event<_RetType(_ArgsType...), _BaseClassType>;
+
 	};
 
 	//
