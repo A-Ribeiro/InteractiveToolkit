@@ -138,7 +138,7 @@ namespace STL_Tools
     using placeholder = typename index_to_placeholder<_id_>::type;
 
     template <typename _base_type, typename... _param_args>
-    std::unique_ptr<_base_type> make_unique(_param_args &&...args)
+    ITK_INLINE std::unique_ptr<_base_type> make_unique(_param_args &&...args)
     {
         return std::unique_ptr<_base_type>(new _base_type(std::forward<_param_args>(args)...));
     }
