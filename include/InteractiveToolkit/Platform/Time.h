@@ -25,7 +25,7 @@ namespace Platform
     public:
         double freqMicro;
         double freqMillis;
-        uint64_t freqSec;
+        int64_t freqSec;
         // bool filledFreqConstants;
 
     private:
@@ -77,6 +77,18 @@ namespace Platform
         // uint64_t GetCounterMillis(bool reset = false);
         int64_t GetCounterMicro(bool reset = false)
         {
+        https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
+
+            const uint64_t MS_PER_SEC = UINT64_C(1000);     // MS = milliseconds
+            const uint64_t US_PER_MS = UINT64_C(1000);     // US = microseconds
+            const uint64_t HNS_PER_US = UINT64_C(10);       // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
+            const uint64_t NS_PER_US = UINT64_C(1000);
+
+            const uint64_t HNS_PER_SEC = (MS_PER_SEC * US_PER_MS * HNS_PER_US);
+            const uint64_t NS_PER_HNS = UINT64_C(100);    // NS = nanoseconds
+            const uint64_t NS_PER_SEC = (MS_PER_SEC * US_PER_MS * NS_PER_US);
+            const uint64_t US_PER_SEC = (MS_PER_SEC * US_PER_MS);
+
             const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();
 
             LARGE_INTEGER li;
@@ -84,15 +96,42 @@ namespace Platform
 
             int64_t result = li.QuadPart - CounterStart.QuadPart;
 
-            int64_t micros = (int64_t)((double)result / p_dt->freqMicro);
+            int64_t tv_sec = (result / p_dt->freqSec);
+            //int64_t tv_nsec = (((result % p_dt->freqSec) * NS_PER_SEC) / p_dt->freqSec);
+            
+            int64_t tv_sec_modulus_int = tv_sec * p_dt->freqSec;
+            int64_t tv_sec_modulus = result - tv_sec_modulus_int;
+
+            //int64_t tv_usec = (((result % p_dt->freqSec) * US_PER_SEC) / p_dt->freqSec);
+            int64_t tv_usec = ((tv_sec_modulus * US_PER_SEC) / p_dt->freqSec);
+
+            int64_t micros = tv_sec * US_PER_SEC + tv_usec;
 
             if (reset)
             {
                 CounterStartBackup = CounterStart;
                 // CounterStart = li;
 
-                CounterStart.QuadPart += (int64_t)((double)micros * p_dt->freqMicro);
+                int64_t micros_to_quadpart = tv_sec_modulus_int + (tv_usec * p_dt->freqSec) / US_PER_SEC;
+                CounterStart.QuadPart += micros_to_quadpart;
             }
+
+            //const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();
+
+            //LARGE_INTEGER li;
+            //QueryPerformanceCounter(&li);
+
+            //int64_t result = li.QuadPart - CounterStart.QuadPart;
+
+            //int64_t micros = (int64_t)((double)result / p_dt->freqMicro);
+
+            //if (reset)
+            //{
+            //    CounterStartBackup = CounterStart;
+            //    // CounterStart = li;
+
+            //    CounterStart.QuadPart += (int64_t)((double)micros * p_dt->freqMicro);
+            //}
 
             return micros;
         }
@@ -142,7 +181,8 @@ namespace Platform
 
             struct timespec res;
             clock_gettime(CLOCK_MONOTONIC, &res);
-            return (((uint64_t)res.tv_sec) * 1000000ULL + (((uint64_t)res.tv_nsec) / 1000ULL) % 1000000ULL);
+            //return (((uint64_t)res.tv_sec) * 1000000ULL + (((uint64_t)res.tv_nsec) / 1000ULL) % 1000000ULL);
+            return (((uint64_t)res.tv_sec) * 1000000ULL + (((uint64_t)res.tv_nsec) / 1000ULL) );
 
 #endif
         }

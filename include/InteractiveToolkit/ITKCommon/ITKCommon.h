@@ -10,3 +10,8 @@
 #include "x86CPUInfo.h"
 #include "RunLengthEncoding.h"
 #include "ITKAbort.h"
+
+#include "Date.h"
+#include "FileSystem/File.h"
+#include "FileSystem/Directory.h"
+
