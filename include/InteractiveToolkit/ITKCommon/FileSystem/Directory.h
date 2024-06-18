@@ -358,8 +358,11 @@ namespace ITKCommon
             Directory(const std::string &base_path = "./", bool keep_base_path_relative = false)
             {
                 this->base_path = base_path;
-                if (!keep_base_path_relative)
+                if (!keep_base_path_relative){
                     this->base_path = ITKCommon::Path::getAbsolutePath(this->base_path);
+                    if (this->base_path.length() == 0)
+                        this->base_path = base_path;
+                }
                 ITKCommon::StringUtil::replaceAll(&this->base_path, "\\", "/");
                 // ITKCommon::StringUtil::replaceAll(&this->base_path, "/", "/");
                 if (!ITKCommon::StringUtil::endsWith(this->base_path, "/"))

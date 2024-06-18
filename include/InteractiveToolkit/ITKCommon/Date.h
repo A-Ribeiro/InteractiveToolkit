@@ -8,24 +8,24 @@ namespace ITKCommon
 
 #if defined(_WIN32)
 
-    struct tm* localtime_r(const time_t* sourceTime, struct tm* tmDest)
+    static ITK_INLINE struct tm* localtime_r(const time_t* sourceTime, struct tm* tmDest)
     {
         localtime_s(tmDest, sourceTime);
         return tmDest;
     }
 
-    struct tm* gmtime_r(const time_t* sourceTime, struct tm* tmDest)
+    static ITK_INLINE struct tm* gmtime_r(const time_t* sourceTime, struct tm* tmDest)
     {
         gmtime_s(tmDest, sourceTime);
         return tmDest;
     }
     
-    time_t timegm(struct tm* timeptr)
+    static ITK_INLINE time_t timegm(struct tm* timeptr)
     {
         return _mkgmtime(timeptr);
     }
     
-    time_t timelocal(struct tm *timeptr)
+    static ITK_INLINE time_t timelocal(struct tm *timeptr)
     {
         time_t utc_time = timegm(timeptr);
         struct tm local_tm;
