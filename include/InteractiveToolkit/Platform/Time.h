@@ -77,7 +77,7 @@ namespace Platform
         // uint64_t GetCounterMillis(bool reset = false);
         int64_t GetCounterMicro(bool reset = false)
         {
-        https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
+            // https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
 
             const uint64_t MS_PER_SEC = UINT64_C(1000);     // MS = milliseconds
             const uint64_t US_PER_MS = UINT64_C(1000);     // US = microseconds
