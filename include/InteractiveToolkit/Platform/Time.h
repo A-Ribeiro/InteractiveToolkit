@@ -6,7 +6,7 @@
 #ifdef __APPLE__
 
 // for unamed semaphores on mac
-//#include "Core/unamed_fake_sem.h"
+// #include "Core/unamed_fake_sem.h"
 
 #include <mach/mach_time.h>
 
@@ -44,7 +44,7 @@ namespace Platform
         }
 
     public:
-        static w32PerformanceCounterData* Instance()
+        static w32PerformanceCounterData *Instance()
         {
             static w32PerformanceCounterData dt;
             return &dt;
@@ -79,13 +79,13 @@ namespace Platform
         {
             // https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
 
-            const uint64_t MS_PER_SEC = UINT64_C(1000);     // MS = milliseconds
-            const uint64_t US_PER_MS = UINT64_C(1000);     // US = microseconds
-            const uint64_t HNS_PER_US = UINT64_C(10);       // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
+            const uint64_t MS_PER_SEC = UINT64_C(1000); // MS = milliseconds
+            const uint64_t US_PER_MS = UINT64_C(1000);  // US = microseconds
+            const uint64_t HNS_PER_US = UINT64_C(10);   // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
             const uint64_t NS_PER_US = UINT64_C(1000);
 
             const uint64_t HNS_PER_SEC = (MS_PER_SEC * US_PER_MS * HNS_PER_US);
-            const uint64_t NS_PER_HNS = UINT64_C(100);    // NS = nanoseconds
+            const uint64_t NS_PER_HNS = UINT64_C(100); // NS = nanoseconds
             const uint64_t NS_PER_SEC = (MS_PER_SEC * US_PER_MS * NS_PER_US);
             const uint64_t US_PER_SEC = (MS_PER_SEC * US_PER_MS);
 
@@ -97,12 +97,12 @@ namespace Platform
             int64_t result = li.QuadPart - CounterStart.QuadPart;
 
             int64_t tv_sec = (result / p_dt->freqSec);
-            //int64_t tv_nsec = (((result % p_dt->freqSec) * NS_PER_SEC) / p_dt->freqSec);
-            
+            // int64_t tv_nsec = (((result % p_dt->freqSec) * NS_PER_SEC) / p_dt->freqSec);
+
             int64_t tv_sec_modulus_int = tv_sec * p_dt->freqSec;
             int64_t tv_sec_modulus = result - tv_sec_modulus_int;
 
-            //int64_t tv_usec = (((result % p_dt->freqSec) * US_PER_SEC) / p_dt->freqSec);
+            // int64_t tv_usec = (((result % p_dt->freqSec) * US_PER_SEC) / p_dt->freqSec);
             int64_t tv_usec = ((tv_sec_modulus * US_PER_SEC) / p_dt->freqSec);
 
             int64_t micros = tv_sec * US_PER_SEC + tv_usec;
@@ -116,19 +116,19 @@ namespace Platform
                 CounterStart.QuadPart += micros_to_quadpart;
             }
 
-            //const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();
+            // const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();
 
-            //LARGE_INTEGER li;
-            //QueryPerformanceCounter(&li);
+            // LARGE_INTEGER li;
+            // QueryPerformanceCounter(&li);
 
-            //int64_t result = li.QuadPart - CounterStart.QuadPart;
+            // int64_t result = li.QuadPart - CounterStart.QuadPart;
 
-            //int64_t micros = (int64_t)((double)result / p_dt->freqMicro);
+            // int64_t micros = (int64_t)((double)result / p_dt->freqMicro);
 
-            //if (reset)
+            // if (reset)
             //{
-            //    CounterStartBackup = CounterStart;
-            //    // CounterStart = li;
+            //     CounterStartBackup = CounterStart;
+            //     // CounterStart = li;
 
             //    CounterStart.QuadPart += (int64_t)((double)micros * p_dt->freqMicro);
             //}
@@ -149,62 +149,96 @@ namespace Platform
         // && __iOS__
         // Get the timebase info
         mach_timebase_info_data_t info;
-#endif
-
-        double now_microseconds_double(void)
-        {
-#ifdef __APPLE__
-
-            uint64_t result = mach_absolute_time();
-            double resultd = (((double)result * (double)info.numer) / ((double)info.denom)) / 1000.0;
-            return resultd;
-
+        uint64_t counterStart;
+        uint64_t counterStartBackup;
 #else
-
-            struct timespec res;
-            clock_gettime(CLOCK_MONOTONIC, &res);
-            return (((double)res.tv_sec) * 1000000.0 + ((double)res.tv_nsec) * 0.001);
-
+        struct timespec counterStart;
+        struct timespec counterStartBackup;
 #endif
-        }
-        uint64_t now_microseconds_uint64_t(void)
-        {
-#ifdef __APPLE__
-
-            uint64_t result = mach_absolute_time();
-            result *= info.numer;
-            result /= info.denom;
-            result = result / 1000;
-            return result;
-
-#else
-
-            struct timespec res;
-            clock_gettime(CLOCK_MONOTONIC, &res);
-            //return (((uint64_t)res.tv_sec) * 1000000ULL + (((uint64_t)res.tv_nsec) / 1000ULL) % 1000000ULL);
-            return (((uint64_t)res.tv_sec) * 1000000ULL + (((uint64_t)res.tv_nsec) / 1000ULL) );
-
-#endif
-        }
-        uint64_t base;
 
     public:
         UnixMicroCounter()
         {
-#if __APPLE__
+#ifdef __APPLE__
             mach_timebase_info(&info);
+            counterStart = mach_absolute_time();
+#else
+            clock_gettime(CLOCK_MONOTONIC, &counterStart);
 #endif
-            base = now_microseconds_uint64_t();
+            counterStartBackup = counterStart;
         }
+        
+        void UndoReset()
+        {
+            counterStart = counterStartBackup;
+        }
+
+        void Reset()
+        {
+            counterStartBackup = counterStart;
+#ifdef __APPLE__
+            counterStart = mach_absolute_time();
+#else
+            clock_gettime(CLOCK_MONOTONIC, &counterStart);
+#endif
+        }
+
         int64_t GetDeltaMicro(bool reset)
         {
-            uint64_t newbase = now_microseconds_uint64_t();
-            int64_t delta = newbase - base;
+
+#ifdef __APPLE__
+            uint64_t currentV = mach_absolute_time();
+            
+            int64_t diff = currentV - counterStart;
+
+            int64_t nanos_ = (diff * info.numer) / info.denom;
+            int64_t micros = nanos_ / INT64_C(1000);
+#else
+            struct timespec currentV;
+            clock_gettime(CLOCK_MONOTONIC, &currentV);
+
+            struct timespec diff;
+            diff.tv_sec = currentV.tv_sec - counterStart.tv_sec;
+            diff.tv_nsec = currentV.tv_nsec - counterStart.tv_nsec;
+            if (diff.tv_nsec < 0){
+                diff.tv_nsec += INT64_C(1000000000);
+                diff.tv_sec--;
+            }
+
+            int64_t micros = diff.tv_sec * INT64_C(1000000) + diff.tv_nsec / INT64_C(1000);
+#endif
 
             if (reset)
-                base = newbase;
+            {
+                counterStartBackup = counterStart;
 
-            return delta;
+                // increment counterStart micros...
+#ifdef __APPLE__
+                // nanos
+                int64_t micros_apple_unit = micros * INT64_C(1000);
+                // apple unit
+                micros_apple_unit = (micros_apple_unit * info.denom) / info.numer;
+
+                counterStart += micros_apple_unit;
+#else
+                // micros to timespec
+                struct timespec micros_timespec;
+                micros_timespec.tv_sec = micros / INT64_C(1000000);
+                int64_t aux_sec_micros_int = micros_timespec.tv_sec * INT64_C(1000000);
+                int64_t aux_sec_micros_fract = micros - aux_sec_micros_int;
+                micros_timespec.tv_nsec = aux_sec_micros_fract * INT64_C(1000);
+
+                // increment timespec
+                counterStart.tv_sec += micros_timespec.tv_sec;
+                counterStart.tv_nsec += micros_timespec.tv_nsec;
+                if (counterStart.tv_nsec > INT64_C(1000000000)) {
+                    counterStart.tv_nsec -= INT64_C(1000000000);
+                    counterStart.tv_sec++;
+                }
+#endif
+            }
+
+            return micros;
         }
     };
 
@@ -216,7 +250,7 @@ namespace Platform
     ///
     /// \author Alessandro Ribeiro
     ///
-    template<typename T>
+    template <typename T>
     class TimeTemplate
     {
 
