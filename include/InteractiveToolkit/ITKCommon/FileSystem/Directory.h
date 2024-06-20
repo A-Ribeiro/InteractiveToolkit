@@ -201,7 +201,7 @@ namespace ITKCommon
 #endif
                     v.fileInfo = value_type();
                 }
-                
+
             private:
                 void processCurrentValue(bool next_valid)
                 {
@@ -326,13 +326,11 @@ namespace ITKCommon
                         // date processing
                         fileInfo.lastWriteTime = Date::FromUnixTimestampUTC(
                             sb.stx_mtime.tv_sec,
-                            sb.stx_mtime.tv_nsec
-                        );
+                            sb.stx_mtime.tv_nsec);
 
                         fileInfo.creationTime = Date::FromUnixTimestampUTC(
                             sb.stx_btime.tv_sec,
-                            sb.stx_btime.tv_nsec
-                        );
+                            sb.stx_btime.tv_nsec);
 
                         fileInfo.size = (uint64_t)sb.stx_size;
                     }
@@ -350,15 +348,19 @@ namespace ITKCommon
                 value_type fileInfo;
             };
 
-            const_iterator begin() const { return const_iterator(base_path); }
+            const_iterator begin() const
+            {
+                if (!this->is_valid)
+                    return end();
+                return const_iterator(base_path);
+            }
             const_iterator end() const { return const_iterator(); }
-
-            std::string base_path;
 
             Directory(const std::string &base_path = "./", bool keep_base_path_relative = false)
             {
                 this->base_path = base_path;
-                if (!keep_base_path_relative){
+                if (!keep_base_path_relative)
+                {
                     this->base_path = ITKCommon::Path::getAbsolutePath(this->base_path);
                     if (this->base_path.length() == 0)
                         this->base_path = base_path;
@@ -367,13 +369,35 @@ namespace ITKCommon
                 // ITKCommon::StringUtil::replaceAll(&this->base_path, "/", "/");
                 if (!ITKCommon::StringUtil::endsWith(this->base_path, "/"))
                     this->base_path += "/";
+
+                is_valid = ITKCommon::Path::isDirectory(this->base_path);
             }
 
-            static Directory FromFile(const FileSystem::File &file) {
+            std::string getBasePath() const
+            {
+                return this->base_path;
+            }
+
+            bool isValid() const
+            {
+                return this->is_valid;
+            }
+
+            operator bool() const
+            {
+                return this->is_valid;
+            }
+
+            static Directory FromFile(const FileSystem::File &file)
+            {
                 if (file.isDirectory)
                     return Directory(file.full_path);
                 return Directory(file.base_path);
             }
+
+        private:
+            std::string base_path;
+            bool is_valid;
         };
 
     }
