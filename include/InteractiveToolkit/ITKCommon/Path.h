@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../common.h"
+#include "./StringUtil.h"
 #include "ITKAbort.h"
 
 //
@@ -330,10 +331,10 @@ namespace ITKCommon
         {
 #if defined(_WIN32)
 
-            auto ptr = _getcwd(NULL, 0);
+            auto ptr = _wgetcwd(NULL, 0);
             if (!ptr)
                 return "";
-            std::string result = ptr;
+            std::string result = StringUtil::wString_to_String(ptr);
             free(ptr);
             return result;
 
@@ -374,7 +375,8 @@ namespace ITKCommon
         static bool setWorkingPath(const std::string &path)
         {
 #if defined(_WIN32)
-            return _chdir(path.c_str()) == 0;
+            std::wstring path_w = StringUtil::string_to_WString(path);
+            return _wchdir(path_w.c_str()) == 0;
 #elif defined(__APPLE__) || defined(__linux__)
             return chdir(path.c_str()) == 0;
 #endif
@@ -453,8 +455,8 @@ namespace ITKCommon
         static std::string getSaveGamePath(const std::string &rootFolder, const std::string &gameName)
         {
 #if defined(_WIN32)
-            std::wstring base = std::wstring(rootFolder.begin(), rootFolder.end());
-            std::wstring game = std::wstring(gameName.begin(), gameName.end());
+            std::wstring base = StringUtil::string_to_WString(rootFolder);
+            std::wstring game = StringUtil::string_to_WString(gameName);
 
             char resultChar[4096];
 
@@ -512,8 +514,8 @@ namespace ITKCommon
         static std::string getDocumentsPath(const std::string &rootFolder, const std::string &appName)
         {
 #if defined(_WIN32)
-            std::wstring base = std::wstring(rootFolder.begin(), rootFolder.end());
-            std::wstring app = std::wstring(appName.begin(), appName.end());
+            std::wstring base = StringUtil::string_to_WString(rootFolder);
+            std::wstring app = StringUtil::string_to_WString(appName);
 
             char resultChar[4096];
 
@@ -551,10 +553,25 @@ namespace ITKCommon
         /// \param path the path to test
         /// \return true if it is a directory
         ///
-        static bool isDirectory(const std::string &path)
+        static bool isDirectory(const std::string &path_)
         {
 #if defined(_WIN32)
-            return PathIsDirectoryA(path.c_str()) == TRUE;
+            std::wstring path_w;
+            if (StringUtil::endsWith(path_, "\\") || StringUtil::endsWith(path_, "/"))
+                path_w = StringUtil::string_to_WString(path_.substr(0, path_.length() - 1));
+            else
+                path_w = StringUtil::string_to_WString(path_);
+            WIN32_FIND_DATAW findfiledata;
+            HANDLE hFind = FindFirstFileW((LPCWSTR)path_w.c_str(), &findfiledata);
+            if (hFind != INVALID_HANDLE_VALUE)
+            {
+                bool is_dir = (findfiledata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+                FindClose(hFind);
+                return is_dir;
+            }
+            else
+                return false;
+            //return PathIsDirectoryW(path_w.c_str()) == TRUE;
 #elif defined(__APPLE__) || defined(__linux__)
             return unixIsDirectory(path.c_str());
 #endif
@@ -577,10 +594,25 @@ namespace ITKCommon
         /// \param path the path to test
         /// \return true if it is a file
         ///
-        static bool isFile(const std::string &path)
+        static bool isFile(const std::string & path_)
         {
 #if defined(_WIN32)
-            return PathFileExistsA(path.c_str()) && !isDirectory(path);
+            std::wstring path_w;
+            if (StringUtil::endsWith(path_, "\\") || StringUtil::endsWith(path_, "/"))
+                path_w = StringUtil::string_to_WString(path_.substr(0, path_.length() - 1));
+            else
+                path_w = StringUtil::string_to_WString(path_);
+            WIN32_FIND_DATAW findfiledata;
+            HANDLE hFind = FindFirstFileW((LPCWSTR)path_w.c_str(), &findfiledata);
+            if (hFind != INVALID_HANDLE_VALUE)
+            {
+                bool is_file = (findfiledata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+                FindClose(hFind);
+                return is_file;
+            }
+            else
+                return false;
+            //return PathFileExistsW(path_w.c_str()) && !isDirectory(path_);
 #elif defined(__APPLE__) || defined(__linux__)
             return unixIsFile(path.c_str());
 #endif
@@ -663,9 +695,10 @@ namespace ITKCommon
         static std::string getAbsolutePath(const std::string &path)
         {
 #if defined(_WIN32)
-            char fullFilename[MAX_PATH];
-            if (GetFullPathNameA(path.c_str(), MAX_PATH, fullFilename, nullptr) > 0)
-                return fullFilename;
+            WCHAR fullFilename[MAX_PATH];
+            std::wstring path_w = StringUtil::string_to_WString(path);
+            if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0)
+                return StringUtil::wString_to_String(fullFilename);
             return path;
 #elif defined(__APPLE__) || defined(__linux__)
             char resolved_path[PATH_MAX];
