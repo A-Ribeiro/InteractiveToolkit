@@ -72,7 +72,7 @@ namespace MathCore
             // graph 0..1 to 0..0.5
             _cs *= sign_baixo_cima;
 
-            return _cs;
+            return (float)_cs;
         }
 
         // [-1..1]
