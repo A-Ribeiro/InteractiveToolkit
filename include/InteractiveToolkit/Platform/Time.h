@@ -5,13 +5,8 @@
 
 #ifdef __APPLE__
 
-// for unamed semaphores on mac
-// #include "Core/unamed_fake_sem.h"
-
 #include <mach/mach_time.h>
-
-// Thread
-#include <sys/sysctl.h>
+#include <sys/sysctl.h> // Thread
 
 #endif
 
@@ -64,18 +59,20 @@ namespace Platform
             QueryPerformanceCounter(&CounterStart);
             CounterStartBackup = CounterStart;
         }
-        void UndoReset()
+
+        ITK_INLINE void UndoReset()
         {
             CounterStart = CounterStartBackup;
         }
-        void Reset()
+
+        ITK_INLINE void Reset()
         {
             CounterStartBackup = CounterStart;
             QueryPerformanceCounter(&CounterStart);
         }
 
         // uint64_t GetCounterMillis(bool reset = false);
-        int64_t GetCounterMicro(bool reset = false)
+        ITK_INLINE int64_t GetCounterMicro(bool reset = false)
         {
             // https://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
 
@@ -110,32 +107,13 @@ namespace Platform
             if (reset)
             {
                 CounterStartBackup = CounterStart;
-                // CounterStart = li;
 
                 int64_t micros_to_quadpart = tv_sec_modulus_int + (tv_usec * p_dt->freqSec) / US_PER_SEC;
                 CounterStart.QuadPart += micros_to_quadpart;
             }
 
-            // const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();
-
-            // LARGE_INTEGER li;
-            // QueryPerformanceCounter(&li);
-
-            // int64_t result = li.QuadPart - CounterStart.QuadPart;
-
-            // int64_t micros = (int64_t)((double)result / p_dt->freqMicro);
-
-            // if (reset)
-            //{
-            //     CounterStartBackup = CounterStart;
-            //     // CounterStart = li;
-
-            //    CounterStart.QuadPart += (int64_t)((double)micros * p_dt->freqMicro);
-            //}
-
             return micros;
         }
-        //__int64 GetCounterSec(bool reset = false);
     };
 
 #elif defined(__APPLE__) || defined(__linux__)
@@ -168,12 +146,12 @@ namespace Platform
             counterStartBackup = counterStart;
         }
         
-        void UndoReset()
+        ITK_INLINE void UndoReset()
         {
             counterStart = counterStartBackup;
         }
 
-        void Reset()
+        ITK_INLINE void Reset()
         {
             counterStartBackup = counterStart;
 #ifdef __APPLE__
@@ -183,7 +161,7 @@ namespace Platform
 #endif
         }
 
-        int64_t GetDeltaMicro(bool reset)
+        ITK_INLINE int64_t GetDeltaMicro(bool reset)
         {
 
 #ifdef __APPLE__
@@ -295,24 +273,21 @@ namespace Platform
         ///
         /// \author Alessandro Ribeiro
         ///
-        void update()
+        ITK_INLINE void update()
         {
 
 #if defined(_WIN32)
             deltaTimeMicro = win32_counter.GetCounterMicro(true);
-            if (deltaTimeMicro == 0)
-            {
-                win32_counter.UndoReset();
-            }
+            // if (deltaTimeMicro == 0)
+            //     win32_counter.UndoReset();
 #else
             deltaTimeMicro = unix_counter.GetDeltaMicro(true);
+            // if (deltaTimeMicro == 0)
+            //     unix_counter.UndoReset();
 #endif
 
-            if (deltaTimeMicro < 0)
-            {
-                printf("Time error...Negative Delta Time... \n");
-                // fgetc(stdin);
-            }
+            // if (deltaTimeMicro < 0)
+            //     printf("Time error...Negative Delta Time... \n");
 
             double sec = (double)deltaTimeMicro / 1000000.0;
 
@@ -326,7 +301,7 @@ namespace Platform
         ///
         /// \author Alessandro Ribeiro
         ///
-        void reset()
+        ITK_INLINE void reset()
         {
             unscaledDeltaTime = 0;
             deltaTime = 0;
