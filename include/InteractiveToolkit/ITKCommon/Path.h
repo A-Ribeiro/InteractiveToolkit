@@ -573,7 +573,7 @@ namespace ITKCommon
                 return false;
             //return PathIsDirectoryW(path_w.c_str()) == TRUE;
 #elif defined(__APPLE__) || defined(__linux__)
-            return unixIsDirectory(path.c_str());
+            return unixIsDirectory(path_.c_str());
 #endif
         }
 
@@ -614,7 +614,7 @@ namespace ITKCommon
                 return false;
             //return PathFileExistsW(path_w.c_str()) && !isDirectory(path_);
 #elif defined(__APPLE__) || defined(__linux__)
-            return unixIsFile(path.c_str());
+            return unixIsFile(path_.c_str());
 #endif
         }
 
