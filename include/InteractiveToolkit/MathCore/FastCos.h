@@ -52,7 +52,7 @@ namespace MathCore
     public:
 
         // [-1..1]
-        static float ITK_INLINE array_map_2_cos(const double &_csp)
+        static double ITK_INLINE array_map_2_cos(const double &_csp)
         {
 
             // [ < 0 => -1 baixo , > 0 => 1 cima ]
@@ -72,7 +72,7 @@ namespace MathCore
             // graph 0..1 to 0..0.5
             _cs *= sign_baixo_cima;
 
-            return (float)_cs;
+            return _cs;
         }
 
         // [-1..1]
