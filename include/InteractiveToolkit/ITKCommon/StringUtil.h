@@ -261,24 +261,26 @@ namespace ITKCommon
             return std::u16string(output.data(), output.size());
         }
 
-        static ITK_INLINE std::string wString_to_String(const std::wstring& str) {
+        static ITK_INLINE std::string wString_to_String(const std::wstring &str)
+        {
             if (sizeof(wchar_t) == 2)
             {
-                auto u32 = ITKCommon::StringUtil::utf16_to_utf32((char16_t*)str.c_str());
+                auto u32 = ITKCommon::StringUtil::utf16_to_utf32((char16_t *)str.c_str());
                 return ITKCommon::StringUtil::utf32_to_utf8(u32);
             }
             else
-                return ITKCommon::StringUtil::utf32_to_utf8((char32_t*)str.c_str());
+                return ITKCommon::StringUtil::utf32_to_utf8((char32_t *)str.c_str());
         }
 
-        static ITK_INLINE std::wstring string_to_WString(const std::string& str) {
+        static ITK_INLINE std::wstring string_to_WString(const std::string &str)
+        {
             if (sizeof(wchar_t) == 2)
             {
                 auto u32 = ITKCommon::StringUtil::utf8_to_utf32(str);
-                return (wchar_t*)ITKCommon::StringUtil::utf32_to_utf16(u32).c_str();
+                return (wchar_t *)ITKCommon::StringUtil::utf32_to_utf16(u32).c_str();
             }
             else
-                return (wchar_t*)ITKCommon::StringUtil::utf8_to_utf32(str).c_str();
+                return (wchar_t *)ITKCommon::StringUtil::utf8_to_utf32(str).c_str();
         }
 
         /// \brief test if a string starts with another string
@@ -299,7 +301,7 @@ namespace ITKCommon
         /// \param prefix string to check if str starts with
         /// \return true if the str starts with prefix
         ///
-        static ITK_INLINE bool startsWith(const std::string str, const std::string prefix)
+        static ITK_INLINE bool startsWith(const std::string &str, const std::string &prefix)
         {
             return ((prefix.size() <= str.size()) &&
                     std::equal(prefix.begin(), prefix.end(), str.begin()));
@@ -323,13 +325,13 @@ namespace ITKCommon
         /// \param sufix string to check if str ends with
         /// \return true if the str ends with sufix
         ///
-        static ITK_INLINE bool endsWith(const std::string str, const std::string sufix)
+        static ITK_INLINE bool endsWith(const std::string &str, const std::string &sufix)
         {
             return ((sufix.size() <= str.size()) &&
                     std::equal(sufix.begin(), sufix.end(), str.begin() + (str.size() - sufix.size())));
         }
 
-        static ITK_INLINE std::string toLower(const std::string str)
+        static ITK_INLINE std::string toLower(const std::string &str)
         {
             // std::string aux = str;
             // std::transform(aux.begin(), aux.end(), aux.begin(), ::tolower);
@@ -339,7 +341,7 @@ namespace ITKCommon
                 c = utf8proc_tolower(c);
             return utf32_to_utf8(_upper);
         }
-        static ITK_INLINE std::string toUpper(const std::string str)
+        static ITK_INLINE std::string toUpper(const std::string &str)
         {
             // std::string aux = str;
             // std::transform(aux.begin(), aux.end(), aux.begin(), ::toupper);
@@ -350,7 +352,25 @@ namespace ITKCommon
             return utf32_to_utf8(_upper);
         }
 
-        static ITK_INLINE bool contains(const std::string str, const std::string v)
+        static ITK_INLINE std::string removeAccents(const std::string &str)
+        {
+            std::u32string u32_str = utf8_to_utf32(str);
+
+            utf8proc_int32_t decomposed[4];
+            utf8proc_option_t options = (utf8proc_option_t)(UTF8PROC_DECOMPOSE);
+            int boundclass = UTF8PROC_BOUNDCLASS_START;
+
+            for (auto &c : u32_str)
+            {
+                utf8proc_ssize_t size = utf8proc_decompose_char(c, decomposed, 4, options, &boundclass);
+                if (size == 2)
+                    c = decomposed[0];
+            }
+
+            return utf32_to_utf8(u32_str);
+        }
+
+        static ITK_INLINE bool contains(const std::string &str, const std::string &v)
         {
             return strstr(str.c_str(), v.c_str()) != 0;
         }
