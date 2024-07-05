@@ -280,7 +280,7 @@ namespace ITKCommon
                     }
 
                     while (next_valid &&
-                           (sb.stx_mode & S_IFDIR != 0) &&
+                           (sb.stx_mode & S_IFDIR) != 0 &&
                            (strcmp(entry->d_name, ".") == 0 ||
                             strcmp(entry->d_name, "..") == 0))
                     {
@@ -365,7 +365,9 @@ namespace ITKCommon
                     if (this->base_path.length() == 0)
                         this->base_path = base_path;
                 }
-                ITKCommon::StringUtil::replaceAll(&this->base_path, "\\", "/");
+                #if defined(_WIN32)
+                    ITKCommon::StringUtil::replaceAll(&this->base_path, "\\", "/");
+                #endif
                 // ITKCommon::StringUtil::replaceAll(&this->base_path, "/", "/");
                 if (!ITKCommon::StringUtil::endsWith(this->base_path, "/"))
                     this->base_path += "/";
@@ -376,6 +378,15 @@ namespace ITKCommon
             std::string getBasePath() const
             {
                 return this->base_path;
+            }
+
+            std::string getName() const
+            {
+                auto result = StringUtil::tokenizer(this->base_path, "/");
+                if (result.size() > 1)
+                    return result[result.size()-2];
+                else
+                    return "";
             }
 
             bool isValid() const

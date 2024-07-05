@@ -7,4 +7,6 @@
 #include "Property.h"
 #include "VirtualProperty.h"
 #include "PressReleaseDetector.h"
+#include "ExecuteOnScopeEnd.h"
+
 

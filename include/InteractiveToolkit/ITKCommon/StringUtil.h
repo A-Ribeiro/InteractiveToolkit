@@ -405,6 +405,10 @@ namespace ITKCommon
                 start = index_of_delimiter + delimiter_size;
             }
 
+            if (start == input_size){
+                result.push_back("");
+            }
+
             if (result.size() == 0)
                 result.push_back("");
 
@@ -437,6 +441,23 @@ namespace ITKCommon
 
             return std::string(it, rit.base());
         }
+
+        static ITK_INLINE std::string unquote_cmd(const std::string &str)
+        {
+            // return std::string("\"") + std::regex_replace(str, std::regex("[\\\\\"]"), "\\$&") + "\"";
+            std::string result = str;
+            StringUtil::replaceAll(&result, "\\\"", "\"");
+            StringUtil::replaceAll(&result, "\\\\", "\\");
+            //result = std::string("\"") + result + "\"";
+            if (result.length() >= 2) {
+                if (result[0] == '\"')
+                    result = result.substr(1,result.length()-1);
+                if (result[result.length()-1] == '\"')
+                    result = result.substr(0,result.length()-1);
+            }
+            return result;
+        }
+
         static ITK_INLINE std::string quote_cmd(const std::string &str)
         {
             // return std::string("\"") + std::regex_replace(str, std::regex("[\\\\\"]"), "\\$&") + "\"";
@@ -462,6 +483,7 @@ namespace ITKCommon
             };
             states state = normal;
             std::string aux = "";
+            std::string aux_string_concatenate = "";
             for (int i = 0; i < cmd.size(); i++)
             {
                 char chr = cmd[i];
@@ -485,7 +507,9 @@ namespace ITKCommon
                     aux = trim(aux);
                     if (aux.size() > 0)
                     {
-                        aux += chr;
+                        //aux += chr;
+                        aux_string_concatenate = "";
+                        aux_string_concatenate += chr;
                         state = enter_string_concatenate;
                     }
                     else
@@ -499,9 +523,10 @@ namespace ITKCommon
                 {
                     // one new command
                     aux = trim(aux);
-                    if (aux.size() > 0)
+                    if (aux.size() > 0){
                         result.push_back(aux);
-                    aux = "";
+                        aux = "";
+                    }
                 }
                 else if (state == enter_string && ((chr == '\\' && next_chr == '"') ||
                                                    (chr == '\\' && next_chr == '\\')))
@@ -525,15 +550,24 @@ namespace ITKCommon
                 else if (state == enter_string_concatenate && chr == '"')
                 {
                     // exit string concatenate
-                    aux += chr;
+                    //aux += chr;
+                    aux_string_concatenate += chr;
+
+                    aux += unquote_cmd(aux_string_concatenate);
+
                     state = normal;
-                    aux = trim(aux);
+
+                    //aux = trim(aux);
+
+
                     result.push_back(aux);
                     aux = "";
                 }
-                else if (state == enter_string || state == enter_string_concatenate || state == normal)
+                else if (state == enter_string || state == normal)
                 {
                     aux += chr;
+                } else if (state == enter_string_concatenate){
+                    aux_string_concatenate += chr;
                 }
             }
 
@@ -558,27 +592,16 @@ namespace ITKCommon
 
             for (size_t i = 0; i < argv.size(); i++)
             {
+                if (result.size() > 0)
+                    result += " ";
+
                 std::string cmd = trim(argv[i]);
-                if (cmd.size() == 0)
-                {
-                    if (result.size() > 0)
-                        result += " ";
+                if (cmd.size() == 0) // empty string
                     result += "\"\"";
-                    // continue;
-                }
-                else if (cmd.find(" ") != std::string::npos)
-                {
-                    // found space, need to quote the string
-                    if (result.size() > 0)
-                        result += " ";
+                else if (cmd.find(" ") != std::string::npos) // found space, need to quote the string
                     result += quote_cmd(cmd);
-                }
-                else
-                {
-                    if (result.size() > 0)
-                        result += " ";
+                else // normal string
                     result += cmd;
-                }
             }
 
             return result;

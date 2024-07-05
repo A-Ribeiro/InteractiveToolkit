@@ -21,6 +21,7 @@
 #pragma warning( disable : 4996)
 #endif
 
+#include <InteractiveToolkit/EventCore/ExecuteOnScopeEnd.h>
 
 namespace Platform
 {
@@ -60,6 +61,9 @@ namespace Platform
             {
                 // search executable in path variable
                 char *dup = strdup(getenv("PATH"));
+                EventCore::ExecuteOnScopeEnd _exec_on_scope_end([dup](){
+                    free(dup);
+                });
                 char *s = dup;
                 char *p = NULL;
                 do
@@ -87,7 +91,7 @@ namespace Platform
                     }
                     s = p + 1;
                 } while (p != NULL);
-                free(dup);
+                //free(dup);
             }
             else
                 return true;
@@ -255,14 +259,15 @@ namespace Platform
                 argv[vector_argv.size() + 2 - 1] = NULL;
                 for (size_t i = 0; i < vector_argv.size(); i++)
                 {
-                    argv[i + 1] = &vector_argv_local[i][0];
+                    //printf("[Process] argv[%i] = %s\n", (int)i, vector_argv_local[i].data());
+                    argv[i + 1] = vector_argv_local[i].data();
                 }
                 // printf("[Process] %s %s\n", lpApplicationName.c_str(), commandLine.c_str());
 
-                argv[0] = &lpApplicationName[0];
+                argv[0] = lpApplicationName.data();
                 // char* const envp[] = { NULL,NULL };
                 // printf("Will execute: %s\n",lpApplicationName.c_str());
-                execve(lpApplicationName.c_str(), &argv[0], environ); // envp);
+                execve(lpApplicationName.c_str(), argv.data(), environ); // envp);
 
                 // exit(0);
                 perror((std::string("Error to execute: ") + lpApplicationName).c_str());
