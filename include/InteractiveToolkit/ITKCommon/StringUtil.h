@@ -480,8 +480,11 @@ namespace ITKCommon
             {
                 normal,
                 enter_string,
-                enter_string_concatenate,
                 include_next_str,
+
+                enter_string_concatenate,
+                include_next_str_concatenate,
+
                 normal_slash
             };
             states state = normal;
@@ -493,6 +496,8 @@ namespace ITKCommon
                 char next_chr = cmd[i];
                 if (i < (int)cmd.size() - 1)
                     next_chr = cmd[i + 1];
+                else 
+                    next_chr = 0;
 
                 if (state == normal_slash)
                 {
@@ -502,7 +507,7 @@ namespace ITKCommon
                 else if (state == normal && chr == '\\')
                 {
                     state = normal_slash;
-                    aux += chr;
+                    //aux += chr;
                 }
                 else if (state == normal && chr == '"')
                 {
@@ -531,8 +536,9 @@ namespace ITKCommon
                         aux = "";
                     }
                 }
-                else if (state == enter_string && ((chr == '\\' && next_chr == '"') ||
-                                                   (chr == '\\' && next_chr == '\\')))
+                else if ((state == enter_string) && 
+                    ((chr == '\\' && next_chr == '"') ||
+                    (chr == '\\' && next_chr == '\\')))
                 {
                     // skip slash for inner string
                     aux += chr;
@@ -543,6 +549,20 @@ namespace ITKCommon
                     // back to enter string
                     state = enter_string;
                     aux += chr;
+                }
+                else if ((state == enter_string_concatenate) && 
+                    ((chr == '\\' && next_chr == '"') ||
+                    (chr == '\\' && next_chr == '\\')))
+                {
+                    // skip slash for inner string
+                    aux_string_concatenate += chr;
+                    state = include_next_str_concatenate;
+                }
+                else if (state == include_next_str_concatenate)
+                {
+                    // back to enter string
+                    state = enter_string_concatenate;
+                    aux_string_concatenate += chr;
                 }
                 else if (state == enter_string && chr == '"')
                 {
@@ -563,10 +583,8 @@ namespace ITKCommon
                     state = normal;
 
                     //aux = trim(aux);
-
-
-                    result.push_back(aux);
-                    aux = "";
+                    // result.push_back(aux);
+                    // aux = "";
                 }
                 else if (state == enter_string || state == normal)
                 {
