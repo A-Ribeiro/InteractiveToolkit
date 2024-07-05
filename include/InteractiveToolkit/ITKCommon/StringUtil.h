@@ -446,15 +446,18 @@ namespace ITKCommon
         {
             // return std::string("\"") + std::regex_replace(str, std::regex("[\\\\\"]"), "\\$&") + "\"";
             std::string result = str;
-            StringUtil::replaceAll(&result, "\\\"", "\"");
-            StringUtil::replaceAll(&result, "\\\\", "\\");
-            //result = std::string("\"") + result + "\"";
+            
             if (result.length() >= 2) {
                 if (result[0] == '\"')
                     result = result.substr(1,result.length()-1);
                 if (result[result.length()-1] == '\"')
                     result = result.substr(0,result.length()-1);
             }
+
+            StringUtil::replaceAll(&result, "\\\"", "\"");
+            StringUtil::replaceAll(&result, "\\\\", "\\");
+            //result = std::string("\"") + result + "\"";
+            
             return result;
         }
 
@@ -516,7 +519,7 @@ namespace ITKCommon
                     {
                         // result.push_back(aux);
                         state = enter_string;
-                        aux = "";
+                        aux = "\"";
                     }
                 }
                 else if (state == normal && chr == ' ')
@@ -532,6 +535,7 @@ namespace ITKCommon
                                                    (chr == '\\' && next_chr == '\\')))
                 {
                     // skip slash for inner string
+                    aux += chr;
                     state = include_next_str;
                 }
                 else if (state == include_next_str)
@@ -544,7 +548,8 @@ namespace ITKCommon
                 {
                     // exit string
                     state = normal;
-                    result.push_back(aux);
+                    aux += "\"";
+                    result.push_back( StringUtil::unquote_cmd(aux) );
                     aux = "";
                 }
                 else if (state == enter_string_concatenate && chr == '"')
