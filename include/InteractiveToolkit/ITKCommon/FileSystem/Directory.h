@@ -365,9 +365,9 @@ namespace ITKCommon
                     if (this->base_path.length() == 0)
                         this->base_path = base_path;
                 }
-                #if defined(_WIN32)
-                    ITKCommon::StringUtil::replaceAll(&this->base_path, "\\", "/");
-                #endif
+#if defined(_WIN32)
+                ITKCommon::StringUtil::replaceAll(&this->base_path, "\\", "/");
+#endif
                 // ITKCommon::StringUtil::replaceAll(&this->base_path, "/", "/");
                 if (!ITKCommon::StringUtil::endsWith(this->base_path, "/"))
                     this->base_path += "/";
@@ -384,7 +384,7 @@ namespace ITKCommon
             {
                 auto result = StringUtil::tokenizer(this->base_path, "/");
                 if (result.size() > 1)
-                    return result[result.size()-2];
+                    return result[result.size() - 2];
                 else
                     return "";
             }
@@ -406,20 +406,23 @@ namespace ITKCommon
                 return Directory(file.base_path);
             }
 
-            File toFile() const {
+            File toFile() const
+            {
                 File result;
-                if (is_valid){
-                    
+                if (is_valid)
+                {
                     result.full_path = ITKCommon::Path::getAbsolutePath(this->base_path);
-                #if defined(_WIN32)
+#if defined(_WIN32)
                     ITKCommon::StringUtil::replaceAll(&result.full_path, "\\", "/");
-                #endif
+#endif
+                    if (ITKCommon::StringUtil::endsWith(result.full_path, "/"))
+                        result.full_path = result.full_path.substr(0, result.full_path.length() - 1);
                     {
                         auto tokens = ITKCommon::StringUtil::tokenizer(result.full_path, "/");
-                        result.name = tokens[tokens.size()-1];
+                        result.name = tokens[tokens.size() - 1];
                     }
-                    result.base_path = result.full_path.substr(0,result.full_path.length() - result.name.length());
-                    
+                    result.base_path = result.full_path.substr(0, result.full_path.length() - result.name.length());
+
                     result.isDirectory = true;
                     result.isFile = false;
 
@@ -435,8 +438,8 @@ namespace ITKCommon
                     {
                         result.isDirectory = (findfiledata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
                         result.isFile = !result.isDirectory;
-                        //fileInfo.name = ITKCommon::StringUtil::wString_to_String(findfiledata.cFileName);
-                        //fileInfo.full_path = fileInfo.base_path + fileInfo.name;
+                        // fileInfo.name = ITKCommon::StringUtil::wString_to_String(findfiledata.cFileName);
+                        // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
                         if (result.isDirectory)
                             result.full_path += "/";
 
@@ -465,7 +468,8 @@ namespace ITKCommon
                         unsigned int mask = STATX_MODE | STATX_MTIME | STATX_SIZE | STATX_BTIME;
                         int flags = AT_SYMLINK_NOFOLLOW;
                         bool stat_success = statx(dirfd, result.full_path.c_str(), flags, mask, &sb) == 0;
-                        if (stat_success){
+                        if (stat_success)
+                        {
                             result.isDirectory = sb.stx_mode & S_IFDIR;
                             result.isFile = !result.isDirectory;
 
@@ -483,14 +487,13 @@ namespace ITKCommon
 
                             result.size = (uint64_t)sb.stx_size;
                         }
-
                     }
 #endif
 
                     if (!ITKCommon::StringUtil::endsWith(result.full_path, "/"))
                         result.full_path += "/";
                 }
-                
+
                 return result;
             }
 

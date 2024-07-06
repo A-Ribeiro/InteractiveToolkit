@@ -692,20 +692,31 @@ namespace ITKCommon
             *outFileExt = ext;
         }
 
+        // Always returns the path without the final slash.
         static std::string getAbsolutePath(const std::string &path)
         {
 #if defined(_WIN32)
             WCHAR fullFilename[MAX_PATH];
             std::wstring path_w = StringUtil::string_to_WString(path);
-            if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0)
-                return StringUtil::wString_to_String(fullFilename);
-            return path;
+            if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0) {
+                std::string result = StringUtil::wString_to_String(fullFilename);
+                if (StringUtil::endsWith(result, "\\"))
+                    result = result.substr(0, result.length()-1);
+                return result;
+            }
+            if (StringUtil::endsWith(path, "\\"))
+                return path.substr(0, path.length() - 1);
 #elif defined(__APPLE__) || defined(__linux__)
             char resolved_path[PATH_MAX];
-            if (realpath(path.c_str(), resolved_path) != NULL)
+            if (realpath(path.c_str(), resolved_path) != NULL) {
+                if (strlen(resolved_path) > 0 && resolved_path[strlen(resolved_path) - 1] == '/')
+                    resolved_path[strlen(resolved_path) - 1] = '\0';
                 return resolved_path;
-            return path;
+            }
+            if (StringUtil::endsWith(path, "/"))
+                return path.substr(0, path.length() - 1);
 #endif
+            return path;
         }
     };
 
