@@ -426,7 +426,7 @@ namespace ITKCommon
 #if defined(_WIN32)
                     std::wstring path_w;
                     if (StringUtil::endsWith(result.full_path, "/"))
-                        path_w = StringUtil::string_to_WString(result.full_path.substr(0, path_.length() - 1));
+                        path_w = StringUtil::string_to_WString(result.full_path.substr(0, result.full_path.length() - 1));
                     else
                         path_w = StringUtil::string_to_WString(result.full_path);
                     WIN32_FIND_DATAW findfiledata;
