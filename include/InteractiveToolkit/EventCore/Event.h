@@ -131,7 +131,8 @@ namespace EventCore
 			}
 			for (const __internal &_i_struct : fncs)
 			{
-				_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
+				_i_struct._std_function_functor(_arg...);
+                //_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
 				// if (_i_struct._std_function_functor != nullptr)
 				// 	_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
 				// else
