@@ -112,11 +112,11 @@ namespace MathCore
 				0, 0, 0, 1);
 			*this = mat4_IdentityMatrix;
 		}*/
-		constexpr ITK_INLINE mat4() : array{1, 0, 0, 0,
-											0, 1, 0, 0,
-											0, 0, 1, 0,
-											0, 0, 0, 1} {}
-		//---------------------------------------------------------------------------
+		ITK_INLINE mat4() : array{1, 0, 0, 0,
+                                0, 1, 0, 0,
+                                0, 0, 1, 0,
+                                0, 0, 0, 1} {}
+        //---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
 		/// Initialize all components of the matrix with the same value
@@ -133,17 +133,18 @@ namespace MathCore
 		/// \author Alessandro Ribeiro
 		/// \param value Value to initialize the components
 		///
-		/*ITK_INLINE mat4(const _BaseType& value)
-		{
-			a1 = a2 = a3 = a4 =
-				b1 = b2 = b3 = b4 =
-				c1 = c2 = c3 = c4 =
-				d1 = d2 = d3 = d4 = value;
-		}*/
-		constexpr ITK_INLINE mat4(const _BaseType &v) : array{v, v, v, v,
-															  v, v, v, v,
-															  v, v, v, v,
-															  v, v, v, v} {}
+		ITK_INLINE mat4(const _BaseType &v) : array{v, v, v, v,
+                                                    v, v, v, v,
+                                                    v, v, v, v,
+                                                    v, v, v, v} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat4(const _InputType &v) : self_type((_BaseType)v){}
+
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -172,39 +173,28 @@ namespace MathCore
 		///
 		/// \author Alessandro Ribeiro
 		///
-		/*ITK_INLINE mat4(
-			const _BaseType& _a1, const _BaseType& _b1, const _BaseType& _c1, const _BaseType& _d1,
-			const _BaseType& _a2, const _BaseType& _b2, const _BaseType& _c2, const _BaseType& _d2,
-			const _BaseType& _a3, const _BaseType& _b3, const _BaseType& _c3, const _BaseType& _d3,
-			const _BaseType& _a4, const _BaseType& _b4, const _BaseType& _c4, const _BaseType& _d4)
-		{
-			a1 = _a1;
-			a2 = _a2;
-			a3 = _a3;
-			a4 = _a4;
+		ITK_INLINE mat4(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1, const _BaseType &_d1,
+                        const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2, const _BaseType &_d2,
+                        const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3, const _BaseType &_d3,
+                        const _BaseType &_a4, const _BaseType &_b4, const _BaseType &_c4, const _BaseType &_d4) : array{_a1, _a2, _a3, _a4,
+                                                                                                                        _b1, _b2, _b3, _b4,
+                                                                                                                        _c1, _c2, _c3, _c4,
+                                                                                                                        _d1, _d2, _d3, _d4} {}
 
-			b1 = _b1;
-			b2 = _b2;
-			b3 = _b3;
-			b4 = _b4;
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat4(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1, const _InputType &_d1,
+                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2, const _InputType &_d2,
+                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3, const _InputType &_d3,
+                        const _InputType &_a4, const _InputType &_b4, const _InputType &_c4, const _InputType &_d4) : 
+                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1, (_BaseType)_d1,
+                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2, (_BaseType)_d2,
+                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3, (_BaseType)_d3,
+                                      (_BaseType)_a4, (_BaseType)_b4, (_BaseType)_c4, (_BaseType)_d4) {}
 
-			c1 = _c1;
-			c2 = _c2;
-			c3 = _c3;
-			c4 = _c4;
-
-			d1 = _d1;
-			d2 = _d2;
-			d3 = _d3;
-			d4 = _d4;
-		}*/
-		constexpr ITK_INLINE mat4(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1, const _BaseType &_d1,
-								  const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2, const _BaseType &_d2,
-								  const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3, const _BaseType &_d3,
-								  const _BaseType &_a4, const _BaseType &_b4, const _BaseType &_c4, const _BaseType &_d4) : array{_a1, _a2, _a3, _a4,
-																																  _b1, _b2, _b3, _b4,
-																																  _c1, _c2, _c3, _c4,
-																																  _d1, _d2, _d3, _d4} {}
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -274,10 +264,10 @@ namespace MathCore
 			d4 = d.w;
 		}*/
 
-		constexpr ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d) : array{a.x, a.y, a.z, a.w,
-																																									  b.x, b.y, b.z, b.w,
-																																									  c.x, c.y, c.z, c.w,
-																																									  d.x, d.y, d.z, d.w} {}
+		ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d) : array{a.x, a.y, a.z, a.w,
+                                                                                                                                                            b.x, b.y, b.z, b.w,
+                                                                                                                                                            c.x, c.y, c.z, c.w,
+                                                                                                                                                            d.x, d.y, d.z, d.w} {}
 
 		//---------------------------------------------------------------------------
 		/// \brief Matrix multiplication

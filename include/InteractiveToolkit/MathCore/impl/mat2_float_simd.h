@@ -131,26 +131,24 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 	}
-		/*constexpr ITK_INLINE mat2() :array{ 1, 0,
-			0, 1 } {}*/
-			//---------------------------------------------------------------------------
-			/// \brief Constructs a 4x4 matrix
-			///
-			/// Initialize all components of the matrix with the same value
-			///
-			/// Example:
-			///
-			/// \code
-			/// #include <aRibeiroCore/aRibeiroCore.h>
-			/// using namespace aRibeiro;
-			///
-			/// mat2 matrix = mat2( 10.0f );
-			/// \endcode
-			///
-			/// \author Alessandro Ribeiro
-			/// \param value Value to initialize the components
-			///
-		ITK_INLINE mat2(const _BaseType& value)
+        //---------------------------------------------------------------------------
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize all components of the matrix with the same value
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// mat2 matrix = mat2( 10.0f );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param value Value to initialize the components
+        ///
+        ITK_INLINE mat2(const _BaseType& value)
 		{
 #if defined(ITK_SSE2)
 			array_sse = _mm_set1_ps(value);
@@ -160,6 +158,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat2(const _InputType &v) : self_type((_BaseType)v){}
+
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -200,9 +206,17 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
-		/*constexpr ITK_INLINE mat2(const _BaseType& _a1, const _BaseType& _b1,
-			const _BaseType& _a2, const _BaseType& _b2) :array{ _a1, _a2,
-			_b1, _b2} {}*/
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat2(const _InputType &_a1, const _InputType &_b1,
+                        const _InputType &_a2, const _InputType &_b2) : 
+                        self_type((_BaseType)_a1, (_BaseType)_b1,
+                                  (_BaseType)_a2, (_BaseType)_b2){}
+
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///

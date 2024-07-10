@@ -133,26 +133,23 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
-		/*constexpr ITK_INLINE mat3() :array{ 1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0 } {}*/
-			//---------------------------------------------------------------------------
-			/// \brief Constructs a 4x4 matrix
-			///
-			/// Initialize all components of the matrix with the same value
-			///
-			/// Example:
-			///
-			/// \code
-			/// #include <aRibeiroCore/aRibeiroCore.h>
-			/// using namespace aRibeiro;
-			///
-			/// mat3 matrix = mat3( 10.0f );
-			/// \endcode
-			///
-			/// \author Alessandro Ribeiro
-			/// \param value Value to initialize the components
-			///
+        //---------------------------------------------------------------------------
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize all components of the matrix with the same value
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// mat3 matrix = mat3( 10.0f );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param value Value to initialize the components
+        ///
 		ITK_INLINE mat3(const _BaseType& value)
 		{
 #if defined(ITK_SSE2)
@@ -169,6 +166,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat3(const _InputType &v) : self_type((_BaseType)v){}
+
 		//---------------------------------------------------------------------------
 		/// \brief Constructs a 4x4 matrix
 		///
@@ -214,38 +219,46 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
-		/*constexpr ITK_INLINE mat3(const _BaseType& _a1, const _BaseType& _b1, const _BaseType& _c1,
-			const _BaseType& _a2, const _BaseType& _b2, const _BaseType& _c2,
-			const _BaseType& _a3, const _BaseType& _b3, const _BaseType& _c3) :array{ _a1, _a2, _a3, 0,
-			_b1, _b2, _b3, 0,
-			_c1, _c2, _c3, 0 } {}*/
-			//---------------------------------------------------------------------------
-			/// \brief Constructs a 4x4 matrix
-			///
-			/// Initialize the mat3 components by copying other mat3 instance
-			///
-			/// Example:
-			///
-			/// \code
-			/// #include <aRibeiroCore/aRibeiroCore.h>
-			/// using namespace aRibeiro;
-			///
-			/// mat3 matrix_src = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
-			///                         0.0f, 1.0f, 0.0f, 0.0f,
-			///                         0.0f, 0.0f, 1.0f, 0.0f,
-			///                         0.0f, 0.0f, 0.0f, 1.0f);
-			///
-			/// mat3 matrix = mat3( matrix_src );
-			///
-			/// mat3 matrix_a = matrix_src;
-			///
-			/// mat3 matrix_b;
-			/// matrix_b = matrix_src;
-			/// \endcode
-			///
-			/// \author Alessandro Ribeiro
-			/// \param m Matrix to assign to the instance
-			///
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat3(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1,
+                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2,
+                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3) : 
+                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1,
+                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2,
+                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3) {}
+
+        //---------------------------------------------------------------------------
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize the mat3 components by copying other mat3 instance
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// mat3 matrix_src = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
+        ///                         0.0f, 1.0f, 0.0f, 0.0f,
+        ///                         0.0f, 0.0f, 1.0f, 0.0f,
+        ///                         0.0f, 0.0f, 0.0f, 1.0f);
+        ///
+        /// mat3 matrix = mat3( matrix_src );
+        ///
+        /// mat3 matrix_a = matrix_src;
+        ///
+        /// mat3 matrix_b;
+        /// matrix_b = matrix_src;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to assign to the instance
+        ///
 		ITK_INLINE mat3(const self_type& m)
 		{
 #if defined(ITK_SSE2)

@@ -81,10 +81,6 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE vec4()
-        {
-            x = y = z = w = _BaseType();
-        }*/
         constexpr ITK_INLINE vec4() :array{0,0,0,0} {}
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
@@ -104,11 +100,15 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Value to initialize the components
         ///
-        /*ITK_INLINE vec4(const _BaseType &v)
-        {
-            x = y = z = w = v;
-        }*/
-        constexpr ITK_INLINE vec4(const _BaseType& _v) :array{_v, _v, _v, _v} {}
+        ITK_INLINE vec4(const _BaseType& _v) :array{_v, _v, _v, _v} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType &v) : self_type((_BaseType)v){}
+
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
         /// Initialize the vec4 components from the parameters
@@ -128,14 +128,15 @@ namespace MathCore
         /// \param z Value to assign to the Z component of the vector
         /// \param w Value to assign to the W component of the vector
         ///
-        /*ITK_INLINE vec4(const _BaseType &x, const _BaseType &y, const _BaseType &z, const _BaseType &w)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-            this->w = w;
-        }*/
-        constexpr ITK_INLINE vec4(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}
+        ITK_INLINE vec4(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType& _x, const _InputType& _y, const _InputType& _z, const _InputType& _w) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w){}
 
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
@@ -161,14 +162,16 @@ namespace MathCore
         /// \param xyz Vector 3D to assign to the components x, y and Z of the instance respectively
         /// \param w Value to assign to the component w of the instance
         ///
-        /*ITK_INLINE vec4(const vec3_compatible_type &xyz, const _BaseType &w)
-        {
-            x = xyz.x;
-            y = xyz.y;
-            z = xyz.z;
-            this->w = w;
-        }*/
-        constexpr ITK_INLINE vec4(const vec3_compatible_type& _xyz, const _BaseType& _w) :array{_xyz.x, _xyz.y, _xyz.z, _w} {}
+        ITK_INLINE vec4(const vec3_compatible_type& _xyz, const _BaseType& _w) :array{_xyz.x, _xyz.y, _xyz.z, _w} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const vec3_compatible_type& _xyz, const _InputType& _w) : 
+            self_type(_xyz, (_BaseType)_w){}
+
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
         /// Initialize the vec4 components from an isolated x value and a vec3 yzw
@@ -189,23 +192,17 @@ namespace MathCore
         /// \param x Value to assign to the component x of the instance
         /// \param yzw Vector 3D to assign to the components y, z and w of the instance respectively
         ///
-        /*ITK_INLINE vec4(const _BaseType &x, const vec3_compatible_type &yzw)
-        {
-            this->x = x;
-            y = yzw.x;
-            z = yzw.y;
-            w = yzw.z;
-        }*/
-        constexpr ITK_INLINE vec4(const _BaseType& _x, const vec3_compatible_type& _yzw) :array{x, _yzw.x, _yzw.y, _yzw.z} {}
+        ITK_INLINE vec4(const _BaseType& _x, const vec3_compatible_type& _yzw) :array{x, _yzw.x, _yzw.y, _yzw.z} {}
 
-        /*ITK_INLINE vec4(const vec2_compatible_type &a, const vec2_compatible_type &b)
-        {
-            x = a.x;
-            y = a.y;
-            z = b.x;
-            w = b.y;
-        }*/
-        constexpr ITK_INLINE vec4(const vec2_compatible_type& a, const vec2_compatible_type& b) :array{a.x, a.y, b.x, b.y} {}
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType& _x, const vec3_compatible_type& _yzw) : 
+            self_type((_BaseType)_x, _yzw){}
+
+        ITK_INLINE vec4(const vec2_compatible_type& a, const vec2_compatible_type& b) :array{a.x, a.y, b.x, b.y} {}
 
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///

@@ -177,6 +177,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat4(const _InputType &v) : self_type((_BaseType)v){}
+
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -225,6 +233,20 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat4(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1, const _InputType &_d1,
+                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2, const _InputType &_d2,
+                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3, const _InputType &_d3,
+                        const _InputType &_a4, const _InputType &_b4, const _InputType &_c4, const _InputType &_d4) : 
+                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1, (_BaseType)_d1,
+                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2, (_BaseType)_d2,
+                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3, (_BaseType)_d3,
+                                      (_BaseType)_a4, (_BaseType)_b4, (_BaseType)_c4, (_BaseType)_d4) {}
 
         /*constexpr ITK_INLINE mat4(const _BaseType& _a1, const _BaseType& _b1, const _BaseType& _c1, const _BaseType& _d1,
             const _BaseType& _a2, const _BaseType& _b2, const _BaseType& _c2, const _BaseType& _d2,

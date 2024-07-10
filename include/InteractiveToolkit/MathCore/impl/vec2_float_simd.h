@@ -134,6 +134,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v){}
+
         /*constexpr ITK_INLINE vec2(const _BaseType& _v) :x(_v), y(_v) {}*/
         /// \brief Constructs a bidimensional Vector
         ///
@@ -162,6 +170,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec2(const _InputType& _x, const _InputType& _y) : self_type((_BaseType)_x, (_BaseType)_y){}
+        
         /*constexpr ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}*/
         /// \brief Constructs a bidimensional Vector
         ///

@@ -72,10 +72,6 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE vec3()
-        {
-            x = y = z = _BaseType();
-        }*/
         constexpr ITK_INLINE vec3() :array{0, 0, 0} {}
         /// \brief Constructs a tridimensional Vector
         ///
@@ -95,11 +91,15 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Value to initialize the components
         ///
-        /*ITK_INLINE vec3(const _BaseType &v)
-        {
-            x = y = z = v;
-        }*/
-        constexpr ITK_INLINE vec3(const _BaseType& _v) :array{_v, _v, _v} {}
+        ITK_INLINE vec3(const _BaseType& _v) :array{_v, _v, _v} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType &v) : self_type((_BaseType)v){}
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from the parameters
@@ -118,13 +118,16 @@ namespace MathCore
         /// \param y Value to assign to the Y component of the vector
         /// \param z Value to assign to the Z component of the vector
         ///
-        /*ITK_INLINE vec3(const _BaseType &x, const _BaseType &y, const _BaseType &z)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-        }*/
-        constexpr ITK_INLINE vec3(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z) :array{_x, _y, _z} {}
+        ITK_INLINE vec3(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z) :array{_x, _y, _z} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType& _x, const _InputType& _y, const _InputType& _z) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z){}
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from a vec2 xy and an isolated z value
@@ -145,13 +148,16 @@ namespace MathCore
         /// \param xy Vector 2D to assign to the components x and y of the instance respectively
         /// \param z Value to assign to the component z of the instance
         ///
-        /*ITK_INLINE vec3(const vec2_compatible_type &xy, const _BaseType &z)
-        {
-            x = xy.x;
-            y = xy.y;
-            this->z = z;
-        }*/
-        constexpr ITK_INLINE vec3(const vec2_compatible_type& _xy, const _BaseType& _z) :array{_xy.x, _xy.y, _z} {}
+        ITK_INLINE vec3(const vec2_compatible_type& _xy, const _BaseType& _z) :array{_xy.x, _xy.y, _z} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const vec2_compatible_type& _xy, const _InputType& _z) : 
+            self_type(_xy, (_BaseType)_z){}
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from an isolated x value and a vec2 yz
@@ -172,13 +178,16 @@ namespace MathCore
         /// \param x Value to assign to the component x of the instance
         /// \param yz Vector 2D to assign to the components y and z of the instance respectively
         ///
-        /*ITK_INLINE vec3(const _BaseType &x, const vec2_compatible_type &yz)
-        {
-            this->x = x;
-            y = yz.x;
-            z = yz.y;
-        }*/
-        constexpr ITK_INLINE vec3(const _BaseType& _x, const vec2_compatible_type& _yz) :array{x, _yz.x, _yz.y} {}
+        ITK_INLINE vec3(const _BaseType& _x, const vec2_compatible_type& _yz) :array{x, _yz.x, _yz.y} {}
+        
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType& _x, const vec2_compatible_type& _yz) : 
+            self_type((_BaseType)_x, _yz){}
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from other vec3 instance by copy

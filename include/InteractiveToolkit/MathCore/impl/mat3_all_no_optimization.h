@@ -102,17 +102,9 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE mat3()
-        {
-            const self_type mat3_IdentityMatrix(
-                1, 0, 0,
-                0, 1, 0,
-                0, 0, 1);
-            *this = mat3_IdentityMatrix;
-        }*/
-        constexpr ITK_INLINE mat3() : array{1, 0, 0,
-                                            0, 1, 0,
-                                            0, 0, 1} {}
+        ITK_INLINE mat3() : array{1, 0, 0,
+                                0, 1, 0,
+                                0, 0, 1} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -130,15 +122,16 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param value Value to initialize the components
         ///
-        /*ITK_INLINE mat3(const _BaseType &value)
-        {
-            a1 = a2 = a3 =
-                b1 = b2 = b3 =
-                    c1 = c2 = c3 = value;
-        }*/
-        constexpr ITK_INLINE mat3(const _BaseType &v) : array{v, v, v,
-                                                              v, v, v,
-                                                              v, v, v} {}
+        ITK_INLINE mat3(const _BaseType &v) : array{v, v, v,
+                                                    v, v, v,
+                                                    v, v, v} {}
+       
+       template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat3(const _InputType &v) : self_type((_BaseType)v){}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -167,28 +160,24 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE mat3(
-            const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1,
-            const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2,
-            const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3)
-        {
-            a1 = _a1;
-            a2 = _a2;
-            a3 = _a3;
+        ITK_INLINE mat3(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1,
+                        const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2,
+                        const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3) : array{_a1, _a2, _a3,
+                                                                                                _b1, _b2, _b3,
+                                                                                                _c1, _c2, _c3} {}
+        
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE mat3(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1,
+                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2,
+                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3) : 
+                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1,
+                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2,
+                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3) {}
 
-            b1 = _b1;
-            b2 = _b2;
-            b3 = _b3;
-
-            c1 = _c1;
-            c2 = _c2;
-            c3 = _c3;
-        }*/
-        constexpr ITK_INLINE mat3(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1,
-                                  const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2,
-                                  const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3) : array{_a1, _a2, _a3,
-                                                                                                            _b1, _b2, _b3,
-                                                                                                            _c1, _c2, _c3} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -243,9 +232,9 @@ namespace MathCore
             c2 = c.y;
             c3 = c.z;
         }*/
-        constexpr ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c) : array{a.x, a.y, a.z,
-                                                                                                                                       b.x, b.y, b.z,
-                                                                                                                                       c.x, c.y, c.z} {}
+        ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c) : array{a.x, a.y, a.z,
+                                                                                                                            b.x, b.y, b.z,
+                                                                                                                            c.x, c.y, c.z} {}
 
         //---------------------------------------------------------------------------
         /// \brief Matrix multiplication

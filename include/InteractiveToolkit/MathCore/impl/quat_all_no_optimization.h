@@ -52,12 +52,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE quat()
-        {
-            x = y = z = (_BaseType)0.0;
-            w = (_BaseType)1.0;
-        }*/
-        constexpr ITK_INLINE quat() :array{0, 0, 0, (_BaseType)1} {}
+        ITK_INLINE quat() :array{0, 0, 0, (_BaseType)1} {}
         /// \brief Constructs a quaterion
         ///
         /// Initialize the quat components from the parameters
@@ -77,14 +72,16 @@ namespace MathCore
         /// \param z Value to assign to the Z component
         /// \param w Value to assign to the W component
         ///
-        /*ITK_INLINE quat(const _BaseType &x, const _BaseType &y, const _BaseType &z, const _BaseType &w)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-            this->w = w;
-        }*/
-        constexpr ITK_INLINE quat(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}
+        ITK_INLINE quat(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE quat(const _InputType& _x, const _InputType& _y, const _InputType& _z, const _InputType& _w) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w){}
+
         /// \brief Constructs a quaternion
         ///
         /// Initialize the quat components from other quat instance by copying the content of the other quat.

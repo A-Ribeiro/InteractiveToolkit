@@ -116,6 +116,15 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE quat(const _InputType& _x, const _InputType& _y, const _InputType& _z, const _InputType& _w) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w){}
+            
 		/*constexpr ITK_INLINE quat(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}*/
 		/// \brief Constructs a quaternion
 		///

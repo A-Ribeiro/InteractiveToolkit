@@ -74,7 +74,7 @@ namespace MathCore
         {
             x = y = _BaseType();
         }*/
-        constexpr ITK_INLINE vec2() :x(0), y(0) {}
+        ITK_INLINE vec2() :x(0), y(0) {}
         /// \brief Constructs a bidimensional Vector
         ///
         /// Initialize the vec2 components with the same float value (by scalar)
@@ -93,11 +93,15 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Value to initialize the components
         ///
-        /*ITK_INLINE vec2(const _BaseType &v)
-        {
-            x = y = v;
-        }*/
-        constexpr ITK_INLINE vec2(const _BaseType& _v) :x(_v), y(_v) {}
+        ITK_INLINE vec2(const _BaseType& _v) :x(_v), y(_v) {}
+        
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v){}
+
         /// \brief Constructs a bidimensional Vector
         ///
         /// Initialize the vec2 components from the parameters
@@ -115,12 +119,15 @@ namespace MathCore
         /// \param x Value to assign to the X component of the vector
         /// \param y Value to assign to the Y component of the vector
         ///
-        /*ITK_INLINE vec2(const _BaseType &x, const _BaseType &y)
-        {
-            this->x = x;
-            this->y = y;
-        }*/
-        constexpr ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}
+        ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec2(const _InputType& _x, const _InputType& _y) : self_type((_BaseType)_x, (_BaseType)_y){}
+
         /// \brief Constructs a bidimensional Vector
         ///
         /// Initialize the vec2 components from other vec2 instance by copy

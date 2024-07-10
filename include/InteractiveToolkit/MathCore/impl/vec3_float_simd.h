@@ -138,6 +138,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType &v) : self_type((_BaseType)v){}
+        
         /*constexpr ITK_INLINE vec3(const _BaseType& _v) :array{ _v, _v, _v, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///
@@ -167,6 +175,15 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType& _x, const _InputType& _y, const _InputType& _z) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z){}
+
         /*constexpr ITK_INLINE vec3(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z) :array{ _x, _y, _z, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///
@@ -200,6 +217,15 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const vec2_compatible_type& _xy, const _InputType& _z) : 
+            self_type(_xy, (_BaseType)_z){}
+
         /*constexpr ITK_INLINE vec3(const vec2_compatible_type& _xy, const _BaseType& _z) :array{ _xy.x, _xy.y, _z, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///
@@ -221,6 +247,7 @@ namespace MathCore
         /// \param x Value to assign to the component x of the instance
         /// \param yz Vector 2D to assign to the components y and z of the instance respectively
         ///
+
         ITK_INLINE vec3(const _BaseType &x, const vec2_compatible_type &yz)
         {
 #if defined(ITK_SSE2)
@@ -233,6 +260,15 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec3(const _InputType& _x, const vec2_compatible_type& _yz) : 
+            self_type((_BaseType)_x, _yz){}
+
         /*constexpr ITK_INLINE vec3(const _BaseType& _x, const vec2_compatible_type& _yz) :array{ x, _yz.x, _yz.y, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///

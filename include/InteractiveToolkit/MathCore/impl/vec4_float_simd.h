@@ -149,7 +149,12 @@ namespace MathCore
 #endif
 		}
 
-		/*constexpr ITK_INLINE vec4(const _BaseType& _v) :array{ _v, _v, _v, _v } {}*/
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType &v) : self_type((_BaseType)v){}
 
 		/// \brief Constructs a tridimensional Vector with homogeneous component
 		///
@@ -170,7 +175,6 @@ namespace MathCore
 		/// \param z Value to assign to the Z component of the vector
 		/// \param w Value to assign to the W component of the vector
 		///
-
 		ITK_INLINE vec4(const _BaseType& x, const _BaseType& y, const _BaseType& z, const _BaseType& w)
 		{
 #if defined(ITK_SSE2)
@@ -182,7 +186,13 @@ namespace MathCore
 #endif
 		}
 
-		/*constexpr ITK_INLINE vec4(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{ _x, _y, _z, _w } {}*/
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType& _x, const _InputType& _y, const _InputType& _z, const _InputType& _w) : 
+            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w){}
 
 		/// \brief Constructs a tridimensional Vector with homogeneous component
 		///
@@ -221,7 +231,14 @@ namespace MathCore
 #endif
 		}
 
-		/*constexpr ITK_INLINE vec4(const vec3_compatible_type& _xyz, const _BaseType& _w) :array{ _xyz.x, _xyz.y, _xyz.z, _w } {}*/
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const vec3_compatible_type& _xyz, const _InputType& _w) : 
+            self_type(_xyz, (_BaseType)_w){}
+
 		/// \brief Constructs a tridimensional Vector with homogeneous component
 		///
 		/// Initialize the vec4 components from an isolated x value and a vec3 yzw
@@ -254,7 +271,14 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
 		}
-		/*constexpr ITK_INLINE vec4(const _BaseType& _x, const vec3_compatible_type& _yzw) :array{ x, _yzw.x, _yzw.y, _yzw.z } {}*/
+
+        template <typename _InputType,
+			typename std::enable_if<
+			std::is_convertible<_InputType, _BaseType>::value &&
+			!std::is_same<_InputType, _BaseType>::value,
+			bool>::type = true>
+        ITK_INLINE vec4(const _InputType& _x, const vec3_compatible_type& _yzw) : 
+            self_type((_BaseType)_x, _yzw){}
 
 		//--------------------------------------------------------------------------------
 
@@ -267,9 +291,7 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
-	}
-
-		//constexpr ITK_INLINE vec4(const vec2_compatible_type& a, const vec2_compatible_type& b) :array{ a.x, a.y, b.x, b.y } {}
+	    }
 
 		/// \brief Constructs a tridimensional Vector with homogeneous component
 		///
@@ -303,8 +325,7 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
-}
-		//constexpr ITK_INLINE vec4(const self_type& _v) :array{ _v.x, _v.y, _v.z, _v.w } {}
+        }
 
 		/// \brief Constructs a tridimensional Vector with homogeneous component from the subtraction b-a
 		///
@@ -339,7 +360,6 @@ namespace MathCore
 #endif
 		}
 		
-		//constexpr ITK_INLINE vec4(const self_type& a, const self_type& b) :array{ b.x - a.x, b.y - a.y, b.z - a.z, b.w - a.w } {}
 		/// \brief Compare vectors considering #EPSILON (equal)
 		///
 		/// Compare two vectors using #EPSILON to see if they are the same.
