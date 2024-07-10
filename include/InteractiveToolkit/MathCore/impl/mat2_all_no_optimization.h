@@ -125,11 +125,11 @@ namespace MathCore
                                                     v, v} {}
 
         template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat2(const _InputType &v) : self_type((_BaseType)v){}
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE mat2(const _InputType &v) : self_type((_BaseType)v) {}
 
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
@@ -162,16 +162,22 @@ namespace MathCore
         ITK_INLINE mat2(const _BaseType &_a1, const _BaseType &_b1,
                         const _BaseType &_a2, const _BaseType &_b2) : array{_a1, _a2,
                                                                             _b1, _b2} {}
-        
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat2(const _InputType &_a1, const _InputType &_b1,
-                        const _InputType &_a2, const _InputType &_b2) : 
-                        self_type((_BaseType)_a1, (_BaseType)_b1,
-                                  (_BaseType)_a2, (_BaseType)_b2){}
+
+        template <typename _InputType_a1, typename _InputType_b1,
+                  typename _InputType_a2, typename _InputType_b2,
+                  typename std::enable_if<
+                      std::is_convertible<_InputType_a1, _BaseType>::value &&
+                          std::is_convertible<_InputType_a2, _BaseType>::value &&
+                          std::is_convertible<_InputType_b1, _BaseType>::value &&
+                          std::is_convertible<_InputType_b2, _BaseType>::value &&
+                          !(std::is_same<_InputType_a1, _BaseType>::value && std::is_same<_InputType_b1, _BaseType>::value &&
+                            std::is_same<_InputType_a2, _BaseType>::value && std::is_same<_InputType_b2, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE mat2(const _InputType_a1 &_a1, const _InputType_b1 &_b1,
+                        const _InputType_a2 &_a2, const _InputType_b2 &_b2) : self_type((_BaseType)_a1, (_BaseType)_b1,
+                                                                                        (_BaseType)_a2, (_BaseType)_b2)
+        {
+        }
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -548,7 +554,7 @@ namespace MathCore
 
             // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
             det = sign_det / det;
 
             return self_type(+b2 * det, -b1 * det,

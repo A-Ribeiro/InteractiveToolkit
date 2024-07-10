@@ -23,10 +23,9 @@ namespace MathCore
         using self_type = quat<_BaseType, _SimdType>;
 
     public:
-
         static constexpr int array_count = 4;
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -52,7 +51,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        ITK_INLINE quat() :array{0, 0, 0, (_BaseType)1} {}
+        ITK_INLINE quat() : array{0, 0, 0, (_BaseType)1} {}
         /// \brief Constructs a quaterion
         ///
         /// Initialize the quat components from the parameters
@@ -72,15 +71,23 @@ namespace MathCore
         /// \param z Value to assign to the Z component
         /// \param w Value to assign to the W component
         ///
-        ITK_INLINE quat(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z, const _BaseType& _w) :array{_x, _y, _z, _w} {}
+        ITK_INLINE quat(const _BaseType &_x, const _BaseType &_y, const _BaseType &_z, const _BaseType &_w) : array{_x, _y, _z, _w} {}
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE quat(const _InputType& _x, const _InputType& _y, const _InputType& _z, const _InputType& _w) : 
-            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w){}
+        template <typename __x, typename __y, typename __z, typename __w,
+                  typename std::enable_if<
+                      std::is_convertible<__x, _BaseType>::value &&
+                          std::is_convertible<__y, _BaseType>::value &&
+                          std::is_convertible<__z, _BaseType>::value &&
+                          std::is_convertible<__w, _BaseType>::value &&
+
+                          !(std::is_same<__x, _BaseType>::value &&
+                            std::is_same<__y, _BaseType>::value &&
+                            std::is_same<__z, _BaseType>::value &&
+                            std::is_same<__w, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE quat(const __x &_x, const __y &_y, const __z &_z, const __w &_w) : self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z, (_BaseType)_w)
+        {
+        }
 
         /// \brief Constructs a quaternion
         ///
@@ -104,7 +111,7 @@ namespace MathCore
         {
             *this = v;
         }
-        //constexpr ITK_INLINE quat(const self_type& q) :array{q.x, q.y, q.z, q.w} {}
+        // constexpr ITK_INLINE quat(const self_type& q) :array{q.x, q.y, q.z, q.w} {}
         /// \brief Comparison of quaternions (equal)
         ///
         /// Compare two quaternions considering #EPSILON.
@@ -134,7 +141,7 @@ namespace MathCore
             _BaseType accumulator = _BaseType();
             for (int i = 0; i < 4; i++)
                 accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
-                //accumulator += (std::abs)(array[i] - v.array[i]);
+            // accumulator += (std::abs)(array[i] - v.array[i]);
             return accumulator <= EPSILON<_BaseType>::high_precision;
         }
 
@@ -154,7 +161,7 @@ namespace MathCore
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
-                          std::is_same<_InputType, _BaseType>::value),
+                            std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE void operator=(const quat<_InputType, _InputSimdTypeAux> &vec)
         {
@@ -164,8 +171,8 @@ namespace MathCore
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
-                      !(std::is_same<_OutputSimdTypeAux, _SimdType>::value &&
-                          std::is_same<_OutputType, _BaseType>::value),
+                          !(std::is_same<_OutputSimdTypeAux, _SimdType>::value &&
+                            std::is_same<_OutputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE operator quat<_OutputType, _OutputSimdTypeAux>() const
         {

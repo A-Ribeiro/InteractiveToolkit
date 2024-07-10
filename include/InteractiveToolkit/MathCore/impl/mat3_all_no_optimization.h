@@ -103,8 +103,8 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         ///
         ITK_INLINE mat3() : array{1, 0, 0,
-                                0, 1, 0,
-                                0, 0, 1} {}
+                                  0, 1, 0,
+                                  0, 0, 1} {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -125,13 +125,13 @@ namespace MathCore
         ITK_INLINE mat3(const _BaseType &v) : array{v, v, v,
                                                     v, v, v,
                                                     v, v, v} {}
-       
-       template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat3(const _InputType &v) : self_type((_BaseType)v){}
+
+        template <typename _InputType,
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE mat3(const _InputType &v) : self_type((_BaseType)v) {}
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
@@ -163,20 +163,36 @@ namespace MathCore
         ITK_INLINE mat3(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1,
                         const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2,
                         const _BaseType &_a3, const _BaseType &_b3, const _BaseType &_c3) : array{_a1, _a2, _a3,
-                                                                                                _b1, _b2, _b3,
-                                                                                                _c1, _c2, _c3} {}
-        
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat3(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1,
-                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2,
-                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3) : 
-                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1,
-                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2,
-                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3) {}
+                                                                                                  _b1, _b2, _b3,
+                                                                                                  _c1, _c2, _c3} {}
+
+        template <typename __a1, typename __b1, typename __c1,
+                  typename __a2, typename __b2, typename __c2,
+                  typename __a3, typename __b3, typename __c3,
+                  typename std::enable_if<
+                      std::is_convertible<__a1, _BaseType>::value &&
+                          std::is_convertible<__a2, _BaseType>::value &&
+                          std::is_convertible<__a3, _BaseType>::value &&
+
+                          std::is_convertible<__b1, _BaseType>::value &&
+                          std::is_convertible<__b2, _BaseType>::value &&
+                          std::is_convertible<__b3, _BaseType>::value &&
+
+                          std::is_convertible<__c1, _BaseType>::value &&
+                          std::is_convertible<__c2, _BaseType>::value &&
+                          std::is_convertible<__c3, _BaseType>::value &&
+
+                          !(std::is_same<__a1, _BaseType>::value && std::is_same<__b1, _BaseType>::value && std::is_same<__c1, _BaseType>::value &&
+                            std::is_same<__a2, _BaseType>::value && std::is_same<__b2, _BaseType>::value && std::is_same<__c2, _BaseType>::value &&
+                            std::is_same<__a3, _BaseType>::value && std::is_same<__b3, _BaseType>::value && std::is_same<__c3, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE mat3(const __a1 &_a1, const __b1 &_b1, const __c1 &_c1,
+                        const __a2 &_a2, const __b2 &_b2, const __c2 &_c2,
+                        const __a3 &_a3, const __b3 &_b3, const __c3 &_c3) : self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1,
+                                                                                       (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2,
+                                                                                       (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3)
+        {
+        }
 
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
@@ -233,8 +249,8 @@ namespace MathCore
             c3 = c.z;
         }*/
         ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c) : array{a.x, a.y, a.z,
-                                                                                                                            b.x, b.y, b.z,
-                                                                                                                            c.x, c.y, c.z} {}
+                                                                                                                             b.x, b.y, b.z,
+                                                                                                                             c.x, c.y, c.z} {}
 
         //---------------------------------------------------------------------------
         /// \brief Matrix multiplication
@@ -592,7 +608,7 @@ namespace MathCore
             // check det
             // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
             det = sign_det / det;
 
             return self_type(
@@ -612,7 +628,7 @@ namespace MathCore
             // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
 
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
             det = sign_det / det;
 
             return self_type(+b2 * det, -a2 * det, 0,

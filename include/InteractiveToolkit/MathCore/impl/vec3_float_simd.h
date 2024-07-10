@@ -49,10 +49,9 @@ namespace MathCore
         using vec2_compatible_type = vec2<_BaseType, _SimdType>;
 
     public:
-
         static constexpr int array_count = 3;
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -104,7 +103,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_set1_ps(0.0f);
 #elif defined(ITK_NEON)
-            array_neon = vset1(0.0f);//(float32x4_t){0, 0, 0, 0};
+            array_neon = vset1(0.0f); //(float32x4_t){0, 0, 0, 0};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -140,12 +139,12 @@ namespace MathCore
         }
 
         template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec3(const _InputType &v) : self_type((_BaseType)v){}
-        
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE vec3(const _InputType &v) : self_type((_BaseType)v) {}
+
         /*constexpr ITK_INLINE vec3(const _BaseType& _v) :array{ _v, _v, _v, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///
@@ -176,15 +175,20 @@ namespace MathCore
 #endif
         }
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec3(const _InputType& _x, const _InputType& _y, const _InputType& _z) : 
-            self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z){}
+        template <typename __x, typename __y, typename __z,
+                  typename std::enable_if<
+                      std::is_convertible<__x, _BaseType>::value &&
+                          std::is_convertible<__y, _BaseType>::value &&
+                          std::is_convertible<__z, _BaseType>::value &&
 
-        /*constexpr ITK_INLINE vec3(const _BaseType& _x, const _BaseType& _y, const _BaseType& _z) :array{ _x, _y, _z, 0 } {}*/
+                          !(std::is_same<__x, _BaseType>::value &&
+                            std::is_same<__y, _BaseType>::value &&
+                            std::is_same<__z, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE vec3(const __x &_x, const __y &_y, const __z &_z) : self_type((_BaseType)_x, (_BaseType)_y, (_BaseType)_z)
+        {
+        }
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from a vec2 xy and an isolated z value
@@ -208,9 +212,9 @@ namespace MathCore
         ITK_INLINE vec3(const vec2_compatible_type &xy, const _BaseType &z)
         {
 #if defined(ITK_SSE2)
-            //array_sse = _mm_setr_ps(xy.x, xy.y, z, 0);
+            // array_sse = _mm_setr_ps(xy.x, xy.y, z, 0);
             array_sse = xy.array_sse;
-			_mm_f32_(array_sse,2) = z;
+            _mm_f32_(array_sse, 2) = z;
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){xy.x, xy.y, z, 0};
 #else
@@ -218,15 +222,19 @@ namespace MathCore
 #endif
         }
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec3(const vec2_compatible_type& _xy, const _InputType& _z) : 
-            self_type(_xy, (_BaseType)_z){}
+        template <typename __BT, typename __V2T,
+                  typename std::enable_if<
 
-        /*constexpr ITK_INLINE vec3(const vec2_compatible_type& _xy, const _BaseType& _z) :array{ _xy.x, _xy.y, _z, 0 } {}*/
+                      std::is_convertible<__BT, _BaseType>::value &&
+                          std::is_convertible<__V2T, vec2_compatible_type>::value &&
+
+                          !(std::is_same<__BT, _BaseType>::value &&
+                            std::is_same<__V2T, vec2_compatible_type>::value),
+                      bool>::type = true>
+        ITK_INLINE vec3(const __V2T &_xy, const __BT &_z) : self_type((vec2_compatible_type)_xy, (_BaseType)_z)
+        {
+        }
+
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components from an isolated x value and a vec2 yz
@@ -251,9 +259,9 @@ namespace MathCore
         ITK_INLINE vec3(const _BaseType &x, const vec2_compatible_type &yz)
         {
 #if defined(ITK_SSE2)
-            //array_sse = _mm_setr_ps(x, yz.x, yz.y, 0);
+            // array_sse = _mm_setr_ps(x, yz.x, yz.y, 0);
             array_sse = _mm_shuffle_ps(yz.array_sse, yz.array_sse, _MM_SHUFFLE(2, 1, 0, 2)); // first 2 can be ignored...
-			_mm_f32_(array_sse,0) = x;
+            _mm_f32_(array_sse, 0) = x;
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){x, yz.x, yz.y, 0};
 #else
@@ -261,13 +269,18 @@ namespace MathCore
 #endif
         }
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec3(const _InputType& _x, const vec2_compatible_type& _yz) : 
-            self_type((_BaseType)_x, _yz){}
+        template <typename __BT, typename __V2T,
+                  typename std::enable_if<
+
+                      std::is_convertible<__BT, _BaseType>::value &&
+                          std::is_convertible<__V2T, vec2_compatible_type>::value &&
+
+                          !(std::is_same<__BT, _BaseType>::value &&
+                            std::is_same<__V2T, vec2_compatible_type>::value),
+                      bool>::type = true>
+        ITK_INLINE vec3(const __BT &_x, const __V2T &_yz) : self_type((_BaseType)_x, (vec2_compatible_type)_yz)
+        {
+        }
 
         /*constexpr ITK_INLINE vec3(const _BaseType& _x, const vec2_compatible_type& _yz) :array{ x, _yz.x, _yz.y, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
@@ -360,11 +373,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
             // abs
-            //const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
+            // const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
             diff_abs = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs);
 
             //_mm_f32_(diff_abs, 3) = 0.0f;
-            //const __m128 _vec3_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff));
+            // const __m128 _vec3_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff));
             diff_abs = _mm_and_ps(diff_abs, _vec3_valid_bits_sse);
 
             diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
@@ -519,7 +532,7 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            //const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
+            // const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
             return _mm_xor_ps(_vec3_sign_mask_sse, array_sse);
 #elif defined(ITK_NEON)
             return vnegq_f32(array_neon);
@@ -581,9 +594,9 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128 param = v.array_sse;
 
-            //const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
+            // const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
 #if defined(ITK_SSE_SKIP_SSE41)
-            _mm_f32_(param,3) = 1.0f;
+            _mm_f32_(param, 3) = 1.0f;
 #else
             param = _mm_blend_ps(param, _vec4_one_sse, 0x8);
 #endif

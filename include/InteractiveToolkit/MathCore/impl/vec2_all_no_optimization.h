@@ -31,16 +31,15 @@ namespace MathCore
 
     template <typename _BaseType, typename _SimdType>
     class vec2<_BaseType, _SimdType,
-                typename std::enable_if<
-                    std::is_same<_SimdType,  SIMD_TYPE::NONE >::value
-                >::type>
+               typename std::enable_if<
+                   std::is_same<_SimdType, SIMD_TYPE::NONE>::value>::type>
     {
         using self_type = vec2<_BaseType, _SimdType>;
-    public:
 
+    public:
         static constexpr int array_count = 2;
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -74,7 +73,7 @@ namespace MathCore
         {
             x = y = _BaseType();
         }*/
-        ITK_INLINE vec2() :x(0), y(0) {}
+        ITK_INLINE vec2() : x(0), y(0) {}
         /// \brief Constructs a bidimensional Vector
         ///
         /// Initialize the vec2 components with the same float value (by scalar)
@@ -93,14 +92,14 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Value to initialize the components
         ///
-        ITK_INLINE vec2(const _BaseType& _v) :x(_v), y(_v) {}
-        
+        ITK_INLINE vec2(const _BaseType &_v) : x(_v), y(_v) {}
+
         template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v){}
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v) {}
 
         /// \brief Constructs a bidimensional Vector
         ///
@@ -119,14 +118,19 @@ namespace MathCore
         /// \param x Value to assign to the X component of the vector
         /// \param y Value to assign to the Y component of the vector
         ///
-        ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}
+        ITK_INLINE vec2(const _BaseType &_x, const _BaseType &_y) : x(_x), y(_y) {}
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec2(const _InputType& _x, const _InputType& _y) : self_type((_BaseType)_x, (_BaseType)_y){}
+        template <typename __x, typename __y,
+                  typename std::enable_if<
+                      std::is_convertible<__x, _BaseType>::value &&
+                          std::is_convertible<__y, _BaseType>::value &&
+
+                          !(std::is_same<__x, _BaseType>::value &&
+                            std::is_same<__y, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE vec2(const __x &_x, const __y &_y) : self_type((_BaseType)_x, (_BaseType)_y)
+        {
+        }
 
         /// \brief Constructs a bidimensional Vector
         ///
@@ -151,11 +155,7 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Vector to assign to the instance
         ///
-        /*ITK_INLINE vec2(const self_type &v)
-        {
-            *this = v;
-        }*/
-        constexpr ITK_INLINE vec2(const self_type& _v) :x(_v.x), y(_v.y) {}
+        constexpr ITK_INLINE vec2(const self_type &_v) : x(_v.x), y(_v.y) {}
         /// \brief Constructs a bidimensional Vector from the subtraction b-a
         ///
         /// Initialize the vec2 components from two other vectors using the equation: <br />
@@ -176,12 +176,7 @@ namespace MathCore
         /// \param a Orign vector
         /// \param b Destiny vector
         ///
-        /*ITK_INLINE vec2(const self_type &a, const self_type &b)
-        {
-            x = b.x - a.x;
-            y = b.y - a.y;
-        }*/
-        constexpr ITK_INLINE vec2(const self_type& a, const self_type& b) :x(b.x - a.x), y(b.y - a.y) {}
+        constexpr ITK_INLINE vec2(const self_type &a, const self_type &b) : x(b.x - a.x), y(b.y - a.y) {}
         /// \brief Compare vectors considering #EPSILON (equal)
         ///
         /// Compare two vectors using #EPSILON to see if they are the same.
@@ -204,23 +199,21 @@ namespace MathCore
         /// \param v Vector to compare against
         /// \return true if the values are the same considering #EPSILON
         ///
-        template<class _Type = _BaseType,
-            typename std::enable_if<
-                std::is_floating_point<_Type>::value
-            ,bool>::type = true>
+        template <class _Type = _BaseType,
+                  typename std::enable_if<
+                      std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE bool operator==(const self_type &v) const
         {
             _BaseType accumulator = _BaseType();
             for (int i = 0; i < 2; i++)
                 accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
-                //accumulator += (std::abs)(array[i] - v.array[i]);
+            // accumulator += (std::abs)(array[i] - v.array[i]);
             return accumulator <= EPSILON<_BaseType>::high_precision;
         }
 
-        template<class _Type = _BaseType,
-            typename std::enable_if<
-                std::is_integral<_Type>::value
-            ,bool>::type = true>
+        template <class _Type = _BaseType,
+                  typename std::enable_if<
+                      std::is_integral<_Type>::value, bool>::type = true>
         ITK_INLINE bool operator==(const self_type &v) const
         {
             for (int i = 0; i < 2; i++)
@@ -233,8 +226,8 @@ namespace MathCore
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
-                          (!std::is_same<_InputSimdTypeAux, _SimdType>::value||
-                          !std::is_same<_InputType, _BaseType>::value),
+                          (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
+                           !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE void operator=(const vec2<_InputType, _InputSimdTypeAux> &vec)
         {
@@ -244,8 +237,8 @@ namespace MathCore
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
-                      !(std::is_same<_OutputSimdTypeAux, _SimdType>::value &&
-                          std::is_same<_OutputType, _BaseType>::value),
+                          !(std::is_same<_OutputSimdTypeAux, _SimdType>::value &&
+                            std::is_same<_OutputType, _BaseType>::value),
                       bool>::type = true>
         ITK_INLINE operator vec2<_OutputType, _OutputSimdTypeAux>() const
         {

@@ -48,15 +48,14 @@ namespace MathCore
         using vec4_compatible_type = vec4<_BaseType, _SimdType>;
 
     public:
-        
         static constexpr int rows = 4;
-		static constexpr int cols = 4;
+        static constexpr int cols = 4;
 
         static constexpr int array_count = 16;
         static constexpr int array_stride = 4;
 
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -125,15 +124,15 @@ namespace MathCore
         ITK_INLINE mat4()
         {
 #if defined(ITK_SSE2)
-            array_sse[0] = _vec4_1000_sse;// _mm_setr_ps(1, 0, 0, 0);
-            array_sse[1] = _vec4_0100_sse;//_mm_setr_ps(0, 1, 0, 0);
-            array_sse[2] = _vec4_0010_sse;//_mm_setr_ps(0, 0, 1, 0);
-            array_sse[3] = _vec4_0001_sse;//_mm_setr_ps(0, 0, 1, 0);
+            array_sse[0] = _vec4_1000_sse; // _mm_setr_ps(1, 0, 0, 0);
+            array_sse[1] = _vec4_0100_sse; //_mm_setr_ps(0, 1, 0, 0);
+            array_sse[2] = _vec4_0010_sse; //_mm_setr_ps(0, 0, 1, 0);
+            array_sse[3] = _vec4_0001_sse; //_mm_setr_ps(0, 0, 1, 0);
 #elif defined(ITK_NEON)
-            array_neon[0] = _neon_1000;//(float32x4_t){ 1, 0, 0, 0 };
-            array_neon[1] = _neon_0100;//(float32x4_t){ 0, 1, 0, 0 };
-            array_neon[2] = _neon_0010;//(float32x4_t){ 0, 0, 1, 0 };
-            array_neon[3] = _neon_0001;//(float32x4_t){ 0, 0, 0, 1 };
+            array_neon[0] = _neon_1000; //(float32x4_t){ 1, 0, 0, 0 };
+            array_neon[1] = _neon_0100; //(float32x4_t){ 0, 1, 0, 0 };
+            array_neon[2] = _neon_0010; //(float32x4_t){ 0, 0, 1, 0 };
+            array_neon[3] = _neon_0001; //(float32x4_t){ 0, 0, 0, 1 };
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -179,11 +178,11 @@ namespace MathCore
         }
 
         template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat4(const _InputType &v) : self_type((_BaseType)v){}
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE mat4(const _InputType &v) : self_type((_BaseType)v) {}
 
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
@@ -234,19 +233,45 @@ namespace MathCore
 #endif
         }
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE mat4(const _InputType &_a1, const _InputType &_b1, const _InputType &_c1, const _InputType &_d1,
-                        const _InputType &_a2, const _InputType &_b2, const _InputType &_c2, const _InputType &_d2,
-                        const _InputType &_a3, const _InputType &_b3, const _InputType &_c3, const _InputType &_d3,
-                        const _InputType &_a4, const _InputType &_b4, const _InputType &_c4, const _InputType &_d4) : 
-                            self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1, (_BaseType)_d1,
-                                      (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2, (_BaseType)_d2,
-                                      (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3, (_BaseType)_d3,
-                                      (_BaseType)_a4, (_BaseType)_b4, (_BaseType)_c4, (_BaseType)_d4) {}
+        template <typename __a1, typename __b1, typename __c1, typename __d1,
+                  typename __a2, typename __b2, typename __c2, typename __d2,
+                  typename __a3, typename __b3, typename __c3, typename __d3,
+                  typename __a4, typename __b4, typename __c4, typename __d4,
+                  typename std::enable_if<
+                      std::is_convertible<__a1, _BaseType>::value &&
+                          std::is_convertible<__a2, _BaseType>::value &&
+                          std::is_convertible<__a3, _BaseType>::value &&
+                          std::is_convertible<__a4, _BaseType>::value &&
+
+                          std::is_convertible<__b1, _BaseType>::value &&
+                          std::is_convertible<__b2, _BaseType>::value &&
+                          std::is_convertible<__b3, _BaseType>::value &&
+                          std::is_convertible<__b4, _BaseType>::value &&
+
+                          std::is_convertible<__c1, _BaseType>::value &&
+                          std::is_convertible<__c2, _BaseType>::value &&
+                          std::is_convertible<__c3, _BaseType>::value &&
+                          std::is_convertible<__c4, _BaseType>::value &&
+
+                          std::is_convertible<__d1, _BaseType>::value &&
+                          std::is_convertible<__d2, _BaseType>::value &&
+                          std::is_convertible<__d3, _BaseType>::value &&
+                          std::is_convertible<__d4, _BaseType>::value &&
+
+                          !(std::is_same<__a1, _BaseType>::value && std::is_same<__b1, _BaseType>::value && std::is_same<__c1, _BaseType>::value && std::is_same<__d1, _BaseType>::value &&
+                            std::is_same<__a2, _BaseType>::value && std::is_same<__b2, _BaseType>::value && std::is_same<__c2, _BaseType>::value && std::is_same<__d2, _BaseType>::value &&
+                            std::is_same<__a3, _BaseType>::value && std::is_same<__b3, _BaseType>::value && std::is_same<__c3, _BaseType>::value && std::is_same<__d3, _BaseType>::value &&
+                            std::is_same<__a4, _BaseType>::value && std::is_same<__b4, _BaseType>::value && std::is_same<__c4, _BaseType>::value && std::is_same<__d4, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE mat4(const __a1 &_a1, const __b1 &_b1, const __c1 &_c1, const __d1 &_d1,
+                        const __a2 &_a2, const __b2 &_b2, const __c2 &_c2, const __d2 &_d2,
+                        const __a3 &_a3, const __b3 &_b3, const __c3 &_c3, const __d3 &_d3,
+                        const __a4 &_a4, const __b4 &_b4, const __c4 &_c4, const __d4 &_d4) : self_type((_BaseType)_a1, (_BaseType)_b1, (_BaseType)_c1, (_BaseType)_d1,
+                                                                                                        (_BaseType)_a2, (_BaseType)_b2, (_BaseType)_c2, (_BaseType)_d2,
+                                                                                                        (_BaseType)_a3, (_BaseType)_b3, (_BaseType)_c3, (_BaseType)_d3,
+                                                                                                        (_BaseType)_a4, (_BaseType)_b4, (_BaseType)_c4, (_BaseType)_d4)
+        {
+        }
 
         /*constexpr ITK_INLINE mat4(const _BaseType& _a1, const _BaseType& _b1, const _BaseType& _c1, const _BaseType& _d1,
             const _BaseType& _a2, const _BaseType& _b2, const _BaseType& _c2, const _BaseType& _d2,
@@ -534,11 +559,11 @@ namespace MathCore
         /// \param _col The column to get the element at index
         /// \return A reference to the matrix element
         ///
-        ITK_INLINE _BaseType& operator()(const int _row, const int _col)
+        ITK_INLINE _BaseType &operator()(const int _row, const int _col)
         {
             return array[_col * 4 + _row];
         }
-        ITK_INLINE const _BaseType& operator()(const int _row, const int _col) const
+        ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 4 + _row];
         }
@@ -834,7 +859,7 @@ namespace MathCore
 
 #elif defined(ITK_NEON)
 
-            //const float32x4_t neg = vset1(-1.0f);
+            // const float32x4_t neg = vset1(-1.0f);
 
             // return self_type(
             //     vmulq_f32(array_neon[0], _vec4_minus_one),
@@ -1095,17 +1120,17 @@ namespace MathCore
             __m128 Det0 = dot_sse_4(array_sse[0], Row2);
             //__m128 Det0 = _mm_dp_ps( array_sse[0], Row2, 0xff );
 
-            //MATH_CORE_THROW_RUNTIME_ERROR(_mm_f32_(Det0, 0) == 0, "trying to invert a singular matrix\n");
-            // if (_mm_f32_( Det0, 0 ) == 0){
-            //     fprintf(stderr,"trying to invert a singular matrix\n");
-            //     exit(-1);
-            // }
+            // MATH_CORE_THROW_RUNTIME_ERROR(_mm_f32_(Det0, 0) == 0, "trying to invert a singular matrix\n");
+            //  if (_mm_f32_( Det0, 0 ) == 0){
+            //      fprintf(stderr,"trying to invert a singular matrix\n");
+            //      exit(-1);
+            //  }
 
             _BaseType det = _mm_f32_(Det0, 0);
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
 
-            __m128 Rcp0 = _mm_set1_ps( sign_det / det );
+            __m128 Rcp0 = _mm_set1_ps(sign_det / det);
             //__m128 Rcp0 = _mm_div_ps(_mm_set1_ps(1.0f), Det0);
             //__m128 Rcp0 = _mm_rcp_ps(Det0);
 
@@ -1326,15 +1351,15 @@ namespace MathCore
             //                        + m[0][3] * Inverse[3][0];
             float32x4_t Det0 = dot_neon_4(array_neon[0], Row2);
 
-            //MATH_CORE_THROW_RUNTIME_ERROR(Det0[0] == 0, "trying to invert a singular matrix\n");
-            // if (Det0[0] == 0){
-            //     fprintf(stderr,"trying to invert a singular matrix\n");
-            //     exit(-1);
-            // }
+            // MATH_CORE_THROW_RUNTIME_ERROR(Det0[0] == 0, "trying to invert a singular matrix\n");
+            //  if (Det0[0] == 0){
+            //      fprintf(stderr,"trying to invert a singular matrix\n");
+            //      exit(-1);
+            //  }
 
             _BaseType det = Det0[0];
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
 
             float32x4_t Rcp0 = vset1(sign_det / det); //_mm_div_ps(_mm_set1_ps(1.0f), Det0);
             //__m128 Rcp0 = _mm_rcp_ps(Det0);
@@ -1358,22 +1383,20 @@ namespace MathCore
         {
 
             // optimal ver 2
-            // 
+            //
 #if defined(ITK_SSE2)
 
             self_type result(
                 (vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b2, c2, a2, 0) - vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c2, a2, b2, 0)),
                 (vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c1, a1, b1, 0) - vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b1, c1, a1, 0)),
                 (vec4_compatible_type(c2, a2, b2, 0) * vec4_compatible_type(b1, c1, a1, 0) - vec4_compatible_type(b2, c2, a2, 0) * vec4_compatible_type(c1, a1, b1, 0)),
-                _vec4_0001_sse
-            );
+                _vec4_0001_sse);
 
             // transpose
             __m128 tmp0 = _mm_shuffle_ps(result.array_sse[0], result.array_sse[1], _MM_SHUFFLE(1, 0, 1, 0));
             __m128 tmp2 = _mm_shuffle_ps(result.array_sse[0], result.array_sse[1], _MM_SHUFFLE(3, 2, 3, 2));
             __m128 tmp1 = _mm_shuffle_ps(result.array_sse[2], result.array_sse[3], _MM_SHUFFLE(1, 0, 1, 0));
             __m128 tmp3 = _mm_shuffle_ps(result.array_sse[2], result.array_sse[3], _MM_SHUFFLE(3, 2, 3, 2));
-
 
             __m128 _a = _mm_shuffle_ps(tmp0, tmp1, _MM_SHUFFLE(2, 0, 2, 0));
             __m128 _b = _mm_shuffle_ps(tmp0, tmp1, _MM_SHUFFLE(3, 1, 3, 1));
@@ -1383,9 +1406,9 @@ namespace MathCore
             _BaseType det = _mm_f32_(dot_sse_3(array_sse[0], _a), 0);
 
             // check det
-            //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+            // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
             det = sign_det / det;
 
             __m128 _det_result = _mm_set_ps1(det);
@@ -1398,8 +1421,7 @@ namespace MathCore
                 _a,
                 _b,
                 _c,
-                _vec4_0001_sse
-            );
+                _vec4_0001_sse);
 
 #elif defined(ITK_NEON)
 
@@ -1407,9 +1429,7 @@ namespace MathCore
                 (vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b2, c2, a2, 0) - vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c2, a2, b2, 0)),
                 (vec4_compatible_type(b3, c3, a3, 0) * vec4_compatible_type(c1, a1, b1, 0) - vec4_compatible_type(c3, a3, b3, 0) * vec4_compatible_type(b1, c1, a1, 0)),
                 (vec4_compatible_type(c2, a2, b2, 0) * vec4_compatible_type(b1, c1, a1, 0) - vec4_compatible_type(b2, c2, a2, 0) * vec4_compatible_type(c1, a1, b1, 0)),
-                _neon_0001
-            );
-            
+                _neon_0001);
 
             float32x4x2_t ab = vtrnq_f32(result.array_neon[0], result.array_neon[1]);
             float32x4x2_t cd = vtrnq_f32(result.array_neon[2], result.array_neon[3]);
@@ -1421,11 +1441,11 @@ namespace MathCore
             _BaseType det = dot_neon_3(array_neon[0], a_)[0];
 
             // check det
-            //MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+            // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
             _BaseType sign_det = OP<_BaseType>::sign(det);
-            det = OP<_BaseType>::maximum( OP<_BaseType>::abs(det),FloatTypeInfo<_BaseType>::min);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
             det = sign_det / det;
-            
+
             float32x4_t _det_result = vset1(det);
 
             a_ = vmulq_f32(a_, _det_result);
@@ -1436,8 +1456,7 @@ namespace MathCore
                 a_,
                 b_,
                 c_,
-                _neon_0001
-            );
+                _neon_0001);
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

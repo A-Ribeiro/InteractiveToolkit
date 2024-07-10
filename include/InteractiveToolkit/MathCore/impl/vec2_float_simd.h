@@ -45,10 +45,9 @@ namespace MathCore
         using self_type = vec2<_BaseType, _SimdType>;
 
     public:
-
         static constexpr int array_count = 2;
         using type = self_type;
-		using element_type = _BaseType;
+        using element_type = _BaseType;
 
         union
         {
@@ -100,7 +99,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_set1_ps(0.0f);
 #elif defined(ITK_NEON)
-            array_neon = vset1(0.0f);//(float32x4_t){ 0, 0, 0, 0 };
+            array_neon = vset1(0.0f); //(float32x4_t){ 0, 0, 0, 0 };
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -129,18 +128,18 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_setr_ps(v, v, 0, 0);
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){ v, v, 0, 0 };
+            array_neon = (float32x4_t){v, v, 0, 0};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
 
         template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v){}
+                  typename std::enable_if<
+                      std::is_convertible<_InputType, _BaseType>::value &&
+                          !std::is_same<_InputType, _BaseType>::value,
+                      bool>::type = true>
+        ITK_INLINE vec2(const _InputType &v) : self_type((_BaseType)v) {}
 
         /*constexpr ITK_INLINE vec2(const _BaseType& _v) :x(_v), y(_v) {}*/
         /// \brief Constructs a bidimensional Vector
@@ -165,19 +164,24 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_setr_ps(x, y, 0, 0);
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){ x, y, 0, 0 };
+            array_neon = (float32x4_t){x, y, 0, 0};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
 
-        template <typename _InputType,
-			typename std::enable_if<
-			std::is_convertible<_InputType, _BaseType>::value &&
-			!std::is_same<_InputType, _BaseType>::value,
-			bool>::type = true>
-        ITK_INLINE vec2(const _InputType& _x, const _InputType& _y) : self_type((_BaseType)_x, (_BaseType)_y){}
-        
+        template <typename __x, typename __y,
+                  typename std::enable_if<
+                      std::is_convertible<__x, _BaseType>::value &&
+                          std::is_convertible<__y, _BaseType>::value &&
+
+                          !(std::is_same<__x, _BaseType>::value &&
+                            std::is_same<__y, _BaseType>::value),
+                      bool>::type = true>
+        ITK_INLINE vec2(const __x &_x, const __y &_y) : self_type((_BaseType)_x, (_BaseType)_y)
+        {
+        }
+
         /*constexpr ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}*/
         /// \brief Constructs a bidimensional Vector
         ///
@@ -271,7 +275,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
             // abs
-            
+
             diff_abs = _mm_andnot_ps(_vec2_sign_mask_sse, diff_abs);
 
             diff_abs = _mm_and_ps(diff_abs, _vec2_valid_bits_sse);
@@ -432,7 +436,7 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            //const __m128 _vec2_sign_mask = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
+            // const __m128 _vec2_sign_mask = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
             return _mm_xor_ps(_vec2_sign_mask_sse, array_sse);
 #elif defined(ITK_NEON)
             return vnegq_f32(array_neon);
@@ -494,9 +498,9 @@ namespace MathCore
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            //const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
+            // const __m128 _one_one = _mm_setr_ps(1.0f, 1.0f, 1.0f, 1.0f);
 #if defined(ITK_SSE_SKIP_SSE41)
-            __m128 param = _mm_setr_ps(v.x,v.y,1.0f,1.0f);
+            __m128 param = _mm_setr_ps(v.x, v.y, 1.0f, 1.0f);
 #else
             __m128 param = v.array_sse;
             param = _mm_blend_ps(param, _vec4_one_sse, 0xC);
