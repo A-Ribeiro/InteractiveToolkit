@@ -260,11 +260,11 @@ namespace Platform
                 for (size_t i = 0; i < vector_argv.size(); i++)
                 {
                     //printf("[Process] argv[%i] = %s\n", (int)i, vector_argv_local[i].data());
-                    argv[i + 1] = vector_argv_local[i].data();
+                    argv[i + 1] = &vector_argv_local[i][0];
                 }
                 // printf("[Process] %s %s\n", lpApplicationName.c_str(), commandLine.c_str());
 
-                argv[0] = lpApplicationName.data();
+                argv[0] = &lpApplicationName[0];
                 // char* const envp[] = { NULL,NULL };
                 // printf("Will execute: %s\n",lpApplicationName.c_str());
                 execve(lpApplicationName.c_str(), argv.data(), environ); // envp);
