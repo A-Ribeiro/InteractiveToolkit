@@ -119,6 +119,52 @@ namespace ITKCommon
 
                 return result;
             }
+        
+
+            FILE *openCFile(const char* mode, std::string *errorStr = NULL){
+                if (!isFile){
+                    if (errorStr != NULL)
+                        *errorStr = "The path is not a file";
+                    return NULL;
+                }
+                return File::fopen(full_path.c_str(), mode, errorStr);
+            }
+
+
+            static bool touch(const char* filename, std::string *errorStr = NULL) {
+                FILE *fileTouched = File::fopen(filename, "ab", errorStr);
+                if (!fileTouched)
+                    return false;
+                return File::fclose(fileTouched, errorStr);
+            }
+
+            // work on windows or linux
+            // mode from std::fopen
+            // must call fclose if is != NULL
+            static FILE * fopen(const char* filename, const char* mode, std::string *errorStr = NULL){
+#if defined(_WIN32)
+            FILE * result = _wfopen( ITKCommon::StringUtil::string_to_WString(filename).c_str(), ITKCommon::StringUtil::string_to_WString(mode).c_str() );
+#elif defined(__linux__) || defined(__APPLE__)
+            FILE * result = ::fopen(filename, mode);
+#endif
+                if (errorStr != NULL && !result)
+                    *errorStr = strerror(errno);
+                return result;
+            }
+
+            static bool fclose(FILE *file, std::string *errorStr = NULL) {
+                if (::fclose(file) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+                return true;
+            }
+
+            
+
+            
+        
         };
 
     }
