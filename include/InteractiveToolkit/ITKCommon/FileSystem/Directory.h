@@ -8,6 +8,12 @@
 #include "../Date.h"
 #include "File.h"
 
+#if defined(_WIN32)
+#pragma warning( push )
+#pragma warning( disable : 4996)
+#endif
+
+
 namespace ITKCommon
 {
     namespace FileSystem
@@ -465,3 +471,7 @@ namespace ITKCommon
 
     }
 }
+
+#if defined(_WIN32)
+#pragma warning( pop )
+#endif
