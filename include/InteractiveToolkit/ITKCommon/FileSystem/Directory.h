@@ -411,6 +411,53 @@ namespace ITKCommon
                 return File::FromPath(this->base_path);
             }
 
+            static bool mkdir(const char* dirname, std::string *errorStr = NULL) {
+#if defined(_WIN32)
+                std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
+                if (CreateDirectoryW(_wstr.c_str(), NULL) == FALSE){
+                    if (errorStr != NULL)
+                        *errorStr = ITKPlatformUtil::getLastErrorMessage();
+                    return false;
+                }
+                return true;
+#elif defined(__linux__) || defined(__APPLE__)
+                if (::mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+                return true;
+#endif
+            }
+
+            static bool rename(const char* src_dirname, const char* dst_dirname, std::string *errorStr = NULL) {
+                return File::rename(src_dirname, dst_dirname, errorStr);
+            }
+
+            static bool move(const char* src_dirname, const char* dst_dirname, std::string *errorStr = NULL) {
+                return File::rename(src_dirname, dst_dirname, errorStr);
+            }
+
+            static bool remove(const char* dirname, std::string *errorStr = NULL) {
+#if defined(_WIN32)
+                std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
+                if (RemoveDirectoryW(_wstr.c_str()) == FALSE){
+                    if (errorStr != NULL)
+                        *errorStr = ITKPlatformUtil::getLastErrorMessage();
+                    return false;
+                }
+                return true;
+#elif defined(__linux__) || defined(__APPLE__)
+                if (::remove(dirname) != 0 ) {
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+                return true;
+#endif
+            }
+
+
         private:
             std::string base_path;
             bool is_valid;

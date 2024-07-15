@@ -3,6 +3,7 @@
 #include "../../common.h"
 #include "../../Platform/platform_common.h"
 #include "../Date.h"
+#include <InteractiveToolkit/EventCore/ExecuteOnScopeEnd.h>
 
 namespace ITKCommon
 {
@@ -30,6 +31,9 @@ namespace ITKCommon
                 size = UINT64_C(0);
             }
 
+            // Will try to resolve the path with the OS.
+            // If it fails, it will return the File representation 
+            // of this path without fill the statx information
             static File FromPath(const std::string &_path)
             {
                 File result;
@@ -121,7 +125,7 @@ namespace ITKCommon
             }
         
 
-            FILE *openCFile(const char* mode, std::string *errorStr = NULL){
+            FILE *fopen(const char* mode, std::string *errorStr = NULL){
                 if (!isFile){
                     if (errorStr != NULL)
                         *errorStr = "The path is not a file";
@@ -143,9 +147,9 @@ namespace ITKCommon
             // must call fclose if is != NULL
             static FILE * fopen(const char* filename, const char* mode, std::string *errorStr = NULL){
 #if defined(_WIN32)
-            FILE * result = _wfopen( ITKCommon::StringUtil::string_to_WString(filename).c_str(), ITKCommon::StringUtil::string_to_WString(mode).c_str() );
+                FILE * result = _wfopen( ITKCommon::StringUtil::string_to_WString(filename).c_str(), ITKCommon::StringUtil::string_to_WString(mode).c_str() );
 #elif defined(__linux__) || defined(__APPLE__)
-            FILE * result = ::fopen(filename, mode);
+                FILE * result = ::fopen(filename, mode);
 #endif
                 if (errorStr != NULL && !result)
                     *errorStr = strerror(errno);
@@ -161,9 +165,73 @@ namespace ITKCommon
                 return true;
             }
 
-            
+            static bool rename(const char* src_filename, const char* dst_filename, std::string *errorStr = NULL) {
+#if defined(_WIN32)
+                std::wstring _wstr_src = ITKCommon::StringUtil::string_to_WString(src_filename);
+                std::wstring _wstr_dst = ITKCommon::StringUtil::string_to_WString(dst_filename);
+                if (MoveFileW(_wstr_src.c_str(), _wstr_dst.c_str()) == FALSE) {
+                    if (errorStr != NULL)
+                        *errorStr = ITKPlatformUtil::getLastErrorMessage();
+                    return false;
+                }
+                return true;
+#elif defined(__linux__) || defined(__APPLE__)
+                if (::rename(src_filename, dst_filename) != 0) {
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+                return true;
+#endif
+            }
 
-            
+            static bool move(const char* src_filename, const char* dst_filename, std::string *errorStr = NULL) {
+                return File::rename(src_filename, dst_filename, errorStr);
+            }
+
+            static bool copy(const char* src_filename, const char* dst_filename, std::string *errorStr = NULL) {
+                FILE* source = File::fopen(src_filename, "rb", errorStr);
+                if (!source)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(source);
+                });
+
+                FILE* dest = File::fopen(dst_filename, "wb", errorStr);
+                if (!dest)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_dest([=](){
+                    fclose(dest);
+                });
+
+                char buf[BUFSIZ];
+                size_t size;
+                while (size = fread(buf, 1, BUFSIZ, source)) {
+                    fwrite(buf, 1, size, dest);
+                }
+                
+                return true;
+            }
+
+            static bool remove(const char* filename, std::string *errorStr = NULL) {
+#if defined(_WIN32)
+                std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(filename);
+                if (DeleteFileW(_wstr.c_str()) == FALSE) {
+                    if (errorStr != NULL)
+                        *errorStr = ITKPlatformUtil::getLastErrorMessage();
+                    return false;
+                }
+                return true;
+#elif defined(__linux__) || defined(__APPLE__)
+                if (::remove(filename) != 0) {
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+                return true;
+#endif
+            }
+
         
         };
 
