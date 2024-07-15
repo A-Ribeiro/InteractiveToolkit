@@ -25,6 +25,7 @@
 namespace ITKPlatformUtil
 {
 
+    // returns the error in UTF8 codepage
     static std::string win32_GetLastErrorToString()
     {
         std::string result;
@@ -49,16 +50,27 @@ namespace ITKPlatformUtil
                 result = StringUtil::toString(aux);
             */
 
-            char *aux = new char[lstrlenW(s) + 1];
-            memset(aux, 0, (lstrlenW(s) + 1) * sizeof(char));
-            WideCharToMultiByte(
-                GetConsoleOutputCP(), // GetConsoleCP(),
+            auto _needed_size_bytes = WideCharToMultiByte(
+                CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
                 WC_COMPOSITECHECK,
-                s, lstrlenW(s) + 1,
-                aux, lstrlenW(s),
-                NULL, NULL);
-            result = aux;
-            delete[] aux;
+                s, -1,
+                NULL, 0,
+                NULL, NULL
+            );
+
+            {
+                char *aux = new char[_needed_size_bytes + 1];
+                memset(aux, 0, (_needed_size_bytes + 1) * sizeof(char));
+                WideCharToMultiByte(
+                    CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
+                    WC_COMPOSITECHECK,
+                    s, -1,
+                    aux, _needed_size_bytes + 1,
+                    NULL, NULL
+                );
+                result = aux;
+                delete[] aux;
+            }
             LocalFree(s);
         }
 
@@ -180,16 +192,27 @@ namespace ITKPlatformUtil
                 result = StringUtil::toString(aux);
             */
 
-            char *aux = new char[lstrlenW(s) + 1];
-            memset(aux, 0, (lstrlenW(s) + 1) * sizeof(char));
-            WideCharToMultiByte(
-                GetConsoleOutputCP(), // GetConsoleCP(),
+            auto _needed_size_bytes = WideCharToMultiByte(
+                CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
                 WC_COMPOSITECHECK,
-                s, lstrlenW(s) + 1,
-                aux, lstrlenW(s),
-                NULL, NULL);
-            result = aux;
-            delete[] aux;
+                s, -1,
+                NULL, 0,
+                NULL, NULL
+            );
+
+            {
+                char *aux = new char[_needed_size_bytes + 1];
+                memset(aux, 0, (_needed_size_bytes + 1) * sizeof(char));    
+                WideCharToMultiByte(
+                    CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
+                    WC_COMPOSITECHECK,
+                    s, -1, // lstrlenW(s) + 1,
+                    aux, _needed_size_bytes + 1,
+                    NULL, NULL
+                );
+                result = aux;
+                delete[] aux;
+            }
             LocalFree(s);
         }
 #else
