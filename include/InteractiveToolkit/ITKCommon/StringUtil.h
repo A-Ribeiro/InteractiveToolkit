@@ -428,18 +428,34 @@ namespace ITKCommon
                 pos = data->find(toSearch, pos + replaceStr.size());
             }
         }
-        static ITK_INLINE std::string trim(const std::string &str)
+        static ITK_INLINE std::string trim(const std::string &_str)
         {
             // return std::regex_replace(str, std::regex("(^[ \n]+)|([ \n]+$)"),"");
-            std::string::const_iterator it = str.begin();
-            while (it != str.end() && std::isspace(*it))
+            // std::string::const_iterator it = str.begin();
+            // while (it != str.end() && std::isspace(*it))
+            //     it++;
+
+            // std::string::const_reverse_iterator rit = str.rbegin();
+            // while (rit.base() != it && std::isspace(*rit))
+            //     rit++;
+
+            // return std::string(it, rit.base());
+
+            std::u32string str_32 = StringUtil::utf8_to_utf32(_str);
+
+            auto it = str_32.begin();
+            while (it != str_32.end() && 
+                (*it == U' ' || *it == U'\n' || *it == U'\r' || *it == U'\b' || *it == U'\t')
+            )
                 it++;
 
-            std::string::const_reverse_iterator rit = str.rbegin();
-            while (rit.base() != it && std::isspace(*rit))
+            auto rit = str_32.rbegin();
+            while (rit.base() != it && 
+                (*rit == U' ' || *rit == U'\n' || *rit == U'\r' || *rit == U'\b' || *rit == U'\t')
+            )
                 rit++;
 
-            return std::string(it, rit.base());
+            return StringUtil::utf32_to_utf8(std::u32string(it, rit.base()));
         }
 
         static ITK_INLINE std::string unquote_cmd(const std::string &str)
