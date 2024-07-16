@@ -27,11 +27,11 @@ namespace Platform {
 		Platform::Mutex mutex;
 	public:
 		uint8_t *data;
-		uint32_t alloc_size;
-		uint32_t size;
+		int64_t alloc_size;
+		int64_t size;
         int align;
 
-		ObjectBuffer(uint8_t *_data, uint32_t _size, int _align = 32) {
+		ObjectBuffer(uint8_t *_data, int64_t _size, int _align = 32) {
 			data = _data;
 			size = _size;
             align = _align;
@@ -51,7 +51,7 @@ namespace Platform {
 			free();
 		}
 
-		ObjectBuffer* setSize(uint32_t _size, int _align = 32) {
+		ObjectBuffer* setSize(int64_t _size, int _align = 32) {
 
             ITK_ABORT(constructed_from_external_buffer, "Cannot resize a buffer object constructed from an external buffer.\n");
 

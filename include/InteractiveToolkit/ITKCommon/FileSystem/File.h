@@ -156,7 +156,14 @@ namespace ITKCommon
                     return false;
                 }
 
-                output->setSize((uint32_t)ftell(file));
+                int64_t _ftell = (int64_t)ftell(file);
+                if (_ftell == -1){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return -1;
+                }
+
+                output->setSize(_ftell);
 
                 if (fseek(file, 0, SEEK_SET) != 0){
                     if (errorStr != NULL)
@@ -164,12 +171,12 @@ namespace ITKCommon
                     return false;
                 }
 
-                int readed_size = 0;
-                int offset = 0;
+                int64_t readed_size = 0;
+                int64_t offset = 0;
                 
                 while( offset < output->size &&
-                    ( readed_size = (int)fread( &output->data[offset], 
-                        sizeof(uint8_t), output->size - offset, 
+                    ( readed_size = (int64_t)fread( &output->data[offset], 
+                        sizeof(uint8_t), (size_t)(output->size - offset),
                         file) ) > 0 ) {
                     offset += readed_size;
                 }
@@ -191,7 +198,14 @@ namespace ITKCommon
                     return false;
                 }
 
-                output->resize((size_t)ftell(file));
+                int64_t _ftell = (int64_t)ftell(file);
+                if (_ftell == -1){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return -1;
+                }
+
+                output->resize((size_t)_ftell);
 
                 if (fseek(file, 0, SEEK_SET) != 0){
                     if (errorStr != NULL)
@@ -199,14 +213,70 @@ namespace ITKCommon
                     return false;
                 }
 
-                int readed_size = 0;
-                int offset = 0;
+                int64_t readed_size = 0;
+                int64_t offset = 0;
                 
-                while( offset < (int)output->size() &&
-                    ( readed_size = (int)fread( &output->at(offset),
-                        sizeof(uint8_t), (int)output->size() - offset, 
+                while( offset < (int64_t)output->size() &&
+                    ( readed_size = (int64_t)fread( &output->at(offset),
+                        sizeof(uint8_t), (size_t)((int64_t)output->size() - offset),
                         file) ) > 0 ) {
                     offset += readed_size;
+                }
+
+                return true;
+            }
+
+            // read the file size in bytes using fopen call
+            // returns -1 in case of any error
+            int64_t readContentSizeSafe(std::string *errorStr = NULL) {
+                FILE *file = fopen("rb", errorStr);
+                if (!file)
+                    return -1;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(file);
+                });
+                if (fseek(file, 0, SEEK_END) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return -1;
+                }
+                int64_t _ftell = (int64_t)ftell(file);
+                if (_ftell == -1){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return -1;
+                }
+                return _ftell;
+            }
+
+            bool readContentToMemory(int64_t read_offset, uint8_t *output, int64_t output_size, std::string *errorStr = NULL) {
+                FILE *file = fopen("rb", errorStr);
+                if (!file)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(file);
+                });
+
+                if (fseek(file, read_offset, SEEK_SET) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+
+                int64_t readed_size = 0;
+                int64_t offset = 0;
+                
+                while( offset < output_size &&
+                    ( readed_size = (int64_t)fread( &output[offset],
+                        sizeof(uint8_t), (size_t)(output_size - offset),
+                        file) ) > 0 ) {
+                    offset += readed_size;
+                }
+
+                if (offset < output_size){
+                    if (errorStr != NULL)
+                        *errorStr = "Output buffer not filled completely";
+                    return false;
                 }
 
                 return true;
