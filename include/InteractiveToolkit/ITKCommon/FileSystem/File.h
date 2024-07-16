@@ -3,7 +3,10 @@
 #include "../../common.h"
 #include "../../Platform/platform_common.h"
 #include "../Date.h"
-#include <InteractiveToolkit/EventCore/ExecuteOnScopeEnd.h>
+#include "../../EventCore/ExecuteOnScopeEnd.h"
+#include "../Path.h"
+
+#include "../../Platform/Core/ObjectBuffer.h"
 
 #if defined(_WIN32)
 #pragma warning( push )
@@ -137,6 +140,108 @@ namespace ITKCommon
                     return NULL;
                 }
                 return File::fopen(full_path.c_str(), mode, errorStr);
+            }
+
+            bool readContentToObjectBuffer(Platform::ObjectBuffer *output, std::string *errorStr = NULL) {
+                FILE *file = fopen("rb", errorStr);
+                if (!file)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(file);
+                });
+
+                if (fseek(file, 0, SEEK_END) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+
+                output->setSize((uint32_t)ftell(file));
+
+                if (fseek(file, 0, SEEK_SET) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+
+                int readed_size = 0;
+                int offset = 0;
+                
+                while( offset < output->size &&
+                    ( readed_size = (int)fread( &output->data[offset], 
+                        sizeof(uint8_t), output->size - offset, 
+                        file) ) > 0 ) {
+                    offset += readed_size;
+                }
+
+                return true;
+            }
+
+            bool readContentToVector(std::vector<uint8_t> *output, std::string *errorStr = NULL) {
+                FILE *file = fopen("rb", errorStr);
+                if (!file)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(file);
+                });
+
+                if (fseek(file, 0, SEEK_END) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+
+                output->resize((size_t)ftell(file));
+
+                if (fseek(file, 0, SEEK_SET) != 0){
+                    if (errorStr != NULL)
+                        *errorStr = strerror(errno);
+                    return false;
+                }
+
+                int readed_size = 0;
+                int offset = 0;
+                
+                while( offset < (int)output->size() &&
+                    ( readed_size = (int)fread( &output->at(offset),
+                        sizeof(uint8_t), (int)output->size() - offset, 
+                        file) ) > 0 ) {
+                    offset += readed_size;
+                }
+
+                return true;
+            }
+
+            bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = NULL) {
+                return writeContentFromBinary(input->data, (int)input->size, append, errorStr );
+            }
+
+            bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = NULL) {
+                return writeContentFromBinary(input->data(), (int)input->size(), append, errorStr );
+            }
+
+            bool writeContentFromBinary(const uint8_t *input, const int _size, bool append = false, std::string *errorStr = NULL) {
+                FILE *file;
+                if (append)
+                    file = fopen("ab", errorStr);
+                else
+                    file = fopen("wb", errorStr);
+                if (!file)
+                    return false;
+                EventCore::ExecuteOnScopeEnd _close_source([=](){
+                    fclose(file);
+                });
+                if (_size > 0){
+                    int written_size = 0;
+                    int offset = 0;
+                    while( offset < (int)_size &&
+                        ( written_size = (int)fwrite( &input[offset],
+                            sizeof(uint8_t), (int)_size - offset, 
+                            file) ) > 0 ) {
+                        offset += written_size;
+                    }
+                }
+                return true;
             }
 
 
