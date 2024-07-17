@@ -710,7 +710,7 @@ namespace Platform
             }
             bool writeHasEnoughSpace(const ObjectBuffer &inputBuffer, bool lock_if_true = false)
             {
-                return writeHasEnoughSpace(inputBuffer.size, lock_if_true);
+                return writeHasEnoughSpace((uint32_t)inputBuffer.size, lock_if_true);
             }
 
             bool write(const uint8_t *data, uint32_t size, bool blocking = true, bool ignore_first_lock = false)
@@ -814,7 +814,7 @@ namespace Platform
 
             bool write(const ObjectBuffer &inputBuffer, bool blocking = true, bool ignore_first_lock = false)
             {
-                return write(inputBuffer.data, inputBuffer.size, blocking, ignore_first_lock);
+                return write(inputBuffer.data, (uint32_t)inputBuffer.size, blocking, ignore_first_lock);
             }
 
             bool read(ObjectBuffer *outputBuffer, bool *_signaled = NULL)
@@ -858,7 +858,7 @@ namespace Platform
                 BufferHeader bufferHeader;
                 read_buffer((uint8_t *)&bufferHeader, sizeof(BufferHeader));
                 outputBuffer->setSize(bufferHeader.size);
-                read_buffer(outputBuffer->data, outputBuffer->size);
+                read_buffer(outputBuffer->data, (uint32_t)outputBuffer->size);
 
                 unlock();
                 shm_mutex.unlock();
