@@ -2,6 +2,7 @@
 
 #include "../common.h"
 #include "../EventCore/Callback.h"
+#include "../ITKCommon/FileSystem/File.h"
 
 #if defined(_WIN32)
 #pragma warning( push )
@@ -113,9 +114,9 @@ namespace ITKCommon
             }
         }
 
-        void readFromFile(const char *file)
+        bool readFromFile(const char *file, std::string *errorStr = NULL)
         {
-            FILE *in = fopen(file, "rb");
+            FILE *in = ITKCommon::FileSystem::File::fopen(file, "rb", errorStr);
             if (in)
             {
                 while (!feof(in))
@@ -126,7 +127,9 @@ namespace ITKCommon
                 }
                 fclose(in);
                 endStream();
+                return true;
             }
+            return false;
         }
 
         void readFromBuffer(const char *data, size_t size)
@@ -174,9 +177,9 @@ namespace ITKCommon
             }
         }
 
-        void readFromFile(const char *file)
+        bool readFromFile(const char *file, std::string *errorStr = NULL)
         {
-            FILE *in = fopen(file, "rb");
+            FILE *in = ITKCommon::FileSystem::File::fopen(file, "rb");
             if (in)
             {
                 while (!feof(in))
@@ -186,7 +189,9 @@ namespace ITKCommon
                     putByte(c);
                 }
                 fclose(in);
+                return true;
             }
+            return false;
         }
 
         void readFromBuffer(const char *data, size_t size)

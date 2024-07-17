@@ -283,30 +283,43 @@ namespace ITKCommon
             }
 
             bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = NULL) {
-                return writeContentFromBinary(input->data, (int)input->size, append, errorStr );
+                return writeContentFromBinary(input->data, (int64_t)input->size, append, errorStr );
             }
 
             bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = NULL) {
-                return writeContentFromBinary(input->data(), (int)input->size(), append, errorStr );
+                return writeContentFromBinary(input->data(), (int64_t)input->size(), append, errorStr );
             }
 
-            bool writeContentFromBinary(const uint8_t *input, const int _size, bool append = false, std::string *errorStr = NULL) {
+            bool writeContentFromBinary(const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = NULL) {
+                return File::WriteContentFromBinary(this->full_path.c_str(), input, _size, append, errorStr);
+            }
+            
+
+            static bool WriteContentFromObjectBuffer(const char* filename, const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = NULL) {
+                return WriteContentFromBinary(filename, input->data, (int64_t)input->size, append, errorStr );
+            }
+
+            static bool WriteContentFromVector(const char* filename, const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = NULL) {
+                return WriteContentFromBinary(filename, input->data(), (int64_t)input->size(), append, errorStr );
+            }
+
+            static bool WriteContentFromBinary(const char* filename, const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = NULL) {
                 FILE *file;
                 if (append)
-                    file = fopen("ab", errorStr);
+                    file = File::fopen(filename, "ab", errorStr);
                 else
-                    file = fopen("wb", errorStr);
+                    file = File::fopen(filename, "wb", errorStr);
                 if (!file)
                     return false;
                 EventCore::ExecuteOnScopeEnd _close_source([=](){
                     fclose(file);
                 });
                 if (_size > 0){
-                    int written_size = 0;
-                    int offset = 0;
-                    while( offset < (int)_size &&
-                        ( written_size = (int)fwrite( &input[offset],
-                            sizeof(uint8_t), (int)_size - offset, 
+                    int64_t written_size = 0;
+                    int64_t offset = 0;
+                    while( offset < _size &&
+                        ( written_size = (int64_t)fwrite( &input[offset],
+                            sizeof(uint8_t), (size_t)(_size - offset), 
                             file) ) > 0 ) {
                         offset += written_size;
                     }
