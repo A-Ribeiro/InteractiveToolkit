@@ -226,9 +226,19 @@ namespace ITKCommon
                 return true;
             }
 
+            // loads a null-terminated string from the file`s content
+            bool readContentToString(std::string *output, std::string *errorStr = NULL) {
+                std::vector<uint8_t> _tmp;
+                if (!readContentToVector(&_tmp, errorStr))
+                    return false;
+                _tmp.push_back(0); // \0 at end
+                *output = (char*)_tmp.data();
+                return true;
+            }
+
             // read the file size in bytes using fopen call
             // returns -1 in case of any error
-            int64_t readContentSizeSafe(std::string *errorStr = NULL) {
+            int64_t readContentGetSizeSafe(std::string *errorStr = NULL) {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
                     return -1;
