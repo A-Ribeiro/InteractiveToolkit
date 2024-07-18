@@ -57,6 +57,10 @@ namespace ITKCommon
                 return ext;
             }
 
+            bool hasExtension() const {
+                return name.find_last_of('.') != -1;
+            }
+
             // Will try to resolve the path with the OS.
             // If it fails, it will return the File representation 
             // of this path without fill the statx information
