@@ -39,6 +39,24 @@ namespace ITKCommon
                 size = UINT64_C(0);
             }
 
+            std::string getNameNoExtension() const {
+                size_t path_directory_index = name.find_last_of('.');
+                if (path_directory_index == -1)
+                    return name;
+                std::string filename_wo_ext = name.substr(0, path_directory_index);
+                //std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
+                return filename_wo_ext;
+            }
+
+            std::string getExtension() const {
+                size_t path_directory_index = name.find_last_of('.');
+                if (path_directory_index == -1)
+                    return "";
+                // std::string filename_wo_ext = name.substr(0, path_directory_index);
+                std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
+                return ext;
+            }
+
             // Will try to resolve the path with the OS.
             // If it fails, it will return the File representation 
             // of this path without fill the statx information
