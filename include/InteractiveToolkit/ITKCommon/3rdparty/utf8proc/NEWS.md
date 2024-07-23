@@ -28,7 +28,7 @@
 
 2020-12-15
 
- - Bugfix in `utf8proc_grapheme_break_stateful` for `NULL` state argument, which
+ - Bugfix in `utf8proc_grapheme_break_stateful` for `nullptr` state argument, which
    also broke `utf8proc_grapheme_break`.
 
 ## Version 2.6 ##
@@ -367,7 +367,7 @@ Release of version 1.0.1
 
 2006-06-05:
 
-- changed behaviour of PostgreSQL function to return NULL in case of invalid input, rather than raising an exceptional condition
+- changed behaviour of PostgreSQL function to return nullptr in case of invalid input, rather than raising an exceptional condition
 - improved efficiency of PostgreSQL function (no transformation to C string is done)
 
 2006-06-20:

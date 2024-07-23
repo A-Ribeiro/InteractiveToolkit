@@ -121,13 +121,13 @@ namespace Platform
 
 #ifndef OS_ANDROID
             // Tell the thread to handle cancel requests immediately
-            pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+            pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
 #endif
             ThreadDataSet::Instance()->registerThread(owner);
             // Forward to the owner
             owner->runEntryPoint();
             ThreadDataSet::Instance()->unregisterThread(owner);
-            return NULL;
+            return nullptr;
         }
         pthread_t m_thread;
         bool m_isActive;
@@ -285,14 +285,14 @@ namespace Platform
         static ITK_INLINE bool isCurrentThreadInterrupted()
         {
             Thread *thread = getCurrentThread();
-            if (thread != NULL)
+            if (thread != nullptr)
                 return thread->interrupted;
             return false;
         }
 
         /// \brief Get the current Thread
         ///
-        /// Get the current thread. If the thread is not spawned by the Thread, it will return null.
+        /// Get the current thread. If the thread is not spawned by the Thread, it will return nullptr.
         ///
         /// \author Alessandro Ribeiro
         /// \return A reference to the current thread spawned.
@@ -300,7 +300,7 @@ namespace Platform
         static ITK_INLINE Thread *getCurrentThread()
         {
             Thread *result = ThreadDataSet::Instance()->getThreadByID(GetCurrentThreadId_Custom());
-            if (result == NULL)
+            if (result == nullptr)
                 return Thread::getMainThread();
             return result;
         }
@@ -360,25 +360,25 @@ namespace Platform
                 // CLOSE THREAD
                 if (m_thread)
                     CloseHandle(m_thread);
-                m_thread = NULL;
+                m_thread = nullptr;
             }
 
             // CLOSE EVENT
-            if (m_thread_interrupt_event != NULL)
+            if (m_thread_interrupt_event != nullptr)
                 CloseHandle(m_thread_interrupt_event);
-            m_thread_interrupt_event = NULL;
+            m_thread_interrupt_event = nullptr;
 
 #elif defined(__linux__) || defined(__APPLE__)
 
             perThreadData.interrupt_m.lock();
-            if (interrupt_thread != NULL)
+            if (interrupt_thread != nullptr)
             {
                 perThreadData.interrupt_m.unlock();
                 interrupt_thread->wait();
                 perThreadData.interrupt_m.lock();
-                if (interrupt_thread != NULL)
+                if (interrupt_thread != nullptr)
                     delete interrupt_thread;
-                interrupt_thread = NULL;
+                interrupt_thread = nullptr;
             }
             // avoid call interrupt in the static main thread instance...
             m_isMain = false;
@@ -390,14 +390,14 @@ namespace Platform
 
             // the same code again, to avoid leave interrupt thread alive
             perThreadData.interrupt_m.lock();
-            if (interrupt_thread != NULL)
+            if (interrupt_thread != nullptr)
             {
                 perThreadData.interrupt_m.unlock();
                 interrupt_thread->wait();
                 perThreadData.interrupt_m.lock();
-                if (interrupt_thread != NULL)
+                if (interrupt_thread != nullptr)
                     delete interrupt_thread;
-                interrupt_thread = NULL;
+                interrupt_thread = nullptr;
             }
             perThreadData.interrupt_m.unlock();
 
@@ -415,9 +415,9 @@ namespace Platform
             {
                 // A thread cannot wait for itself!
                 if (pthread_equal(pthread_self(), m_thread) == 0)
-                    pthread_join(m_thread, NULL);
+                    pthread_join(m_thread, nullptr);
 
-                // m_thread = NULL;
+                // m_thread = nullptr;
             }
 
 #endif
@@ -486,7 +486,7 @@ namespace Platform
 
                     //printf("Creating interrupt thread. Name: %s\n", name.c_str());
 
-                    if (interrupt_thread == NULL)
+                    if (interrupt_thread == nullptr)
                     {
                         Thread *_instance = this;
                         interrupt_thread = new Thread(
@@ -605,7 +605,7 @@ namespace Platform
 
             // create OS thread
 #if defined(_WIN32)
-            m_thread = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Thread::entryPoint, this, 0, &m_threadId));
+            m_thread = reinterpret_cast<HANDLE>(_beginthreadex(nullptr, 0, &Thread::entryPoint, this, 0, &m_threadId));
 
             if (!m_thread)
             {
@@ -735,7 +735,7 @@ namespace Platform
         bool isAlive()
         {
 #if defined(_WIN32)
-            return !exited && m_thread != NULL;
+            return !exited && m_thread != nullptr;
 #else
             return !exited && m_isActive;
 #endif
@@ -780,7 +780,7 @@ namespace Platform
             {
                 m_impl->terminate();
                 delete m_impl;
-                m_impl = NULL;
+                m_impl = nullptr;
             }*/
 
 #if defined(_WIN32)
@@ -789,7 +789,7 @@ namespace Platform
             // CLOSE THREAD
             if (m_thread)
                 CloseHandle(m_thread);
-            m_thread = NULL;
+            m_thread = nullptr;
 #else
             if (m_isActive)
             {
@@ -834,18 +834,18 @@ namespace Platform
             shouldReleaseThreadID_byItself = false;
             waitCalls = 0;
 #if defined(_WIN32)
-            m_thread = NULL;
+            m_thread = nullptr;
             m_thread_interrupt_event = CreateEvent(
-                NULL,  // default security attributes
+                nullptr,  // default security attributes
                 TRUE,  // manual-reset event
                 FALSE, // initial state is nonsignaled
-                NULL   // TEXT("WriteEvent")  // object name
+                nullptr   // TEXT("WriteEvent")  // object name
             );
-            ITK_ABORT(m_thread_interrupt_event == NULL, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+            ITK_ABORT(m_thread_interrupt_event == nullptr, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #else
             m_isActive = false;
             m_isMain = false;
-            interrupt_thread = NULL;
+            interrupt_thread = nullptr;
             skip_interrupt = false;
 #endif
             getMainThread();
@@ -862,18 +862,18 @@ namespace Platform
             shouldReleaseThreadID_byItself = false;
             waitCalls = 0;
 #if defined(_WIN32)
-            m_thread = NULL;
+            m_thread = nullptr;
             m_thread_interrupt_event = CreateEvent(
-                NULL,  // default security attributes
+                nullptr,  // default security attributes
                 TRUE,  // manual-reset event
                 FALSE, // initial state is nonsignaled
-                NULL   // TEXT("WriteEvent")  // object name
+                nullptr   // TEXT("WriteEvent")  // object name
             );
-            ITK_ABORT(m_thread_interrupt_event == NULL, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+            ITK_ABORT(m_thread_interrupt_event == nullptr, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #else
             m_isActive = false;
             m_isMain = false;
-            interrupt_thread = NULL;
+            interrupt_thread = nullptr;
             skip_interrupt = false;
 #endif
             getMainThread();
@@ -893,19 +893,19 @@ namespace Platform
             waitCalls = 0;
 #if defined(_WIN32)
             m_threadId = GetCurrentThreadId_Custom();
-            m_thread = NULL;
+            m_thread = nullptr;
             m_thread_interrupt_event = CreateEvent(
-                NULL,  // default security attributes
+                nullptr,  // default security attributes
                 TRUE,  // manual-reset event
                 FALSE, // initial state is nonsignaled
-                NULL   // TEXT("WriteEvent")  // object name
+                nullptr   // TEXT("WriteEvent")  // object name
             );
-            ITK_ABORT(m_thread_interrupt_event == NULL, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+            ITK_ABORT(m_thread_interrupt_event == nullptr, "CreateEvent error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #else
             m_thread = pthread_self();
             m_isActive = false;
             m_isMain = true;
-            interrupt_thread = NULL;
+            interrupt_thread = nullptr;
             skip_interrupt = false;
 
             setShouldDisposeThreadByItself(true);
@@ -942,12 +942,12 @@ namespace Platform
             mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
 
             // get the number of CPUs from the system
-            sysctl(mib, 2, &numCPU, &len, NULL, 0);
+            sysctl(mib, 2, &numCPU, &len, nullptr, 0);
 
             if (numCPU < 1)
             {
                 mib[1] = HW_NCPU;
-                sysctl(mib, 2, &numCPU, &len, NULL, 0);
+                sysctl(mib, 2, &numCPU, &len, nullptr, 0);
                 if (numCPU < 1)
                     numCPU = 1;
             }

@@ -114,7 +114,7 @@ namespace ITKCommon
             }
         }
 
-        bool readFromFile(const char *file, std::string *errorStr = NULL)
+        bool readFromFile(const char *file, std::string *errorStr = nullptr)
         {
             FILE *in = ITKCommon::FileSystem::File::fopen(file, "rb", errorStr);
             if (in)
@@ -177,7 +177,7 @@ namespace ITKCommon
             }
         }
 
-        bool readFromFile(const char *file, std::string *errorStr = NULL)
+        bool readFromFile(const char *file, std::string *errorStr = nullptr)
         {
             FILE *in = ITKCommon::FileSystem::File::fopen(file, "rb");
             if (in)

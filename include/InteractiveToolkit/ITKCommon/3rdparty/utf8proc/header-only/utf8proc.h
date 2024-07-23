@@ -147,8 +147,8 @@ extern "C" {
  * Option flags used by several functions in the library.
  */
 typedef enum {
-  /** The given UTF-8 input is NULL terminated. */
-  UTF8PROC_NULLTERM  = (1<<0),
+  /** The given UTF-8 input is nullptr terminated. */
+  UTF8PROC_nullptrTERM  = (1<<0),
   /** Unicode Versioning Stability has to be respected. */
   UTF8PROC_STABLE    = (1<<1),
   /** Compatibility decomposition (i.e. formatting information is lost). */
@@ -531,8 +531,8 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_char(
  * The same as utf8proc_decompose_char(), but acts on a whole UTF-8
  * string and orders the decomposed sequences correctly.
  *
- * If the @ref UTF8PROC_NULLTERM flag in `options` is set, processing
- * will be stopped, when a NULL byte is encountered, otherwise `strlen`
+ * If the @ref UTF8PROC_nullptrTERM flag in `options` is set, processing
+ * will be stopped, when a nullptr byte is encountered, otherwise `strlen`
  * bytes are processed.  The result (in the form of 32-bit unicode
  * codepoints) is written into the buffer being pointed to by
  * `buffer` (which must contain at least `bufsize` entries).  In case of
@@ -553,7 +553,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose(
  * The same as utf8proc_decompose(), but also takes a `custom_func` mapping function
  * that is called on each codepoint in `str` before any other transformations
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
- * The `custom_func` argument is ignored if it is `NULL`.  See also utf8proc_map_custom().
+ * The `custom_func` argument is ignored if it is `nullptr`.  See also utf8proc_map_custom().
  */
 UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_custom(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen,
@@ -625,7 +625,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *buffer, 
  * @param state Beginning with Version 29 (Unicode 9.0.0), this algorithm requires
  *              state to break graphemes. This state can be passed in as a pointer
  *              in the `state` argument and should initially be set to 0. If the
- *              state is not passed in (i.e. a null pointer is passed), UAX#29 rules
+ *              state is not passed in (i.e. a nullptr pointer is passed), UAX#29 rules
  *              GB10/12/13 which require this state will not be applied, essentially
  *              matching the rules in Unicode 8.0.0.
  *
@@ -703,11 +703,11 @@ UTF8PROC_DLLEXPORT const char *utf8proc_category_string(utf8proc_int32_t codepoi
  * Maps the given UTF-8 string pointed to by `str` to a new UTF-8
  * string, allocated dynamically by `malloc` and returned via `dstptr`.
  *
- * If the @ref UTF8PROC_NULLTERM flag in the `options` field is set,
- * the length is determined by a NULL terminator, otherwise the
+ * If the @ref UTF8PROC_nullptrTERM flag in the `options` field is set,
+ * the length is determined by a nullptr terminator, otherwise the
  * parameter `strlen` is evaluated to determine the string length, but
- * in any case the result will be NULL terminated (though it might
- * contain NULL characters with the string if `str` contained NULL
+ * in any case the result will be nullptr terminated (though it might
+ * contain nullptr characters with the string if `str` contained nullptr
  * characters). Other flags in the `options` field are passed to the
  * functions defined above, and regarded as described.  See also
  * utf8proc_map_custom() to supply a custom codepoint transformation.
@@ -726,7 +726,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_map(
  * Like utf8proc_map(), but also takes a `custom_func` mapping function
  * that is called on each codepoint in `str` before any other transformations
  * (along with a `custom_data` pointer that is passed through to `custom_func`).
- * The `custom_func` argument is ignored if it is `NULL`.
+ * The `custom_func` argument is ignored if it is `nullptr`.
  */
 UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_map_custom(
   const utf8proc_uint8_t *str, utf8proc_ssize_t strlen, utf8proc_uint8_t **dstptr, utf8proc_option_t options,
@@ -736,8 +736,8 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_map_custom(
 /** @name Unicode normalization
  *
  * Returns a pointer to newly allocated memory of a NFD, NFC, NFKD, NFKC or
- * NFKC_Casefold normalized version of the null-terminated string `str`.  These
- * are shortcuts to calling utf8proc_map() with @ref UTF8PROC_NULLTERM
+ * NFKC_Casefold normalized version of the nullptr-terminated string `str`.  These
+ * are shortcuts to calling utf8proc_map() with @ref UTF8PROC_nullptrTERM
  * combined with @ref UTF8PROC_STABLE and flags indicating the normalization.
  */
 /** @{ */

@@ -259,9 +259,9 @@ namespace Platform {
                 }
             }
 
-            if (wsa_connect_event != NULL) {
+            if (wsa_connect_event != nullptr) {
                 ::WSACloseEvent(wsa_connect_event);
-                wsa_connect_event = NULL;
+                wsa_connect_event = nullptr;
             }
 
             if (!connected) {
@@ -330,14 +330,14 @@ namespace Platform {
         Platform::Semaphore write_semaphore;//used to write complex data
 
         // this write is blocking...
-        bool write_buffer(const uint8_t* data, uint32_t size, uint32_t *write_feedback = NULL) {
+        bool write_buffer(const uint8_t* data, uint32_t size, uint32_t *write_feedback = nullptr) {
             if (isSignaled() || fd == ITK_INVALID_SOCKET) {
-                if (write_feedback != NULL)
+                if (write_feedback != nullptr)
                     *write_feedback = 0;
                 return false;
             }
             uint32_t current_pos = 0;
-            if (write_feedback != NULL)
+            if (write_feedback != nullptr)
                 *write_feedback = current_pos;
 
 #if !defined(_WIN32)
@@ -357,7 +357,7 @@ namespace Platform {
                     return false;
                 }
                 else {
-                    currentThread->semaphoreWaitBegin(NULL);
+                    currentThread->semaphoreWaitBegin(nullptr);
                     currentThread->semaphoreUnLock();
 #endif
 
@@ -368,13 +368,13 @@ namespace Platform {
 #endif
 
 #if !defined(_WIN32)
-                    currentThread->semaphoreWaitDone(NULL);
+                    currentThread->semaphoreWaitDone(nullptr);
 #endif
 
                     if (iResult > 0) {
                         //received some quantity of bytes...
                         current_pos += static_cast<uint32_t>(iResult);
-                        if (write_feedback != NULL)
+                        if (write_feedback != nullptr)
                             *write_feedback = current_pos;
                     }
                     else if (iResult == 0) {
@@ -409,9 +409,9 @@ namespace Platform {
             }
 
         // this read is blocking...
-        bool read_buffer(uint8_t* data, uint32_t size, uint32_t *read_feedback = NULL) {
+        bool read_buffer(uint8_t* data, uint32_t size, uint32_t *read_feedback = nullptr) {
             if (isSignaled() || fd == ITK_INVALID_SOCKET) {
-                if (read_feedback != NULL)
+                if (read_feedback != nullptr)
                     *read_feedback = 0;
                 return false;
             }
@@ -419,7 +419,7 @@ namespace Platform {
             //printf("Start reading...\n");
 
             uint32_t current_pos = 0;
-            if (read_feedback != NULL)
+            if (read_feedback != nullptr)
                 *read_feedback = current_pos;
 
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
@@ -448,7 +448,7 @@ namespace Platform {
 
                 if (dwWaitResult == WAIT_TIMEOUT) {
                     signaled = true;
-                    if (read_feedback != NULL)
+                    if (read_feedback != nullptr)
                         *read_feedback = 0;
                     return false;
                 } else
@@ -456,7 +456,7 @@ namespace Platform {
                 // true if the interrupt is signaled (and only the interrupt...)
                 if (dwWaitResult == WAIT_OBJECT_0 + 1) {
                     //signaled = true;
-                    if (read_feedback != NULL)
+                    if (read_feedback != nullptr)
                         *read_feedback = 0;
                     return false;
                 } else
@@ -478,7 +478,7 @@ namespace Platform {
                     if (iResult > 0) {
                         //received some quantity of bytes...
                         current_pos += iResult;
-                        if (read_feedback != NULL)
+                        if (read_feedback != nullptr)
                             *read_feedback = current_pos;
                     }
                     else if (iResult == 0) {
@@ -513,18 +513,18 @@ namespace Platform {
                     return false;
                 }
                 else {
-                    currentThread->semaphoreWaitBegin(NULL);
+                    currentThread->semaphoreWaitBegin(nullptr);
                     currentThread->semaphoreUnLock();
 
                     ssize_t iResult = recv(fd, (char*)&data[current_pos],
                                            static_cast<ssize_t>(size - current_pos), 0);
 
-                    currentThread->semaphoreWaitDone(NULL);
+                    currentThread->semaphoreWaitDone(nullptr);
 
                     if (iResult > 0) {
                         //received some quantity of bytes...
                         current_pos += static_cast<uint32_t>(iResult);
-                        if (read_feedback != NULL)
+                        if (read_feedback != nullptr)
                             *read_feedback = current_pos;
                     }
                     else if (iResult == 0) {
@@ -619,9 +619,9 @@ namespace Platform {
             }
 
 #if defined(_WIN32)
-            if (wsa_read_event != NULL) {
+            if (wsa_read_event != nullptr) {
                 ::WSACloseEvent(wsa_read_event);
-                wsa_read_event = NULL;
+                wsa_read_event = nullptr;
             }
 #endif
             if (read_aquired) read_semaphore.release();
@@ -708,7 +708,7 @@ namespace Platform {
 
             signaled = false;
 #if defined(_WIN32)
-            wsa_accept_event = NULL;
+            wsa_accept_event = nullptr;
 #endif
 
             bool aquired = semaphore.blockingAcquire();
@@ -796,9 +796,9 @@ namespace Platform {
             }
 
 #if defined(_WIN32)
-            if (wsa_accept_event != NULL) {
+            if (wsa_accept_event != nullptr) {
                 ::WSACloseEvent(wsa_accept_event);
-                wsa_accept_event = NULL;
+                wsa_accept_event = nullptr;
             }
 #endif
 
@@ -995,12 +995,12 @@ namespace Platform {
                     return false;
                 }
                 else {
-                    currentThread->semaphoreWaitBegin(NULL);
+                    currentThread->semaphoreWaitBegin(nullptr);
                     currentThread->semaphoreUnLock();
 
                     int client_sockfd = ::accept(fd, (struct sockaddr *) &client_addr, &addrlen);
 
-                    currentThread->semaphoreWaitDone(NULL);
+                    currentThread->semaphoreWaitDone(nullptr);
 
                     if (client_sockfd >= 0) {
                         //valid client socket

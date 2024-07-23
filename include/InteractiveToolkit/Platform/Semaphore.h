@@ -33,12 +33,12 @@ namespace Platform
             // signaled = false;
 #if defined(_WIN32)
             semaphore = CreateSemaphore(
-                NULL,     // default security attributes
+                nullptr,     // default security attributes
                 count,    // initial count
                 LONG_MAX, // count,  // maximum count
-                NULL      // unnamed semaphore
+                nullptr      // unnamed semaphore
             );
-            ITK_ABORT(semaphore == NULL, "CreateSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+            ITK_ABORT(semaphore == nullptr, "CreateSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__)
             sem_init(&semaphore, 0, count); // 0 means is a semaphore bound to threads
 #elif defined(__APPLE__)
@@ -48,9 +48,9 @@ namespace Platform
         ~Semaphore()
         {
 #if defined(_WIN32)
-            if (semaphore != NULL)
+            if (semaphore != nullptr)
                 CloseHandle(semaphore);
-            semaphore = NULL;
+            semaphore = nullptr;
 #elif defined(__linux__)
             sem_destroy(&semaphore);
 #elif defined(__APPLE__)
@@ -174,14 +174,14 @@ namespace Platform
 
             ts.tv_sec += ts_increment.tv_sec;
 
-            currentThread->semaphoreWaitBegin(NULL);
+            currentThread->semaphoreWaitBegin(nullptr);
             currentThread->semaphoreUnLock();
             int s = fake_sem_timedwait(&semaphore, &ts, ignore_signal);
             if (ignore_signal){
                 while ((s == -1 && errno != ETIMEDOUT))
                     s = fake_sem_timedwait(&semaphore, &ts, ignore_signal);
             }
-            currentThread->semaphoreWaitDone(NULL);
+            currentThread->semaphoreWaitDone(nullptr);
 
             // currentThread->isCurrentThreadInterrupted() ||
             if ((s == -1 && errno != ETIMEDOUT))
@@ -248,7 +248,7 @@ namespace Platform
             }
             else
             {
-                currentThread->semaphoreWaitBegin(NULL);
+                currentThread->semaphoreWaitBegin(nullptr);
                 currentThread->semaphoreUnLock();
                 signaled = (fake_sem_wait(&semaphore, ignore_signal) != 0);
 
@@ -258,7 +258,7 @@ namespace Platform
                         signaled = (fake_sem_wait(&semaphore, ignore_signal) != 0);
                 }
 
-                currentThread->semaphoreWaitDone(NULL);
+                currentThread->semaphoreWaitDone(nullptr);
             }
 
             return !signaled;
@@ -268,7 +268,7 @@ namespace Platform
         void release()
         {
 #if defined(_WIN32)
-            BOOL result = ReleaseSemaphore(semaphore, 1, NULL);
+            BOOL result = ReleaseSemaphore(semaphore, 1, nullptr);
             ITK_ABORT(!result, "ReleaseSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__)
             sem_post(&semaphore);

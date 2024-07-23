@@ -20,7 +20,7 @@ namespace Platform
     {
         if (fd == STDOUT_FILENO | fd == STDERR_FILENO)
         {
-            int o_fd = open("/dev/null", O_WRONLY);
+            int o_fd = open("/dev/nullptr", O_WRONLY);
             if (o_fd != -1)
             {
                 dup2(o_fd, fd);
@@ -33,7 +33,7 @@ namespace Platform
         }
         else if (fd == STDIN_FILENO)
         {
-            int o_fd = open("/dev/null", O_RDONLY);
+            int o_fd = open("/dev/nullptr", O_RDONLY);
             if (o_fd != -1)
             {
                 dup2(o_fd, fd);

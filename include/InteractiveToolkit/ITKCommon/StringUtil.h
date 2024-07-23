@@ -36,7 +36,7 @@ namespace ITKCommon
         ITK_INLINE const char *char_ptr() const
         {
             if (char_buffer.size() == 0)
-                return NULL;
+                return nullptr;
             return &char_buffer[0];
         }
 
@@ -48,7 +48,7 @@ namespace ITKCommon
         ITK_INLINE const wchar_t *wchar_ptr() const
         {
             if (wchar_buffer.size() == 0)
-                return NULL;
+                return nullptr;
             return &wchar_buffer[0];
         }
 
@@ -77,7 +77,7 @@ namespace ITKCommon
             va_list args;
 
             va_start(args, format);
-            char_buffer.resize(vsnprintf(NULL, 0, format, args) + 1);
+            char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
             va_end(args);
 
             va_start(args, format);
@@ -111,7 +111,7 @@ namespace ITKCommon
             va_list args;
 
             va_start(args, format);
-            wchar_buffer.resize(vswprintf(NULL, 0, format, args) + 1);
+            wchar_buffer.resize(vswprintf(nullptr, 0, format, args) + 1);
             va_end(args);
 
             va_start(args, format);

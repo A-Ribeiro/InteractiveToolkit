@@ -65,11 +65,11 @@ namespace Platform
                     free(dup);
                 });
                 char *s = dup;
-                char *p = NULL;
+                char *p = nullptr;
                 do
                 {
                     p = strchr(s, ':');
-                    if (p != NULL)
+                    if (p != nullptr)
                     {
                         p[0] = 0;
                     }
@@ -90,7 +90,7 @@ namespace Platform
                         }
                     }
                     s = p + 1;
-                } while (p != NULL);
+                } while (p != nullptr);
                 //free(dup);
             }
             else
@@ -103,10 +103,10 @@ namespace Platform
         Process(const std::string &_lpApplicationName, const std::vector<std::string> &vector_argv, int _force_horrible_terminate_after_ms = 5000
 #if defined(_WIN32)
                         ,
-                        WindowsPipe *pipe_stdin = NULL, WindowsPipe *pipe_stdout = NULL, WindowsPipe *pipe_stderr = NULL
+                        WindowsPipe *pipe_stdin = nullptr, WindowsPipe *pipe_stdout = nullptr, WindowsPipe *pipe_stderr = nullptr
 #elif defined(__linux__) || defined(__APPLE__)
                         ,
-                        UnixPipe *pipe_stdin = NULL, UnixPipe *pipe_stdout = NULL, UnixPipe *pipe_stderr = NULL
+                        UnixPipe *pipe_stdin = nullptr, UnixPipe *pipe_stdout = nullptr, UnixPipe *pipe_stderr = nullptr
 #endif
         )
         {
@@ -126,7 +126,7 @@ namespace Platform
 
             /*
             TCHAR buffer[MAX_PATH];
-            TCHAR** lppPart = { NULL };
+            TCHAR** lppPart = { nullptr };
             DWORD retval = GetFullPathName(
                 lpApplicationName.c_str(),
                 MAX_PATH,
@@ -147,28 +147,28 @@ namespace Platform
             startupInfo.cb = sizeof(startupInfo);
             ZeroMemory(&processInformation, sizeof(processInformation));
 
-            startupInfo.hStdInput = NULL;  // read from pipe
-            startupInfo.hStdOutput = NULL; // write to pipe
-            startupInfo.hStdError = NULL;  // write to pipe
+            startupInfo.hStdInput = nullptr;  // read from pipe
+            startupInfo.hStdOutput = nullptr; // write to pipe
+            startupInfo.hStdError = nullptr;  // write to pipe
 
-            if (pipe_stdin != NULL)
+            if (pipe_stdin != nullptr)
                 startupInfo.hStdInput = pipe_stdin->read_fd; // read from pipe
-            if (pipe_stdout != NULL)
+            if (pipe_stdout != nullptr)
                 startupInfo.hStdOutput = pipe_stdout->write_fd; // write to pipe
-            if (pipe_stderr != NULL)
+            if (pipe_stderr != nullptr)
                 startupInfo.hStdError = pipe_stderr->write_fd; // write to pipe
 
             startupInfo.dwFlags |= STARTF_USESTDHANDLES;
 
             // start the program up
-            process_created = CreateProcess(NULL,                   //(LPCTSTR)lpApplicationName.c_str(),   // the path
+            process_created = CreateProcess(nullptr,                   //(LPCTSTR)lpApplicationName.c_str(),   // the path
                                             (LPSTR)&commandLine[0], // Command line
-                                            NULL,                   // Process handle not inheritable
-                                            NULL,                   // Thread handle not inheritable
+                                            nullptr,                   // Process handle not inheritable
+                                            nullptr,                   // Thread handle not inheritable
                                             TRUE,                   // Set handle inheritance to FALSE
                                             0,                      // CREATE_NEW_PROCESS_GROUP, // No creation flags // CREATE_NEW_CONSOLE |
-                                            NULL,                   // Use parent's environment block
-                                            NULL,                   // Use parent's starting directory
+                                            nullptr,                   // Use parent's environment block
+                                            nullptr,                   // Use parent's starting directory
                                             &startupInfo,           // Pointer to STARTUPINFO structure
                                             &processInformation     // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
             );
@@ -179,11 +179,11 @@ namespace Platform
                 snprintf(aux, 64, "p%u", processInformation.dwProcessId);
                 pid_str = aux;
 
-                if (pipe_stdin != NULL)
+                if (pipe_stdin != nullptr)
                     pipe_stdin->closeReadFD(); // read from pipe
-                if (pipe_stdout != NULL)
+                if (pipe_stdout != nullptr)
                     pipe_stdout->closeWriteFD(); // write to pipe
-                if (pipe_stderr != NULL)
+                if (pipe_stderr != nullptr)
                     pipe_stderr->closeWriteFD(); // write to pipe
             }
 
@@ -195,11 +195,11 @@ namespace Platform
                 // search executable in path variable
                 char *dup = strdup(getenv("PATH"));
                 char *s = dup;
-                char *p = NULL;
+                char *p = nullptr;
                 do
                 {
                     p = strchr(s, ':');
-                    if (p != NULL)
+                    if (p != nullptr)
                     {
                         p[0] = 0;
                     }
@@ -219,7 +219,7 @@ namespace Platform
                         }
                     }
                     s = p + 1;
-                } while (p != NULL);
+                } while (p != nullptr);
                 free(dup);
             }
 
@@ -228,7 +228,7 @@ namespace Platform
             {
                 // child process
                 // set pipes
-                if (pipe_stdin == NULL)
+                if (pipe_stdin == nullptr)
                     SinkStdFD(STDIN_FILENO);
                 else
                 {
@@ -236,7 +236,7 @@ namespace Platform
                     pipe_stdin->close();
                 }
 
-                if (pipe_stdout == NULL)
+                if (pipe_stdout == nullptr)
                     SinkStdFD(STDOUT_FILENO);
                 else
                 {
@@ -244,7 +244,7 @@ namespace Platform
                     pipe_stdout->close();
                 }
 
-                if (pipe_stderr == NULL)
+                if (pipe_stderr == nullptr)
                     SinkStdFD(STDERR_FILENO);
                 else
                 {
@@ -256,7 +256,7 @@ namespace Platform
 
                 std::vector<std::string> vector_argv_local = vector_argv;
                 std::vector<char *> argv(vector_argv.size() + 2);
-                argv[vector_argv.size() + 2 - 1] = NULL;
+                argv[vector_argv.size() + 2 - 1] = nullptr;
                 for (size_t i = 0; i < vector_argv.size(); i++)
                 {
                     //printf("[Process] argv[%i] = %s\n", (int)i, vector_argv_local[i].data());
@@ -265,7 +265,7 @@ namespace Platform
                 // printf("[Process] %s %s\n", lpApplicationName.c_str(), commandLine.c_str());
 
                 argv[0] = &lpApplicationName[0];
-                // char* const envp[] = { NULL,NULL };
+                // char* const envp[] = { nullptr,nullptr };
                 // printf("Will execute: %s\n",lpApplicationName.c_str());
                 execve(lpApplicationName.c_str(), argv.data(), environ); // envp);
 
@@ -278,13 +278,13 @@ namespace Platform
             else
             {
                 // close unused host side pipe writter/reader
-                if (pipe_stdin != NULL)
+                if (pipe_stdin != nullptr)
                     pipe_stdin->closeReadFD();
 
-                if (pipe_stdout != NULL)
+                if (pipe_stdout != nullptr)
                     pipe_stdout->closeWriteFD();
 
-                if (pipe_stderr != NULL)
+                if (pipe_stderr != nullptr)
                     pipe_stderr->closeWriteFD();
             }
 

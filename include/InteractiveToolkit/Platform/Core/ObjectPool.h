@@ -21,7 +21,7 @@ namespace Platform {
 
             ObjectPoolElement() {
                 ignore_placement_new_delete = false;
-                data = NULL;
+                data = nullptr;
             }
 
             bool operator >(const ObjectPoolElement&b)const {
@@ -58,7 +58,7 @@ namespace Platform {
             Platform::AutoLock autoLock(&mutex);
 
             while (available.size() > 0) {
-                ObjectPoolElement element = available.dequeue(NULL,true);
+                ObjectPoolElement element = available.dequeue(nullptr,true);
                 if (!element.ignore_placement_new_delete)
                     new (element.data) T();
                 delete element.data;

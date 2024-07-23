@@ -34,7 +34,7 @@ namespace AlgorithmCore
         ///
         /// This implementation allow the pre-allocation of the temporary buffer outside of the function.
         ///
-        /// If the 'tmp_array' is NULL, then the array is allocated and freed according the 'arrSize' parameter.
+        /// If the 'tmp_array' is nullptr, then the array is allocated and freed according the 'arrSize' parameter.
         ///
         /// Example:
         ///
@@ -48,7 +48,7 @@ namespace AlgorithmCore
         {
             using sortIndexType = SortIndex<uint32_t>;
 
-            static ITK_INLINE void sort(uint32_t *_arr, uint32_t arrSize, uint32_t *tmp_array = NULL)
+            static ITK_INLINE void sort(uint32_t *_arr, uint32_t arrSize, uint32_t *tmp_array = nullptr)
             {
 
 #if defined(ITK_SSE2)
@@ -60,7 +60,7 @@ namespace AlgorithmCore
                 __m128i counting[256];
                 uint32_t *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (uint32_t *)ITKCommon::Memory::malloc(arrSize * sizeof(uint32_t));
                 else
                     aux = tmp_array;
@@ -195,7 +195,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #else
@@ -207,7 +207,7 @@ namespace AlgorithmCore
                 uint32_t counting[256][4];
                 uint32_t *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (uint32_t *)ITKCommon::Memory::malloc(arrSize * sizeof(uint32_t));
                 else
                     aux = tmp_array;
@@ -333,13 +333,13 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #endif
             }
 
-            static ITK_INLINE void sortIndex(sortIndexType *_arr, uint32_t arrSize, sortIndexType *tmp_array = NULL)
+            static ITK_INLINE void sortIndex(sortIndexType *_arr, uint32_t arrSize, sortIndexType *tmp_array = nullptr)
             {
 #if defined(ITK_SSE2)
 
@@ -350,7 +350,7 @@ namespace AlgorithmCore
                 __m128i counting[256];
                 sortIndexType *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (sortIndexType *)ITKCommon::Memory::malloc(arrSize * sizeof(sortIndexType));
                 else
                     aux = tmp_array;
@@ -485,7 +485,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #else
@@ -497,7 +497,7 @@ namespace AlgorithmCore
                 uint32_t counting[256][4];
                 sortIndexType *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (sortIndexType *)ITKCommon::Memory::malloc(arrSize * sizeof(sortIndexType));
                 else
                     aux = tmp_array;
@@ -623,7 +623,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #endif
@@ -650,7 +650,7 @@ namespace AlgorithmCore
         ///
         /// This implementation allow the pre-allocation of the temporary buffer outside of the function.
         ///
-        /// If the 'tmp_array' is NULL, then the array is allocated and freed according the 'arrSize' parameter.
+        /// If the 'tmp_array' is nullptr, then the array is allocated and freed according the 'arrSize' parameter.
         ///
         /// Example:
         ///
@@ -664,7 +664,7 @@ namespace AlgorithmCore
         {
             using sortIndexType = SortIndex<int32_t>;
 
-            static ITK_INLINE void sort(int32_t *_arr, uint32_t arrSize, int32_t *tmp_array = NULL)
+            static ITK_INLINE void sort(int32_t *_arr, uint32_t arrSize, int32_t *tmp_array = nullptr)
             {
 #if defined(ITK_SSE2)
 
@@ -675,7 +675,7 @@ namespace AlgorithmCore
                 __m128i counting[256];
                 int32_t *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (int32_t *)ITKCommon::Memory::malloc(arrSize * sizeof(int32_t));
                 else
                     aux = tmp_array;
@@ -811,7 +811,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #else
@@ -823,7 +823,7 @@ namespace AlgorithmCore
                 uint32_t counting[256][4];
                 int32_t *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (int32_t *)ITKCommon::Memory::malloc(arrSize * sizeof(int32_t));
                 else
                     aux = tmp_array;
@@ -950,13 +950,13 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #endif
             }
 
-            static ITK_INLINE void sortIndex(sortIndexType *_arr, uint32_t arrSize, sortIndexType *tmp_array = NULL)
+            static ITK_INLINE void sortIndex(sortIndexType *_arr, uint32_t arrSize, sortIndexType *tmp_array = nullptr)
             {
 #if defined(ITK_SSE2)
 
@@ -967,7 +967,7 @@ namespace AlgorithmCore
                 __m128i counting[256];
                 sortIndexType *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (sortIndexType *)ITKCommon::Memory::malloc(arrSize * sizeof(sortIndexType));
                 else
                     aux = tmp_array;
@@ -1103,7 +1103,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #else
@@ -1115,7 +1115,7 @@ namespace AlgorithmCore
                 uint32_t counting[256][4];
                 sortIndexType *aux;
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     aux = (sortIndexType *)ITKCommon::Memory::malloc(arrSize * sizeof(sortIndexType));
                 else
                     aux = tmp_array;
@@ -1242,7 +1242,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                if (tmp_array == NULL)
+                if (tmp_array == nullptr)
                     ITKCommon::Memory::free(aux);
 
 #endif

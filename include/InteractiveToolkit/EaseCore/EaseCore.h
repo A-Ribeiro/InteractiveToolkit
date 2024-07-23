@@ -186,7 +186,7 @@ namespace EaseCore
             T delta = _endValue - _startValue;
             return (delta) * (lerp * ((_type)2 - lerp)) + _startValue;
         }
-        // public static function outQuad (t:Number, b:Number, c:Number, d:Number, p_params:Object = null):Number {
+        // public static function outQuad (t:Number, b:Number, c:Number, d:Number, p_params:Object = nullptr):Number {
         //     return -c *(t/=d)*(t-2) + b;
         // }
 

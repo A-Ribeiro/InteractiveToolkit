@@ -358,7 +358,7 @@ namespace Platform
                 this->name = name;
             }
 
-            void wait(SemaphoreIPC *mutex_semaphore, bool *_signaled = NULL)
+            void wait(SemaphoreIPC *mutex_semaphore, bool *_signaled = nullptr)
             {
                 int this_semaphore = controller.getNextSemaphore();
 
@@ -373,14 +373,14 @@ namespace Platform
 
                     controller.releaseSemaphore(this_semaphore, &signaled, true);
 
-                    if (_signaled != NULL)
+                    if (_signaled != nullptr)
                         *_signaled = true;
                     return;
                 }
 
                 controller.releaseSemaphore(this_semaphore, &signaled, false);
 
-                if (_signaled != NULL)
+                if (_signaled != nullptr)
                     *_signaled = signaled;
 
                 if (signaled){
@@ -390,7 +390,7 @@ namespace Platform
             }
 
             // Not Tested
-            void wait_for(SemaphoreIPC *mutex_semaphore, uint32_t timeout_ms, bool *_signaled = NULL)
+            void wait_for(SemaphoreIPC *mutex_semaphore, uint32_t timeout_ms, bool *_signaled = nullptr)
             {
                 int this_semaphore = controller.getNextSemaphore();
 
@@ -411,7 +411,7 @@ namespace Platform
                     bool aquired_inv = !aquired;
                     controller.releaseSemaphore(this_semaphore, &aquired_inv, true);
 
-                    if (_signaled != NULL)
+                    if (_signaled != nullptr)
                         *_signaled = true;
                     return;
                 }
@@ -419,7 +419,7 @@ namespace Platform
                 bool aquired_inv = !aquired;
                 controller.releaseSemaphore(this_semaphore, &aquired_inv, false);
 
-                if (_signaled != NULL)
+                if (_signaled != nullptr)
                     *_signaled = signaled;
                 
                 if (signaled){

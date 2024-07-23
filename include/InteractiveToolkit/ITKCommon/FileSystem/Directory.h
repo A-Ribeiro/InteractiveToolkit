@@ -35,8 +35,8 @@ namespace ITKCommon
                     memset(&findfiledata, 0, sizeof(WIN32_FIND_DATAW));
                     hFind = INVALID_HANDLE_VALUE;
 #elif defined(__APPLE__) || defined(__linux__)
-                    entry = NULL;
-                    dp = NULL;
+                    entry = nullptr;
+                    dp = nullptr;
 #endif
                 }
 
@@ -57,15 +57,15 @@ namespace ITKCommon
                     //	printf("%s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
                     // }
 #elif defined(__APPLE__) || defined(__linux__)
-                    entry = NULL;
-                    dp = NULL;
+                    entry = nullptr;
+                    dp = nullptr;
 
                     dp = opendir(base_path.c_str());
-                    if (dp != NULL)
+                    if (dp != nullptr)
                     {
                         entry = readdir(dp);
                         fileInfo.base_path = base_path;
-                        processCurrentValue(entry != NULL);
+                        processCurrentValue(entry != nullptr);
                     }
 
 #endif
@@ -80,11 +80,11 @@ namespace ITKCommon
                         hFind = INVALID_HANDLE_VALUE;
                     }
 #elif defined(__APPLE__) || defined(__linux__)
-                    if (dp != NULL)
+                    if (dp != nullptr)
                     {
                         closedir(dp);
-                        dp = NULL;
-                        entry = NULL;
+                        dp = nullptr;
+                        entry = nullptr;
                     }
 #endif
                 }
@@ -105,14 +105,14 @@ namespace ITKCommon
                     bool next_valid = FindNextFileW(hFind, &findfiledata) == TRUE;
                     processCurrentValue(next_valid);
 #elif defined(__APPLE__) || defined(__linux__)
-                    if (dp == NULL)
+                    if (dp == nullptr)
                     {
                         fileInfo = value_type();
                         return *this;
                     }
 
                     entry = readdir(dp);
-                    bool next_valid = entry != NULL;
+                    bool next_valid = entry != nullptr;
                     processCurrentValue(next_valid);
 #endif
                     return *this;
@@ -147,8 +147,8 @@ namespace ITKCommon
                     memset(&findfiledata, 0, sizeof(WIN32_FIND_DATAW));
                     hFind = INVALID_HANDLE_VALUE;
 #elif defined(__APPLE__) || defined(__linux__)
-                    entry = NULL;
-                    dp = NULL;
+                    entry = nullptr;
+                    dp = nullptr;
 #endif
 
                     fileInfo = v.fileInfo;
@@ -159,8 +159,8 @@ namespace ITKCommon
                     memset(&findfiledata, 0, sizeof(WIN32_FIND_DATAW));
                     hFind = INVALID_HANDLE_VALUE;
 #elif defined(__APPLE__) || defined(__linux__)
-                    entry = NULL;
-                    dp = NULL;
+                    entry = nullptr;
+                    dp = nullptr;
 #endif
 
                     fileInfo = v.fileInfo;
@@ -181,8 +181,8 @@ namespace ITKCommon
                     memset(&v.findfiledata, 0, sizeof(WIN32_FIND_DATAW));
                     v.hFind = INVALID_HANDLE_VALUE;
 #elif defined(__APPLE__) || defined(__linux__)
-                    v.entry = NULL;
-                    v.dp = NULL;
+                    v.entry = nullptr;
+                    v.dp = nullptr;
 #endif
                     v.fileInfo = value_type();
                 }
@@ -202,8 +202,8 @@ namespace ITKCommon
                     memset(&v.findfiledata, 0, sizeof(WIN32_FIND_DATAW));
                     v.hFind = INVALID_HANDLE_VALUE;
 #elif defined(__APPLE__) || defined(__linux__)
-                    v.entry = NULL;
-                    v.dp = NULL;
+                    v.entry = nullptr;
+                    v.dp = nullptr;
 #endif
                     v.fileInfo = value_type();
                 }
@@ -243,18 +243,18 @@ namespace ITKCommon
                         // date processing
                         SYSTEMTIME stUTC; //, stLocal;
                         FileTimeToSystemTime(&findfiledata.ftLastWriteTime, &stUTC);
-                        // SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+                        // SystemTimeToTzSpecificLocalTime(nullptr, &stUTC, &stLocal);
                         fileInfo.lastWriteTime = Date::FromSystemTime_win32(stUTC);
 
                         FileTimeToSystemTime(&findfiledata.ftCreationTime, &stUTC);
-                        // SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+                        // SystemTimeToTzSpecificLocalTime(nullptr, &stUTC, &stLocal);
                         fileInfo.creationTime = Date::FromSystemTime_win32(stUTC);
 
                         fileInfo.size =
                             ((uint64_t)findfiledata.nFileSizeHigh << 32) | (uint64_t)findfiledata.nFileSizeLow & UINT64_C(0xffffffff);
                     }
 #elif defined(__APPLE__) || defined(__linux__)
-                    if (dp == NULL)
+                    if (dp == nullptr)
                         return;
 
                     // skip . and ..
@@ -276,7 +276,7 @@ namespace ITKCommon
                         {
                             // printf("cannot stat: %s\n", entry->d_name);
                             entry = readdir(dp);
-                            next_valid = entry != NULL;
+                            next_valid = entry != nullptr;
                             if (next_valid)
                             {
                                 fileInfo.full_path = fileInfo.base_path + entry->d_name;
@@ -291,7 +291,7 @@ namespace ITKCommon
                             strcmp(entry->d_name, "..") == 0))
                     {
                         entry = readdir(dp);
-                        next_valid = entry != NULL;
+                        next_valid = entry != nullptr;
                         if (next_valid)
                         {
                             fileInfo.full_path = fileInfo.base_path + entry->d_name;
@@ -302,7 +302,7 @@ namespace ITKCommon
                             {
                                 // printf("cannot stat: %s\n", entry->d_name);
                                 entry = readdir(dp);
-                                next_valid = entry != NULL;
+                                next_valid = entry != nullptr;
                                 if (next_valid)
                                 {
                                     fileInfo.full_path = fileInfo.base_path + entry->d_name;
@@ -315,8 +315,8 @@ namespace ITKCommon
                     if (!next_valid || !stat_success)
                     {
                         closedir(dp);
-                        dp = NULL;
-                        entry = NULL;
+                        dp = nullptr;
+                        entry = nullptr;
                         fileInfo = value_type();
                     }
                     else
@@ -417,18 +417,18 @@ namespace ITKCommon
                 return File::FromPath(this->base_path);
             }
 
-            static bool mkdir(const char* dirname, std::string *errorStr = NULL) {
+            static bool mkdir(const char* dirname, std::string *errorStr = nullptr) {
 #if defined(_WIN32)
                 std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
-                if (CreateDirectoryW(_wstr.c_str(), NULL) == FALSE){
-                    if (errorStr != NULL)
+                if (CreateDirectoryW(_wstr.c_str(), nullptr) == FALSE){
+                    if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
                 if (::mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
-                    if (errorStr != NULL)
+                    if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
                 }
@@ -436,26 +436,26 @@ namespace ITKCommon
 #endif
             }
 
-            static bool rename(const char* src_dirname, const char* dst_dirname, std::string *errorStr = NULL) {
+            static bool rename(const char* src_dirname, const char* dst_dirname, std::string *errorStr = nullptr) {
                 return File::rename(src_dirname, dst_dirname, errorStr);
             }
 
-            static bool move(const char* src_dirname, const char* dst_dirname, std::string *errorStr = NULL) {
+            static bool move(const char* src_dirname, const char* dst_dirname, std::string *errorStr = nullptr) {
                 return File::rename(src_dirname, dst_dirname, errorStr);
             }
 
-            static bool remove(const char* dirname, std::string *errorStr = NULL) {
+            static bool remove(const char* dirname, std::string *errorStr = nullptr) {
 #if defined(_WIN32)
                 std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
                 if (RemoveDirectoryW(_wstr.c_str()) == FALSE){
-                    if (errorStr != NULL)
+                    if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
                 if (::remove(dirname) != 0 ) {
-                    if (errorStr != NULL)
+                    if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
                 }

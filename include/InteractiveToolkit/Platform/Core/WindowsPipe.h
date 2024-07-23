@@ -7,7 +7,7 @@
 #include "../platform_common.h"
 #include "ObjectBuffer.h"
 
-#define WIN_INVALID_FD NULL
+#define WIN_INVALID_FD nullptr
 // #define PIPE_READ_FD 0
 // #define PIPE_WRITE_FD 1
 
@@ -57,10 +57,10 @@ namespace Platform
             read_fd = WIN_INVALID_FD;
             write_fd = WIN_INVALID_FD;
 
-            read_event = NULL;
+            read_event = nullptr;
 
-            read_event = CreateEvent(0, TRUE, FALSE, NULL);
-            ITK_ABORT(read_event == NULL, "Error to create Event. Message: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+            read_event = CreateEvent(0, TRUE, FALSE, nullptr);
+            ITK_ABORT(read_event == nullptr, "Error to create Event. Message: %s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 
             ZeroMemory(&overlapped, sizeof(OVERLAPPED));
             overlapped.hEvent = read_event;
@@ -101,7 +101,7 @@ namespace Platform
                 &sa,
                 OPEN_EXISTING,
                 FILE_FLAG_OVERLAPPED,
-                NULL);
+                nullptr);
 
             ITK_ABORT(write_fd == INVALID_HANDLE_VALUE, "%s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
         }
@@ -120,7 +120,7 @@ namespace Platform
             // WriteFile
             DWORD written = 0;
 
-            bool bool_result = ::WriteFile(write_fd, buffer, (DWORD)size, &written, NULL);
+            bool bool_result = ::WriteFile(write_fd, buffer, (DWORD)size, &written, nullptr);
 
             // can have another returns
             if (!bool_result)
@@ -402,10 +402,10 @@ namespace Platform
             closeReadFD();
             closeWriteFD();
 
-            if (read_event != NULL)
+            if (read_event != nullptr)
             {
                 CloseHandle(read_event);
-                read_event = NULL;
+                read_event = nullptr;
             }
         }
     };

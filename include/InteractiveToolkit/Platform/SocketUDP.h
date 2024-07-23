@@ -275,8 +275,8 @@ namespace Platform
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
             int rc = WSAIoctl(fd, SIO_UDP_CONNRESET,
                               &bNewBehavior, sizeof(BOOL),
-                              NULL, 0, &dwBytesReturned,
-                              NULL, NULL);
+                              nullptr, 0, &dwBytesReturned,
+                              nullptr, nullptr);
         }
 
 #endif
@@ -318,12 +318,12 @@ namespace Platform
         bool write_buffer(
             const struct sockaddr_in &target_address,
             const uint8_t *data, uint32_t size,
-            uint32_t *write_feedback = NULL)
+            uint32_t *write_feedback = nullptr)
         {
 
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
-                if (write_feedback != NULL)
+                if (write_feedback != nullptr)
                     *write_feedback = 0;
                 return false;
             }
@@ -338,7 +338,7 @@ namespace Platform
             if (iResult >= 0)
             {
 
-                if (write_feedback != NULL)
+                if (write_feedback != nullptr)
                     *write_feedback = static_cast<uint32_t>(iResult);
 
                 return true;
@@ -356,7 +356,7 @@ namespace Platform
                     // printf("non block write skip\n");
 
                     // non-blocking socket event
-                    if (write_feedback != NULL)
+                    if (write_feedback != nullptr)
                         *write_feedback = 0;
                     return false;
                 }
@@ -364,7 +364,7 @@ namespace Platform
                 {
                     // socket error...
                     printf("sendto failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                    if (write_feedback != NULL)
+                    if (write_feedback != nullptr)
                         *write_feedback = 0;
                     return false;
                 }
@@ -378,7 +378,7 @@ namespace Platform
 
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
-                if (read_feedback != NULL)
+                if (read_feedback != nullptr)
                     *read_feedback = 0;
                 return false;
             }
@@ -408,7 +408,7 @@ namespace Platform
 
                 if (dwWaitResult == WAIT_TIMEOUT)
                 {
-                    if (read_feedback != NULL)
+                    if (read_feedback != nullptr)
                         *read_feedback = 0;
                     return false;
                 }
@@ -418,7 +418,7 @@ namespace Platform
                     if (dwWaitResult == WAIT_OBJECT_0 + 1)
                     {
                         // signaled = true;
-                        if (read_feedback != NULL)
+                        if (read_feedback != nullptr)
                             *read_feedback = 0;
                         return false;
                     }
@@ -451,7 +451,7 @@ namespace Platform
                 }
                 else
                 {
-                    currentThread->semaphoreWaitBegin(NULL);
+                    currentThread->semaphoreWaitBegin(nullptr);
                     currentThread->semaphoreUnLock();
 #endif
 
@@ -464,13 +464,13 @@ namespace Platform
                                 &addr_len);
 
 #if !defined(_WIN32)
-                            currentThread->semaphoreWaitDone(NULL);
+                            currentThread->semaphoreWaitDone(nullptr);
 #endif
 
                             if (iResult >= 0)
                             {
 
-                                if (read_feedback != NULL)
+                                if (read_feedback != nullptr)
                                     *read_feedback = static_cast<uint32_t>(iResult);
 
                                 return true;
@@ -488,7 +488,7 @@ namespace Platform
                                     // printf("non block receive skip\n");
 
                                     // non-blocking socket event
-                                    if (read_feedback != NULL)
+                                    if (read_feedback != nullptr)
                                         *read_feedback = 0;
                                     return false;
                                 }
@@ -496,12 +496,12 @@ namespace Platform
                                 {
                                     // socket error...
                                     printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                                    if (read_feedback != NULL)
+                                    if (read_feedback != nullptr)
                                         *read_feedback = 0;
                                     return false;
                                 }
 
-                                if (read_feedback != NULL)
+                                if (read_feedback != nullptr)
                                     *read_feedback = 0;
                                 return false;
                             }
@@ -526,7 +526,7 @@ namespace Platform
                 if (iResult >= 0)
                 {
 
-                    if (read_feedback != NULL)
+                    if (read_feedback != nullptr)
                         *read_feedback = static_cast<uint32_t>(iResult);
 
                     return true;
@@ -544,7 +544,7 @@ namespace Platform
                         // printf("non block receive skip\n");
 
                         // non-blocking socket event
-                        if (read_feedback != NULL)
+                        if (read_feedback != nullptr)
                             *read_feedback = 0;
                         return false;
                     }
@@ -552,18 +552,18 @@ namespace Platform
                     {
                         // socket error...
                         printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                        if (read_feedback != NULL)
+                        if (read_feedback != nullptr)
                             *read_feedback = 0;
                         return false;
                     }
 
-                    if (read_feedback != NULL)
+                    if (read_feedback != nullptr)
                         *read_feedback = 0;
                     return false;
                 }
             }
 
-            if (read_feedback != NULL)
+            if (read_feedback != nullptr)
                 *read_feedback = 0;
             return false;
         }

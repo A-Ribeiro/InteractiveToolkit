@@ -41,7 +41,7 @@ namespace Platform
                 lock(true);
                 bool is_last_buffer = false;
 
-                if (buffer_handle != BUFFER_HANDLE_NULL)
+                if (buffer_handle != BUFFER_HANDLE_nullptr)
                 {
                     uint32_t *count = (uint32_t *)&real_data_ptr[size];
                     is_last_buffer = ((*count) - 1) == 0;
@@ -50,7 +50,7 @@ namespace Platform
 
                 lock();
 
-                if (buffer_handle != BUFFER_HANDLE_NULL)
+                if (buffer_handle != BUFFER_HANDLE_nullptr)
                 {
 
                     uint32_t *count = (uint32_t *)&real_data_ptr[size];
@@ -68,14 +68,14 @@ namespace Platform
                     close(buffer_handle); // close FD
                                           // shm_unlink(buffer_name.c_str());
 #endif
-                    buffer_handle = BUFFER_HANDLE_NULL;
-                    real_data_ptr = NULL;
-                    data = NULL;
+                    buffer_handle = BUFFER_HANDLE_nullptr;
+                    real_data_ptr = nullptr;
+                    data = nullptr;
                 }
 
                 unlock();
 
-                if (buffer_semaphore != NULL)
+                if (buffer_semaphore != nullptr)
                 {
 #if defined(_WIN32)
                     CloseHandle(buffer_semaphore);
@@ -83,7 +83,7 @@ namespace Platform
                     sem_close(buffer_semaphore);
                     // sem_unlink(semaphore_name.c_str());
 #endif
-                    buffer_semaphore = NULL;
+                    buffer_semaphore = nullptr;
 
 #if !defined(_WIN32)
                     // unlink all resources
@@ -171,7 +171,7 @@ namespace Platform
                 else
                 {
                     // while semaphore is signaled, try to aquire until block...
-                    if (buffer_semaphore != NULL)
+                    if (buffer_semaphore != nullptr)
                         while (sem_wait(buffer_semaphore) != 0)
                             ;
                 }
@@ -182,7 +182,7 @@ namespace Platform
             {
 #if defined(_WIN32)
                 // release semaphore
-                ITK_ABORT(!ReleaseSemaphore(buffer_semaphore, 1, NULL), "Error to unlock queue semaphore. Error code: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+                ITK_ABORT(!ReleaseSemaphore(buffer_semaphore, 1, nullptr), "Error to unlock queue semaphore. Error code: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__) || defined(__APPLE__)
                 if (from_constructor)
                 {
@@ -196,7 +196,7 @@ namespace Platform
                 }
                 else
                 {
-                    if (buffer_semaphore != NULL)
+                    if (buffer_semaphore != nullptr)
                         sem_post(buffer_semaphore);
                 }
 #endif
@@ -231,8 +231,8 @@ namespace Platform
 
                 size = buffer_size_;
 
-                buffer_semaphore = NULL;
-                buffer_handle = BUFFER_HANDLE_NULL;
+                buffer_semaphore = nullptr;
+                buffer_handle = BUFFER_HANDLE_nullptr;
 
                 this->name = name;
 
@@ -283,7 +283,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 // open the buffer memory section
-                buffer_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size + sizeof(uint32_t), buffer_name.c_str());
+                buffer_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, size + sizeof(uint32_t), buffer_name.c_str());
                 if (buffer_handle == 0)
                 {
                     unlock(true);
@@ -321,7 +321,7 @@ namespace Platform
                                          S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 if (buffer_handle == -1)
                 {
-                    buffer_handle = BUFFER_HANDLE_NULL;
+                    buffer_handle = BUFFER_HANDLE_nullptr;
                     unlock(true);
                     ITK_ABORT(true, "Error to create the buffer IPC queue. Error code: %s\n", strerror(errno));
                 }
@@ -350,7 +350,7 @@ namespace Platform
 
                 if (buffer_semaphore == SEM_FAILED)
                 {
-                    buffer_semaphore = NULL;
+                    buffer_semaphore = nullptr;
                     ITK_ABORT(true, "Error to create global semaphore. Error code: %s\n", strerror(errno));
                 }
 
@@ -358,7 +358,7 @@ namespace Platform
 
                 // if (mode == (BufferIPC_READ | BufferIPC_WRITE)) {
                 real_data_ptr = (uint8_t *)mmap(
-                    NULL,
+                    nullptr,
                     size + sizeof(uint32_t),
                     PROT_READ | PROT_WRITE,
                     MAP_SHARED,
@@ -373,7 +373,7 @@ namespace Platform
                 /*}
                 else if (mode == BufferIPC_READ) {
                     real_data_ptr = (uint8_t*)mmap(
-                        NULL,
+                        nullptr,
                         size + sizeof(uint32_t),
                         PROT_READ,
                         MAP_SHARED,
@@ -388,7 +388,7 @@ namespace Platform
                 }
                 else if (mode == BufferIPC_WRITE) {
                     real_data_ptr = (uint8_t*)mmap(
-                        NULL,
+                        nullptr,
                         size + sizeof(uint32_t),
                         PROT_WRITE,
                         MAP_SHARED,

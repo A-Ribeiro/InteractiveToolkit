@@ -26,7 +26,7 @@ namespace Platform
     static ITK_INLINE uint64_t GetCurrentThreadId_Custom()
     {
         uint64_t tid;
-        pthread_threadid_np(NULL, &tid);
+        pthread_threadid_np(nullptr, &tid);
         return tid;
     }
 
@@ -95,9 +95,9 @@ namespace Platform
         Thread *getThreadByID(const ThreadIdentifier &tid)
         {
             // if (threadData.size() <= 0)
-            //     return NULL;
+            //     return nullptr;
 
-            Thread *result = NULL;
+            Thread *result = nullptr;
 
             // threadDataLock.lock();
             semaphore.acquire();

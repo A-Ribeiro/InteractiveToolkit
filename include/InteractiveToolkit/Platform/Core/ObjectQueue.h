@@ -304,11 +304,11 @@ namespace Platform {
             return T();
         }
 
-        T dequeue(bool *isSignaled = NULL, bool ignoreSignal = false) {
+        T dequeue(bool *isSignaled = nullptr, bool ignoreSignal = false) {
 
             if (blocking) {
                 if (!semaphore.blockingAcquire() && !ignoreSignal){
-                    if (isSignaled != NULL)
+                    if (isSignaled != nullptr)
                         *isSignaled = true;
                     return T();
                 }
@@ -318,7 +318,7 @@ namespace Platform {
                 list.pop_front();
                 mutex.unlock();
 
-                if (isSignaled != NULL)
+                if (isSignaled != nullptr)
                     *isSignaled = false;
                 return result;
             }
@@ -328,22 +328,22 @@ namespace Platform {
                 T result = list.front();
                 list.pop_front();
                 mutex.unlock();
-                if (isSignaled != NULL)
+                if (isSignaled != nullptr)
                     *isSignaled = false;
                 return result;
             }
             mutex.unlock();
 
-            if (isSignaled != NULL)
+            if (isSignaled != nullptr)
                 *isSignaled = false;
             return T();
         }
 
-        T rdequeue(bool *isSignaled = NULL, bool ignoreSignal = false) {
+        T rdequeue(bool *isSignaled = nullptr, bool ignoreSignal = false) {
 
             if (blocking) {
                 if (!semaphore.blockingAcquire() && !ignoreSignal) {
-                    if (isSignaled != NULL)
+                    if (isSignaled != nullptr)
                         *isSignaled = true;
                     return T();
                 }
@@ -352,7 +352,7 @@ namespace Platform {
                 T result = list.back();
                 list.pop_back();
                 mutex.unlock();
-                if (isSignaled != NULL)
+                if (isSignaled != nullptr)
                     *isSignaled = false;
                 return result;
             }
@@ -362,12 +362,12 @@ namespace Platform {
                 T result = list.back();
                 list.pop_back();
                 mutex.unlock();
-                if (isSignaled != NULL)
+                if (isSignaled != nullptr)
                     *isSignaled = false;
                 return result;
             }
             mutex.unlock();
-            if (isSignaled != NULL)
+            if (isSignaled != nullptr)
                 *isSignaled = false;
             return T();
         }

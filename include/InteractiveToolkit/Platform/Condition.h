@@ -22,10 +22,10 @@ namespace Platform
     public:
         Condition()
         {
-            mtx = NULL;
+            mtx = nullptr;
         }
 
-        void wait(Mutex *mutex, bool *_signaled = NULL)
+        void wait(Mutex *mutex, bool *_signaled = nullptr)
         {
             //Semaphore *this_semaphore = new Semaphore(0);
 
@@ -59,7 +59,7 @@ namespace Platform
                     signaled = false;
                 }
 
-                if (_signaled != NULL)
+                if (_signaled != nullptr)
                     *_signaled = signaled;
 
                 if (signaled)
@@ -69,7 +69,7 @@ namespace Platform
                         notifiable.erase(it);
 
                     if (notifiable.size() == 0)
-                        mtx = NULL;
+                        mtx = nullptr;
                 }
             }
 
@@ -77,7 +77,7 @@ namespace Platform
             local_semaphores.release(this_semaphore);
         }
 
-        void wait_for(Mutex *mutex, uint32_t timeout_ms, bool *_signaled = NULL)
+        void wait_for(Mutex *mutex, uint32_t timeout_ms, bool *_signaled = nullptr)
         {
 
             Semaphore *this_semaphore = new Semaphore(0);
@@ -108,7 +108,7 @@ namespace Platform
                     signaled = false;
                 }
 
-                if (_signaled != NULL)
+                if (_signaled != nullptr)
                     *_signaled = signaled;
 
                 if (signaled || !aquired)
@@ -118,7 +118,7 @@ namespace Platform
                         notifiable.erase(it);
 
                     if (notifiable.size() == 0)
-                        mtx = NULL;
+                        mtx = nullptr;
                 }
             }
 
@@ -129,14 +129,14 @@ namespace Platform
         {
             AutoLock lk(&internal_lock);
 
-            if (mtx == NULL)
+            if (mtx == nullptr)
                 return;
 
             AutoLock lock(mtx);
 
             if (notifiable.size() == 0)
             {
-                mtx = NULL;
+                mtx = nullptr;
                 return;
             }
 
@@ -146,21 +146,21 @@ namespace Platform
             sem_to_notify->release();
 
             if (notifiable.size() == 0)
-                mtx = NULL;
+                mtx = nullptr;
         }
 
         void notify_all()
         {
             AutoLock lk(&internal_lock);
 
-            if (mtx == NULL)
+            if (mtx == nullptr)
                 return;
 
             AutoLock lock(mtx);
 
             if (notifiable.size() == 0)
             {
-                mtx = NULL;
+                mtx = nullptr;
                 return;
             }
 
@@ -171,7 +171,7 @@ namespace Platform
             }
             notifiable.clear();
 
-            mtx = NULL;
+            mtx = nullptr;
         }
     };
 

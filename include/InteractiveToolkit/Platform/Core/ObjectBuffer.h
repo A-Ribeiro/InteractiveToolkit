@@ -40,7 +40,7 @@ namespace Platform {
 		}
 
 		ObjectBuffer() {
-			data = NULL;
+			data = nullptr;
 			size = 0;
 			alloc_size = 0;
             align = 32;
@@ -93,11 +93,11 @@ namespace Platform {
 
 		ObjectBuffer* free() {
 			Platform::AutoLock autoLock(&mutex);
-			if (!constructed_from_external_buffer && data != NULL) {
+			if (!constructed_from_external_buffer && data != nullptr) {
 				ITKCommon::Memory::free(data);
 			}
 
-			data = NULL;
+			data = nullptr;
 			size = 0;
 			alloc_size = 0;
 			constructed_from_external_buffer = false;

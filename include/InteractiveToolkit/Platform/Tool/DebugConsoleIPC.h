@@ -58,7 +58,7 @@ namespace Platform
                 va_list args;
 
                 va_start(args, format);
-                char_buffer.resize(vsnprintf(NULL, 0, format, args) + 1);
+                char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
                 va_end(args);
 
                 va_start(args, format);

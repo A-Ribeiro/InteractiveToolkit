@@ -27,10 +27,10 @@ namespace Platform
     static int fake_sem_init(fake_sem_t* psem, int flags, unsigned count) {
         fake_sem_t pnewsem;
         int result;
-        result = pthread_mutex_init(&pnewsem.mutex, NULL);
+        result = pthread_mutex_init(&pnewsem.mutex, nullptr);
         if (result)
             return result;
-        result = pthread_cond_init(&pnewsem.cond_var, NULL);
+        result = pthread_cond_init(&pnewsem.cond_var, nullptr);
         if (result) {
             pthread_mutex_destroy(&pnewsem.mutex);
             return result;

@@ -142,7 +142,7 @@ namespace ITKCommon
             if (useKnownFolders())
             { // Vista+ has a "Saved Games" known folder
                 PWSTR wdest;
-                SHGetKnownFolderPath_Custom(FOLDERID_SavedGames, 0, NULL, &wdest);
+                SHGetKnownFolderPath_Custom(FOLDERID_SavedGames, 0, nullptr, &wdest);
                 // copy to szpath
                 // wsprintfW(szPath, TEXT("%s"), wdest);
                 wsprintfW(szPath, L"%s", wdest);
@@ -150,15 +150,15 @@ namespace ITKCommon
             }
             else
             { // use My Documents\My Games\<baseDirName>
-                SHGetFolderPath_Custom(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
+                SHGetFolderPath_Custom(nullptr, CSIDL_PERSONAL, nullptr, 0, szPath);
                 // PathAppendW(szPath, TEXT("My Games"));
                 PathAppendW(szPath, L"My Games");
-                CreateDirectoryW(szPath, NULL);
+                CreateDirectoryW(szPath, nullptr);
             }
             PathAppendW(szPath, baseDirName);
-            CreateDirectoryW(szPath, NULL);
+            CreateDirectoryW(szPath, nullptr);
             PathAppendW(szPath, gameDirName);
-            CreateDirectoryW(szPath, NULL);
+            CreateDirectoryW(szPath, nullptr);
 
             memset(dest, 0, size);
 
@@ -177,7 +177,7 @@ namespace ITKCommon
             if (useKnownFolders())
             { // Vista+ has a "Saved Games" known folder
                 PWSTR wdest;
-                SHGetKnownFolderPath_Custom(FOLDERID_Documents, 0, NULL, &wdest);
+                SHGetKnownFolderPath_Custom(FOLDERID_Documents, 0, nullptr, &wdest);
                 // copy to szpath
                 // wsprintfW(szPath, TEXT("%s"), wdest);
                 wsprintfW(szPath, L"%s", wdest);
@@ -185,14 +185,14 @@ namespace ITKCommon
             }
             else
             { // use My Documents\My Games\<baseDirName>
-                SHGetFolderPath_Custom(NULL, CSIDL_PERSONAL, NULL, 0, szPath);
+                SHGetFolderPath_Custom(nullptr, CSIDL_PERSONAL, nullptr, 0, szPath);
                 // PathAppendW(szPath, L"My Games");
-                // CreateDirectoryW(szPath, NULL);
+                // CreateDirectoryW(szPath, nullptr);
             }
             PathAppendW(szPath, baseDirName);
-            CreateDirectoryW(szPath, NULL);
+            CreateDirectoryW(szPath, nullptr);
             PathAppendW(szPath, gameDirName);
-            CreateDirectoryW(szPath, NULL);
+            CreateDirectoryW(szPath, nullptr);
 
             memset(dest, 0, size);
 
@@ -215,14 +215,14 @@ namespace ITKCommon
 
             char *buf = (char *)malloc(bufsize);
 
-            ITK_ABORT(buf == NULL, "malloc\n");
+            ITK_ABORT(buf == nullptr, "malloc\n");
 
             passwd pwd;
             passwd *result;
 
             int s = getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
 
-            ITK_ABORT(result == NULL, "getpwuid_r errorcode: %i\n", s);
+            ITK_ABORT(result == nullptr, "getpwuid_r errorcode: %i\n", s);
             std::string resultstr = std::string(result->pw_dir);
 
             free(buf);
@@ -280,7 +280,7 @@ namespace ITKCommon
 
             dp = opendir(directory_name);
 
-            while ((ep = readdir(dp)) != NULL)
+            while ((ep = readdir(dp)) != nullptr)
             {
                 snprintf(p_buf, 512, "%s/%s", directory_name, ep->d_name);
                 if (unixIsDirectory(p_buf))
@@ -331,7 +331,7 @@ namespace ITKCommon
         {
 #if defined(_WIN32)
 
-            auto ptr = _wgetcwd(NULL, 0);
+            auto ptr = _wgetcwd(nullptr, 0);
             if (!ptr)
                 return "";
             std::string result = StringUtil::wString_to_String(ptr);
@@ -340,7 +340,7 @@ namespace ITKCommon
 
 #elif defined(__APPLE__) || defined(__linux__)
 
-            auto ptr = getcwd(NULL, 0);
+            auto ptr = getcwd(nullptr, 0);
             if (!ptr)
                 return "";
             std::string result = ptr;
@@ -410,7 +410,7 @@ namespace ITKCommon
 #elif defined(__APPLE__) || defined(__linux__)
             size_t path_directory_index = arg0.find_last_of('/');
             auto str = arg0.substr(0, path_directory_index);
-            auto ptr = realpath(str.c_str(), NULL);
+            auto ptr = realpath(str.c_str(), nullptr);
             if (!ptr)
                 return "";
             str = ptr;
@@ -716,7 +716,7 @@ namespace ITKCommon
 
 #elif defined(__APPLE__) || defined(__linux__)
             char resolved_path[PATH_MAX];
-            if (realpath(path_.c_str(), resolved_path) != NULL) {
+            if (realpath(path_.c_str(), resolved_path) != nullptr) {
                 if (strlen(resolved_path) > 0 && resolved_path[strlen(resolved_path) - 1] == '/')
                     resolved_path[strlen(resolved_path) - 1] = '\0';
                 return resolved_path;

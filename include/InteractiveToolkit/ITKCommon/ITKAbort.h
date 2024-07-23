@@ -48,7 +48,7 @@ namespace ITKCommon
 
             std::vector<char> char_buffer;
             va_start(args, format);
-            char_buffer.resize(vsnprintf(NULL, 0, format, args) + 1);
+            char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
             va_end(args);
 
             va_start(args, format);
@@ -79,7 +79,7 @@ namespace ITKCommon
         va_list args;
 
         va_start(args, format);
-        char_buffer.resize(vsnprintf(NULL, 0, format, args) + 1);
+        char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
         va_end(args);
 
         va_start(args, format);
@@ -88,7 +88,7 @@ namespace ITKCommon
 
         std::vector<char> final_str;
 
-        final_str.resize(snprintf(NULL,0,"[%s:%i]\n%s", file, line, char_buffer.data()) + 1);
+        final_str.resize(snprintf(nullptr,0,"[%s:%i]\n%s", file, line, char_buffer.data()) + 1);
 
         snprintf(final_str.data(),final_str.size(),
             "[%s:%i]\n%s", 
@@ -104,7 +104,7 @@ namespace ITKCommon
         va_list args;
 
         va_start(args, format);
-        char_buffer.resize(vsnprintf(NULL, 0, format, args) + 1);
+        char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
         va_end(args);
 
         va_start(args, format);
@@ -128,14 +128,14 @@ namespace ITKCommon
 
 #define ON_COND_SET_ERRORSTR_RETURN(cond, ret, ...) \
     if (cond) { \
-        if (errorStr != NULL) \
+        if (errorStr != nullptr) \
             *errorStr = ITKCommon::GenerateDebugStrFnc(__FILE__, __LINE__,__VA_ARGS__); \
         return ret; \
     }
 
 #define ON_COND_SET_ERRORSTR_RETURN_FL(file,line,cond, ret, ...) \
     if (cond) { \
-        if (errorStr != NULL) \
+        if (errorStr != nullptr) \
             *errorStr = ITKCommon::GenerateDebugStrFnc(file,line,__VA_ARGS__); \
         return ret; \
     }

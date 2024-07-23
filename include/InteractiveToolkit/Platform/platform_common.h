@@ -30,11 +30,11 @@ namespace ITKPlatformUtil
     {
         std::string result;
 
-        wchar_t *s = NULL;
+        wchar_t *s = nullptr;
         FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL, GetLastError(),
+                       nullptr, GetLastError(),
                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                       (LPWSTR)&s, 0, NULL);
+                       (LPWSTR)&s, 0, nullptr);
 
         // WCHAR TO CONSOLE CP (Code Page)
         if (s)
@@ -54,8 +54,8 @@ namespace ITKPlatformUtil
                 CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
                 WC_COMPOSITECHECK,
                 s, -1,
-                NULL, 0,
-                NULL, NULL
+                nullptr, 0,
+                nullptr, nullptr
             );
 
             {
@@ -66,7 +66,7 @@ namespace ITKPlatformUtil
                     WC_COMPOSITECHECK,
                     s, -1,
                     aux, _needed_size_bytes + 1,
-                    NULL, NULL
+                    nullptr, nullptr
                 );
                 result = aux;
                 delete[] aux;
@@ -158,9 +158,9 @@ extern char **environ;
 // IPC Common Defs
 //
 #if defined(_WIN32)
-#define BUFFER_HANDLE_NULL NULL
+#define BUFFER_HANDLE_nullptr nullptr
 #elif defined(__linux__) || defined(__APPLE__)
-#define BUFFER_HANDLE_NULL -1
+#define BUFFER_HANDLE_nullptr -1
 #endif
 
 namespace ITKPlatformUtil
@@ -172,11 +172,11 @@ namespace ITKPlatformUtil
         std::string result;
 
 #if defined(_WIN32)
-        wchar_t *s = NULL;
+        wchar_t *s = nullptr;
         FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL, GetLastError(),
+                       nullptr, GetLastError(),
                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                       (LPWSTR)&s, 0, NULL);
+                       (LPWSTR)&s, 0, nullptr);
 
         // WCHAR TO CONSOLE CP (Code Page)
         if (s)
@@ -196,8 +196,8 @@ namespace ITKPlatformUtil
                 CP_UTF8, // GetConsoleOutputCP(), // GetConsoleCP(),
                 WC_COMPOSITECHECK,
                 s, -1,
-                NULL, 0,
-                NULL, NULL
+                nullptr, 0,
+                nullptr, nullptr
             );
 
             {
@@ -208,7 +208,7 @@ namespace ITKPlatformUtil
                     WC_COMPOSITECHECK,
                     s, -1, // lstrlenW(s) + 1,
                     aux, _needed_size_bytes + 1,
-                    NULL, NULL
+                    nullptr, nullptr
                 );
                 result = aux;
                 delete[] aux;

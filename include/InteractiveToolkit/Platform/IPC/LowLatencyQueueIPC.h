@@ -28,7 +28,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 // lock semaphore
-                if (queue_semaphore != NULL)
+                if (queue_semaphore != nullptr)
                     ITK_ABORT(WaitForSingleObject(queue_semaphore, INFINITE) != WAIT_OBJECT_0, "Error to lock queue semaphore. Error code: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__) || defined(__APPLE__)
 
@@ -49,7 +49,7 @@ namespace Platform
                 else
                 {
                     // while semaphore is signaled, try to aquire until block...
-                    if (queue_semaphore != NULL)
+                    if (queue_semaphore != nullptr)
                         while (sem_wait(queue_semaphore) != 0)
                             ;
                 }
@@ -63,8 +63,8 @@ namespace Platform
 
 #if defined(_WIN32)
                 // release semaphore
-                if (queue_semaphore != NULL)
-                    ITK_ABORT(!ReleaseSemaphore(queue_semaphore, 1, NULL), "Error to unlock queue semaphore. Error code: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+                if (queue_semaphore != nullptr)
+                    ITK_ABORT(!ReleaseSemaphore(queue_semaphore, 1, nullptr), "Error to unlock queue semaphore. Error code: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__) || defined(__APPLE__)
                 if (from_constructor)
                 {
@@ -78,7 +78,7 @@ namespace Platform
                 }
                 else
                 {
-                    if (queue_semaphore != NULL)
+                    if (queue_semaphore != nullptr)
                         sem_post(queue_semaphore);
                 }
 #endif
@@ -140,7 +140,7 @@ namespace Platform
                 bool is_last_queue = false;
                 std::string sem_count_name = std::string("/") + semaphore_count_name;
 
-                if (queue_header_handle != BUFFER_HANDLE_NULL)
+                if (queue_header_handle != BUFFER_HANDLE_nullptr)
                 {
                     is_last_queue = (queue_header_ptr->subscribers_count - 1) == 0;
                 }
@@ -148,7 +148,7 @@ namespace Platform
 
                 lock();
 
-                if (queue_buffer_handle != BUFFER_HANDLE_NULL)
+                if (queue_buffer_handle != BUFFER_HANDLE_nullptr)
                 {
 #if defined(_WIN32)
                     if (queue_buffer_ptr != 0)
@@ -160,10 +160,10 @@ namespace Platform
                     close(queue_buffer_handle); // close FD
                                                 // shm_unlink(buffer_name.c_str());
 #endif
-                    queue_buffer_handle = BUFFER_HANDLE_NULL;
+                    queue_buffer_handle = BUFFER_HANDLE_nullptr;
                 }
 
-                if (queue_header_handle != BUFFER_HANDLE_NULL)
+                if (queue_header_handle != BUFFER_HANDLE_nullptr)
                 {
 
                     queue_header_ptr->subscribers_count--;
@@ -178,12 +178,12 @@ namespace Platform
                     close(queue_header_handle); // close FD
                                                 // shm_unlink(header_name.c_str());
 #endif
-                    queue_header_handle = BUFFER_HANDLE_NULL;
+                    queue_header_handle = BUFFER_HANDLE_nullptr;
                 }
 
                 if (release_semaphore_ipc)
                 {
-                    if (semaphore_ipc != NULL)
+                    if (semaphore_ipc != nullptr)
                     {
 
 #if !defined(_WIN32)
@@ -191,31 +191,31 @@ namespace Platform
 #endif
 
                         delete semaphore_ipc;
-                        semaphore_ipc = NULL;
+                        semaphore_ipc = nullptr;
                     }
                 }
 #if defined(_WIN32)
-                else if (semaphore_ipc != NULL)
+                else if (semaphore_ipc != nullptr)
                 {
                     // force close handle...
                     semaphore_ipc->forceCloseWindows();
                 }
 #endif
 
-                if (can_write_cond != NULL)
+                if (can_write_cond != nullptr)
                 {
                     delete can_write_cond;
-                    can_write_cond = NULL;
+                    can_write_cond = nullptr;
                 }
-                if (can_write_cond_mutex != NULL)
+                if (can_write_cond_mutex != nullptr)
                 {
                     delete can_write_cond_mutex;
-                    can_write_cond_mutex = NULL;
+                    can_write_cond_mutex = nullptr;
                 }
 
                 unlock();
 
-                if (queue_semaphore != NULL)
+                if (queue_semaphore != nullptr)
                 {
 #if defined(_WIN32)
                     CloseHandle(queue_semaphore);
@@ -224,7 +224,7 @@ namespace Platform
                     // sem_unlink(semaphore_name.c_str());
 #endif
 
-                    queue_semaphore = NULL;
+                    queue_semaphore = nullptr;
                 }
 
 #if !defined(_WIN32)
@@ -310,8 +310,8 @@ namespace Platform
             {
                 Platform::AutoLock autoLock(&shm_mutex);
 
-                can_write_cond = NULL;
-                can_write_cond_mutex = NULL;
+                can_write_cond = nullptr;
+                can_write_cond_mutex = nullptr;
 
                 if (use_write_contition_variable)
                 {
@@ -321,10 +321,10 @@ namespace Platform
                     can_write_cond->bufferIPC()->OnLastBufferFree.add([&](Platform::IPC::BufferIPC *)
                                                                       {
                                                                           Platform::AutoLock autoLock(&shm_mutex);
-                                                                          if (can_write_cond_mutex != NULL)
+                                                                          if (can_write_cond_mutex != nullptr)
                                                                           {
                                                                               delete can_write_cond_mutex;
-                                                                              can_write_cond_mutex = NULL;
+                                                                              can_write_cond_mutex = nullptr;
                                                                           }
                                                                           // SemaphoreIPC::force_shm_unlink(this->name + std::string("_cv_wc"));
                                                                       });
@@ -333,13 +333,13 @@ namespace Platform
 
                 ITKCommon::ITKAbort::Instance()->OnAbort.add(&LowLatencyQueueIPC::onAbort, this);
 
-                semaphore_ipc = NULL;
+                semaphore_ipc = nullptr;
 
                 this->blocking_on_read = blocking_on_read_;
 
-                queue_semaphore = NULL;
-                queue_header_handle = BUFFER_HANDLE_NULL;
-                queue_buffer_handle = BUFFER_HANDLE_NULL;
+                queue_semaphore = nullptr;
+                queue_header_handle = BUFFER_HANDLE_nullptr;
+                queue_buffer_handle = BUFFER_HANDLE_nullptr;
 
                 this->name = name;
 
@@ -394,7 +394,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 // open the header memory section
-                queue_header_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(Platform::IPC::QueueHeader), header_name.c_str());
+                queue_header_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, sizeof(Platform::IPC::QueueHeader), header_name.c_str());
                 if (queue_header_handle == 0)
                 {
                     unlock(true);
@@ -412,7 +412,7 @@ namespace Platform
                                                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 if (queue_header_handle == -1)
                 {
-                    queue_header_handle = BUFFER_HANDLE_NULL;
+                    queue_header_handle = BUFFER_HANDLE_nullptr;
                     unlock(true);
                     ITK_ABORT(true, "Error to create the header IPC queue. Error code: %s\n", strerror(errno));
                 }
@@ -430,7 +430,7 @@ namespace Platform
                 }
 
                 queue_header_ptr = (Platform::IPC::QueueHeader *)mmap(
-                    NULL,
+                    nullptr,
                     sizeof(Platform::IPC::QueueHeader),
                     PROT_READ | PROT_WRITE,
                     MAP_SHARED,
@@ -460,7 +460,7 @@ namespace Platform
 
                     if (queue_semaphore == SEM_FAILED)
                     {
-                        queue_semaphore = NULL;
+                        queue_semaphore = nullptr;
                         unlock(true);
                         ITK_ABORT(true, "Error to create global semaphore. Error code: %s\n", strerror(errno));
                     }
@@ -487,7 +487,7 @@ namespace Platform
 
                     if (queue_semaphore == SEM_FAILED)
                     {
-                        queue_semaphore = NULL;
+                        queue_semaphore = nullptr;
                         unlock(true);
                         ITK_ABORT(true, "Error to create global semaphore. Error code: %s\n", strerror(errno));
                     }
@@ -506,7 +506,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 // open the buffer memory section
-                queue_buffer_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, queue_header_ptr->capacity, buffer_name.c_str());
+                queue_buffer_handle = CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, queue_header_ptr->capacity, buffer_name.c_str());
                 if (queue_buffer_handle == 0)
                 {
                     unlock(true);
@@ -552,7 +552,7 @@ namespace Platform
                                                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 if (queue_buffer_handle == -1)
                 {
-                    queue_buffer_handle = BUFFER_HANDLE_NULL;
+                    queue_buffer_handle = BUFFER_HANDLE_nullptr;
 
                     unlock();
                     unlock(true);
@@ -573,7 +573,7 @@ namespace Platform
                 if (mode == (Platform::IPC::QueueIPC_READ | Platform::IPC::QueueIPC_WRITE))
                 {
                     queue_buffer_ptr = (uint8_t *)mmap(
-                        NULL,
+                        nullptr,
                         queue_header_ptr->capacity,
                         PROT_READ | PROT_WRITE,
                         MAP_SHARED,
@@ -589,7 +589,7 @@ namespace Platform
                 else if (mode == Platform::IPC::QueueIPC_READ)
                 {
                     queue_buffer_ptr = (uint8_t *)mmap(
-                        NULL,
+                        nullptr,
                         queue_header_ptr->capacity,
                         PROT_READ,
                         MAP_SHARED,
@@ -605,7 +605,7 @@ namespace Platform
                 else if (mode == Platform::IPC::QueueIPC_WRITE)
                 {
                     queue_buffer_ptr = (uint8_t *)mmap(
-                        NULL,
+                        nullptr,
                         queue_header_ptr->capacity,
                         PROT_WRITE,
                         MAP_SHARED,
@@ -643,7 +643,7 @@ namespace Platform
                     printf("[LowLatencyQueueIPC] Opening write\n");
 
                     queue_header_handle = CreateFileMappingA(
-                        INVALID_HANDLE_VALUE, NULL,
+                        INVALID_HANDLE_VALUE, nullptr,
                         PAGE_READWRITE, 0,
                         buffer_size,
                         header_name.c_str()
@@ -654,7 +654,7 @@ namespace Platform
 
 
                     queue_buffer_handle = CreateFileMappingA(
-                        INVALID_HANDLE_VALUE, NULL,
+                        INVALID_HANDLE_VALUE, nullptr,
                         PAGE_READWRITE, 0,
                         buffer_size,
                         buffer_name.c_str()
@@ -686,7 +686,7 @@ namespace Platform
             {
 
                 Platform::AutoLock autoLock(&shm_mutex);
-                if (queue_semaphore == NULL)
+                if (queue_semaphore == nullptr)
                     return false;
 
                 uint32_t size_request = size + sizeof(BufferHeader);
@@ -717,7 +717,7 @@ namespace Platform
             {
 
                 shm_mutex.lock();
-                if (queue_semaphore == NULL)
+                if (queue_semaphore == nullptr)
                 {
                     shm_mutex.unlock();
                     return false;
@@ -729,7 +729,7 @@ namespace Platform
 
                 if (!ignore_first_lock)
                 {
-                    if (can_write_cond_mutex != NULL)
+                    if (can_write_cond_mutex != nullptr)
                     {
                         //printf("trying to lock mutex cond\n");
                         AutoLockSemaphoreIPC ipc_lock(can_write_cond_mutex);
@@ -758,7 +758,7 @@ namespace Platform
                             }
 
                             shm_mutex.lock();
-                            if (queue_semaphore == NULL)
+                            if (queue_semaphore == nullptr)
                             {
                                 shm_mutex.unlock();
                                 return false;
@@ -785,7 +785,7 @@ namespace Platform
                             Platform::Sleep::yield();
 
                             shm_mutex.lock();
-                            if (queue_semaphore == NULL)
+                            if (queue_semaphore == nullptr)
                             {
                                 shm_mutex.unlock();
                                 return false;
@@ -817,26 +817,26 @@ namespace Platform
                 return write(inputBuffer.data, (uint32_t)inputBuffer.size, blocking, ignore_first_lock);
             }
 
-            bool read(ObjectBuffer *outputBuffer, bool *_signaled = NULL)
+            bool read(ObjectBuffer *outputBuffer, bool *_signaled = nullptr)
             {
 
                 if (blocking_on_read)
                 {
                     bool signaled = !semaphore_ipc->blockingAcquire();
                     if (signaled){
-                        if (_signaled != NULL)
+                        if (_signaled != nullptr)
                             *_signaled = signaled;
                         return false;
                     }
                 }
 
                 shm_mutex.lock();
-                if (queue_semaphore == NULL)
+                if (queue_semaphore == nullptr)
                 {
                     if (blocking_on_read)
                         semaphore_ipc->release();
                     shm_mutex.unlock();
-                    if (_signaled != NULL)
+                    if (_signaled != nullptr)
                         *_signaled = false;
                     return false;
                 }
@@ -848,7 +848,7 @@ namespace Platform
                     unlock();
                     shm_mutex.unlock();
 
-                    if (_signaled != NULL)
+                    if (_signaled != nullptr)
                         *_signaled = false;
 
                     // printf("ERROR: Trying to read element from an empty queue.\n");
@@ -864,7 +864,7 @@ namespace Platform
                 shm_mutex.unlock();
 
 
-                if (can_write_cond_mutex != NULL)
+                if (can_write_cond_mutex != nullptr)
                 {
                     //printf("trying to lock mutex cond\n");
                     AutoLockSemaphoreIPC ipc_lock(can_write_cond_mutex);
@@ -875,7 +875,7 @@ namespace Platform
                     can_write_cond->notify_all();
                 }
 
-                if (_signaled != NULL)
+                if (_signaled != nullptr)
                     *_signaled = false;
                 return true;
             }
@@ -910,7 +910,7 @@ namespace Platform
             // bool isSignaled()
             // {
             //     Platform::AutoLock autoLock(&shm_mutex);
-            //     if (queue_semaphore == NULL)
+            //     if (queue_semaphore == nullptr)
             //         return true;
             //     return Platform::Thread::isCurrentThreadInterrupted();
             //     // return semaphore_ipc->isSignaled();

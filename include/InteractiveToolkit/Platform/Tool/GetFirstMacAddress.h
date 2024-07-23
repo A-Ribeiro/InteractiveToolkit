@@ -91,7 +91,7 @@ namespace Platform
 
             if (getifaddrs(&ifap) == 0)
             {
-                for (ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next)
+                for (ifaptr = ifap; ifaptr != nullptr; ifaptr = (ifaptr)->ifa_next)
                 {
 #if defined(__linux__)
                     if (((ifaptr)->ifa_addr)->sa_family == AF_PACKET)

@@ -76,11 +76,11 @@ namespace Platform
             std::string result;
 
 #if defined(_WIN32)
-            wchar_t *s = NULL;
+            wchar_t *s = nullptr;
             FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                           NULL, WSAGetLastError(),
+                           nullptr, WSAGetLastError(),
                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                           (LPWSTR)&s, 0, NULL);
+                           (LPWSTR)&s, 0, nullptr);
 
             // WCHAR TO CONSOLE CP (Code Page)
             if (s)
@@ -103,7 +103,7 @@ namespace Platform
                     WC_COMPOSITECHECK,
                     s, lstrlenW(s) + 1,
                     aux, lstrlenW(s),
-                    NULL, NULL);
+                    nullptr, nullptr);
                 result = aux;
                 delete[] aux;
                 LocalFree(s);
@@ -120,11 +120,11 @@ namespace Platform
             std::string result;
 
 #if defined(_WIN32)
-            wchar_t *s = NULL;
+            wchar_t *s = nullptr;
             FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                           NULL, GetLastError(),
+                           nullptr, GetLastError(),
                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                           (LPWSTR)&s, 0, NULL);
+                           (LPWSTR)&s, 0, nullptr);
 
             // WCHAR TO CONSOLE CP (Code Page)
             if (s)
@@ -147,7 +147,7 @@ namespace Platform
                     WC_COMPOSITECHECK,
                     s, lstrlenW(s) + 1,
                     aux, lstrlenW(s),
-                    NULL, NULL);
+                    nullptr, nullptr);
                 result = aux;
                 delete[] aux;
                 LocalFree(s);

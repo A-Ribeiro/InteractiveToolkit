@@ -82,7 +82,7 @@ namespace Platform
                     LONG_MAX,          // count,  // maximum count
                     this->name.c_str() // unnamed semaphore
                 );
-                ITK_ABORT(semaphore == NULL, "CreateSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
+                ITK_ABORT(semaphore == nullptr, "CreateSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__) || defined(__APPLE__)
                 // sem_init(&semaphore, 0, count);// 0 means is a semaphore bound to threads
 
@@ -125,15 +125,15 @@ namespace Platform
 
 #if defined(_WIN32)
                 Platform::AutoLock autoLock(&close_mutex);
-                if (semaphore != NULL)
+                if (semaphore != nullptr)
                     CloseHandle(semaphore);
-                semaphore = NULL;
+                semaphore = nullptr;
 #elif defined(__linux__) || defined(__APPLE__)
                 // sem_destroy(&semaphore);
-                if (semaphore != NULL)
+                if (semaphore != nullptr)
                     sem_close(semaphore);
                 // sem_unlink(this->name.c_str());
-                semaphore = NULL;
+                semaphore = nullptr;
 #endif
             }
 
@@ -441,7 +441,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 // printf("[Semaphore] release...\n");
-                BOOL result = ReleaseSemaphore(semaphore, 1, NULL);
+                BOOL result = ReleaseSemaphore(semaphore, 1, nullptr);
                 ITK_ABORT(!result, "ReleaseSemaphore error: %s\n", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 #elif defined(__linux__) || defined(__APPLE__)
                 sem_post(semaphore);
@@ -460,7 +460,7 @@ namespace Platform
             {
 
 #if !defined(_WIN32)
-                if (semaphore != NULL)
+                if (semaphore != nullptr)
                     sem_unlink(name.c_str());
 #endif
             }
@@ -470,9 +470,9 @@ namespace Platform
 
 #if defined(_WIN32)
                 /*Platform::AutoLock autoLock(&close_mutex);
-                if (semaphore != NULL) {
+                if (semaphore != nullptr) {
                     CloseHandle(semaphore);
-                    semaphore = NULL;
+                    semaphore = nullptr;
                 }*/
 #endif
             }

@@ -48,7 +48,7 @@ namespace Platform {
         ProcessGracefulWindowsProcessTerminator(void(*_fnc)(int)) :
             thread( EventCore::CallbackWrapper(&ProcessGracefulWindowsProcessTerminator::threadRun, this) ),
             fnc(_fnc) {
-            queue = NULL;
+            queue = nullptr;
             dwProcessId = GetCurrentProcessId();
 
             char aux[64];

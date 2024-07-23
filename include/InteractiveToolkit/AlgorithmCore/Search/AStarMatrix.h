@@ -172,7 +172,7 @@ namespace AlgorithmCore
 			AStarMatrix()
 			{ // bool (*checkCanWalkOnTile)(const InputTileType&)) {
 				// this->canWalkOnTile_ptr = checkCanWalkOnTile;
-				map = NULL;
+				map = nullptr;
 			}
 
 			void setInputMatrix(const ITKCommon::Matrix<InputTileType> *mInput)
