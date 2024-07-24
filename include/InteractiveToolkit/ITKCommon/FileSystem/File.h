@@ -182,7 +182,7 @@ namespace ITKCommon
                 if (_ftell == -1){
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
-                    return -1;
+                    return false;
                 }
 
                 output->setSize(_ftell);
@@ -224,7 +224,7 @@ namespace ITKCommon
                 if (_ftell == -1){
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
-                    return -1;
+                    return false;
                 }
 
                 output->resize((size_t)_ftell);
