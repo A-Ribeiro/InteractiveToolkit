@@ -160,7 +160,7 @@ namespace Platform
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
             DWORD received = 0;
-            bool bool_result = ::ReadFile(read_fd, outputBuffer->data, outputBuffer->size, &received, &overlapped);
+            bool bool_result = ::ReadFile(read_fd, outputBuffer->data, (DWORD)outputBuffer->size, &received, &overlapped);
             // ITK_ABORT(!bool_result, "%s", ITKPlatformUtil::win32_GetLastErrorToString().c_str());
 
             if (bool_result)
