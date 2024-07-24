@@ -9,8 +9,8 @@
 #include "../../Platform/Core/ObjectBuffer.h"
 
 #if defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable : 4996)
+#pragma warning(push)
+#pragma warning(disable : 4996)
 #endif
 
 namespace ITKCommon
@@ -39,16 +39,18 @@ namespace ITKCommon
                 size = UINT64_C(0);
             }
 
-            std::string getNameNoExtension() const {
+            std::string getNameNoExtension() const
+            {
                 size_t path_directory_index = name.find_last_of('.');
                 if (path_directory_index == -1)
                     return name;
                 std::string filename_wo_ext = name.substr(0, path_directory_index);
-                //std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
+                // std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
                 return filename_wo_ext;
             }
 
-            std::string getExtension() const {
+            std::string getExtension() const
+            {
                 size_t path_directory_index = name.find_last_of('.');
                 if (path_directory_index == -1)
                     return "";
@@ -57,12 +59,13 @@ namespace ITKCommon
                 return ext;
             }
 
-            bool hasExtension() const {
+            bool hasExtension() const
+            {
                 return name.find_last_of('.') != -1;
             }
 
             // Will try to resolve the path with the OS.
-            // If it fails, it will return the File representation 
+            // If it fails, it will return the File representation
             // of this path without fill the statx information
             static File FromPath(const std::string &_path)
             {
@@ -153,10 +156,11 @@ namespace ITKCommon
 
                 return result;
             }
-        
 
-            FILE *fopen(const char* mode, std::string *errorStr = nullptr){
-                if (!isFile){
+            FILE *fopen(const char *mode, std::string *errorStr = nullptr)
+            {
+                if (!isFile)
+                {
                     if (errorStr != nullptr)
                         *errorStr = "The path is not a file";
                     return nullptr;
@@ -164,22 +168,31 @@ namespace ITKCommon
                 return File::fopen(full_path.c_str(), mode, errorStr);
             }
 
-            bool readContentToObjectBuffer(Platform::ObjectBuffer *output, std::string *errorStr = nullptr) {
+            bool readContentToObjectBuffer(Platform::ObjectBuffer *output, std::string *errorStr = nullptr)
+            {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(file);
-                });
-
-                if (fseek(file, 0, SEEK_END) != 0){
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(file); });
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, 0, SEEK_END) != 0)
+#else
+                if (_fseeki64(file, 0, SEEK_END) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
                 }
 
-                int64_t _ftell = (int64_t)ftell(file);
-                if (_ftell == -1){
+#if defined(__APPLE__) || defined(__linux__)
+                int64_t _ftell = (int64_t)ftello64(file);
+#else
+                int64_t _ftell = (int64_t)_ftelli64(file);
+#endif
+                if (_ftell == -1)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -187,7 +200,12 @@ namespace ITKCommon
 
                 output->setSize(_ftell);
 
-                if (fseek(file, 0, SEEK_SET) != 0){
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, 0, SEEK_SET) != 0)
+#else
+                if (_fseeki64(file, 0, SEEK_SET) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -195,33 +213,44 @@ namespace ITKCommon
 
                 int64_t readed_size = 0;
                 int64_t offset = 0;
-                
-                while( offset < output->size &&
-                    ( readed_size = (int64_t)fread( &output->data[offset], 
-                        sizeof(uint8_t), (size_t)(output->size - offset),
-                        file) ) > 0 ) {
+
+                while (offset < output->size &&
+                       (readed_size = (int64_t)fread(&output->data[offset],
+                                                     sizeof(uint8_t), (size_t)(output->size - offset),
+                                                     file)) > 0)
+                {
                     offset += readed_size;
                 }
 
                 return true;
             }
 
-            bool readContentToVector(std::vector<uint8_t> *output, std::string *errorStr = nullptr) {
+            bool readContentToVector(std::vector<uint8_t> *output, std::string *errorStr = nullptr)
+            {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(file);
-                });
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(file); });
 
-                if (fseek(file, 0, SEEK_END) != 0){
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, 0, SEEK_END) != 0)
+#else
+                if (_fseeki64(file, 0, SEEK_END) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
                 }
 
-                int64_t _ftell = (int64_t)ftell(file);
-                if (_ftell == -1){
+#if defined(__APPLE__) || defined(__linux__)
+                int64_t _ftell = (int64_t)ftello64(file);
+#else
+                int64_t _ftell = (int64_t)_ftelli64(file);
+#endif
+                if (_ftell == -1)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -229,7 +258,12 @@ namespace ITKCommon
 
                 output->resize((size_t)_ftell);
 
-                if (fseek(file, 0, SEEK_SET) != 0){
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, 0, SEEK_SET) != 0)
+#else
+                if (_fseeki64(file, 0, SEEK_SET) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -237,11 +271,12 @@ namespace ITKCommon
 
                 int64_t readed_size = 0;
                 int64_t offset = 0;
-                
-                while( offset < (int64_t)output->size() &&
-                    ( readed_size = (int64_t)fread( &output->at(offset),
-                        sizeof(uint8_t), (size_t)((int64_t)output->size() - offset),
-                        file) ) > 0 ) {
+
+                while (offset < (int64_t)output->size() &&
+                       (readed_size = (int64_t)fread(&output->at(offset),
+                                                     sizeof(uint8_t), (size_t)((int64_t)output->size() - offset),
+                                                     file)) > 0)
+                {
                     offset += readed_size;
                 }
 
@@ -249,31 +284,44 @@ namespace ITKCommon
             }
 
             // loads a nullptr-terminated string from the file`s content
-            bool readContentToString(std::string *output, std::string *errorStr = nullptr) {
+            bool readContentToString(std::string *output, std::string *errorStr = nullptr)
+            {
                 std::vector<uint8_t> _tmp;
                 if (!readContentToVector(&_tmp, errorStr))
                     return false;
                 _tmp.push_back(0); // \0 at end
-                *output = (char*)_tmp.data();
+                *output = (char *)_tmp.data();
                 return true;
             }
 
             // read the file size in bytes using fopen call
             // returns -1 in case of any error
-            int64_t readContentGetSizeSafe(std::string *errorStr = nullptr) {
+            int64_t readContentGetSizeSafe(std::string *errorStr = nullptr)
+            {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
                     return -1;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(file);
-                });
-                if (fseek(file, 0, SEEK_END) != 0){
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(file); });
+
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, 0, SEEK_END) != 0)
+#else
+                if (_fseeki64(file, 0, SEEK_END) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return -1;
                 }
-                int64_t _ftell = (int64_t)ftell(file);
-                if (_ftell == -1){
+
+#if defined(__APPLE__) || defined(__linux__)
+                int64_t _ftell = (int64_t)ftello64(file);
+#else
+                int64_t _ftell = (int64_t)_ftelli64(file);
+#endif
+                if (_ftell == -1)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return -1;
@@ -281,15 +329,20 @@ namespace ITKCommon
                 return _ftell;
             }
 
-            bool readContentToMemory(int64_t read_offset, uint8_t *output, int64_t output_size, std::string *errorStr = nullptr) {
+            bool readContentToMemory(int64_t read_offset, uint8_t *output, int64_t output_size, std::string *errorStr = nullptr)
+            {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(file);
-                });
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(file); });
 
-                if (fseek(file, read_offset, SEEK_SET) != 0){
+#if defined(__APPLE__) || defined(__linux__)
+                if (fseeko64(file, (loff_t)read_offset, SEEK_SET) != 0)
+#else
+                if (_fseeki64(file, (__int64)read_offset, SEEK_SET) != 0)
+#endif
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -297,15 +350,17 @@ namespace ITKCommon
 
                 int64_t readed_size = 0;
                 int64_t offset = 0;
-                
-                while( offset < output_size &&
-                    ( readed_size = (int64_t)fread( &output[offset],
-                        sizeof(uint8_t), (size_t)(output_size - offset),
-                        file) ) > 0 ) {
+
+                while (offset < output_size &&
+                       (readed_size = (int64_t)fread(&output[offset],
+                                                     sizeof(uint8_t), (size_t)(output_size - offset),
+                                                     file)) > 0)
+                {
                     offset += readed_size;
                 }
 
-                if (offset < output_size){
+                if (offset < output_size)
+                {
                     if (errorStr != nullptr)
                         *errorStr = "Output buffer not filled completely";
                     return false;
@@ -314,28 +369,33 @@ namespace ITKCommon
                 return true;
             }
 
-            bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr) {
-                return writeContentFromBinary(input->data, (int64_t)input->size, append, errorStr );
+            bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr)
+            {
+                return writeContentFromBinary(input->data, (int64_t)input->size, append, errorStr);
             }
 
-            bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr) {
-                return writeContentFromBinary(input->data(), (int64_t)input->size(), append, errorStr );
+            bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr)
+            {
+                return writeContentFromBinary(input->data(), (int64_t)input->size(), append, errorStr);
             }
 
-            bool writeContentFromBinary(const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr) {
+            bool writeContentFromBinary(const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr)
+            {
                 return File::WriteContentFromBinary(this->full_path.c_str(), input, _size, append, errorStr);
             }
-            
 
-            static bool WriteContentFromObjectBuffer(const char* filename, const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr) {
-                return WriteContentFromBinary(filename, input->data, (int64_t)input->size, append, errorStr );
+            static bool WriteContentFromObjectBuffer(const char *filename, const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr)
+            {
+                return WriteContentFromBinary(filename, input->data, (int64_t)input->size, append, errorStr);
             }
 
-            static bool WriteContentFromVector(const char* filename, const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr) {
-                return WriteContentFromBinary(filename, input->data(), (int64_t)input->size(), append, errorStr );
+            static bool WriteContentFromVector(const char *filename, const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr)
+            {
+                return WriteContentFromBinary(filename, input->data(), (int64_t)input->size(), append, errorStr);
             }
 
-            static bool WriteContentFromBinary(const char* filename, const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr) {
+            static bool WriteContentFromBinary(const char *filename, const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr)
+            {
                 FILE *file;
                 if (append)
                     file = File::fopen(filename, "ab", errorStr);
@@ -343,24 +403,25 @@ namespace ITKCommon
                     file = File::fopen(filename, "wb", errorStr);
                 if (!file)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(file);
-                });
-                if (_size > 0){
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(file); });
+                if (_size > 0)
+                {
                     int64_t written_size = 0;
                     int64_t offset = 0;
-                    while( offset < _size &&
-                        ( written_size = (int64_t)fwrite( &input[offset],
-                            sizeof(uint8_t), (size_t)(_size - offset), 
-                            file) ) > 0 ) {
+                    while (offset < _size &&
+                           (written_size = (int64_t)fwrite(&input[offset],
+                                                           sizeof(uint8_t), (size_t)(_size - offset),
+                                                           file)) > 0)
+                    {
                         offset += written_size;
                     }
                 }
                 return true;
             }
 
-
-            static bool touch(const char* filename, std::string *errorStr = nullptr) {
+            static bool touch(const char *filename, std::string *errorStr = nullptr)
+            {
                 FILE *fileTouched = File::fopen(filename, "ab", errorStr);
                 if (!fileTouched)
                     return false;
@@ -370,19 +431,22 @@ namespace ITKCommon
             // work on windows or linux
             // mode from std::fopen
             // must call fclose if is != nullptr
-            static FILE * fopen(const char* filename, const char* mode, std::string *errorStr = nullptr){
+            static FILE *fopen(const char *filename, const char *mode, std::string *errorStr = nullptr)
+            {
 #if defined(_WIN32)
-                FILE * result = _wfopen( ITKCommon::StringUtil::string_to_WString(filename).c_str(), ITKCommon::StringUtil::string_to_WString(mode).c_str() );
+                FILE *result = _wfopen(ITKCommon::StringUtil::string_to_WString(filename).c_str(), ITKCommon::StringUtil::string_to_WString(mode).c_str());
 #elif defined(__linux__) || defined(__APPLE__)
-                FILE * result = ::fopen(filename, mode);
+                FILE *result = ::fopen(filename, mode);
 #endif
                 if (errorStr != nullptr && !result)
                     *errorStr = strerror(errno);
                 return result;
             }
 
-            static bool fclose(FILE *file, std::string *errorStr = nullptr) {
-                if (::fclose(file) != 0){
+            static bool fclose(FILE *file, std::string *errorStr = nullptr)
+            {
+                if (::fclose(file) != 0)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -390,18 +454,21 @@ namespace ITKCommon
                 return true;
             }
 
-            static bool rename(const char* src_filename, const char* dst_filename, std::string *errorStr = nullptr) {
+            static bool rename(const char *src_filename, const char *dst_filename, std::string *errorStr = nullptr)
+            {
 #if defined(_WIN32)
                 std::wstring _wstr_src = ITKCommon::StringUtil::string_to_WString(src_filename);
                 std::wstring _wstr_dst = ITKCommon::StringUtil::string_to_WString(dst_filename);
-                if (MoveFileW(_wstr_src.c_str(), _wstr_dst.c_str()) == FALSE) {
+                if (MoveFileW(_wstr_src.c_str(), _wstr_dst.c_str()) == FALSE)
+                {
                     if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
-                if (::rename(src_filename, dst_filename) != 0) {
+                if (::rename(src_filename, dst_filename) != 0)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -410,45 +477,49 @@ namespace ITKCommon
 #endif
             }
 
-            static bool move(const char* src_filename, const char* dst_filename, std::string *errorStr = nullptr) {
+            static bool move(const char *src_filename, const char *dst_filename, std::string *errorStr = nullptr)
+            {
                 return File::rename(src_filename, dst_filename, errorStr);
             }
 
-            static bool copy(const char* src_filename, const char* dst_filename, std::string *errorStr = nullptr) {
-                FILE* source = File::fopen(src_filename, "rb", errorStr);
+            static bool copy(const char *src_filename, const char *dst_filename, std::string *errorStr = nullptr)
+            {
+                FILE *source = File::fopen(src_filename, "rb", errorStr);
                 if (!source)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_source([=](){
-                    fclose(source);
-                });
+                EventCore::ExecuteOnScopeEnd _close_source([=]()
+                                                           { fclose(source); });
 
-                FILE* dest = File::fopen(dst_filename, "wb", errorStr);
+                FILE *dest = File::fopen(dst_filename, "wb", errorStr);
                 if (!dest)
                     return false;
-                EventCore::ExecuteOnScopeEnd _close_dest([=](){
-                    fclose(dest);
-                });
+                EventCore::ExecuteOnScopeEnd _close_dest([=]()
+                                                         { fclose(dest); });
 
                 char buf[BUFSIZ];
                 size_t size;
-                while (size = fread(buf, 1, BUFSIZ, source)) {
+                while (size = fread(buf, 1, BUFSIZ, source))
+                {
                     fwrite(buf, 1, size, dest);
                 }
-                
+
                 return true;
             }
 
-            static bool remove(const char* filename, std::string *errorStr = nullptr) {
+            static bool remove(const char *filename, std::string *errorStr = nullptr)
+            {
 #if defined(_WIN32)
                 std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(filename);
-                if (DeleteFileW(_wstr.c_str()) == FALSE) {
+                if (DeleteFileW(_wstr.c_str()) == FALSE)
+                {
                     if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
-                if (::remove(filename) != 0) {
+                if (::remove(filename) != 0)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -456,13 +527,11 @@ namespace ITKCommon
                 return true;
 #endif
             }
-
-        
         };
 
     }
 }
 
 #if defined(_WIN32)
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
