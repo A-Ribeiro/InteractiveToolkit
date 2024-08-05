@@ -545,7 +545,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_custom(
   utf8proc_int32_t *buffer, utf8proc_ssize_t bufsize, utf8proc_option_t options,
   utf8proc_custom_func custom_func, void *custom_data
 ) {
-  /* strlen will be ignored, if UTF8PROC_nullptrTERM is set in options */
+  /* strlen will be ignored, if UTF8PROC_NULLTERM is set in options */
   utf8proc_ssize_t wpos = 0;
   if ((options & UTF8PROC_COMPOSE) && (options & UTF8PROC_DECOMPOSE))
     return UTF8PROC_ERROR_INVALIDOPTS;
@@ -558,7 +558,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_custom(
     utf8proc_ssize_t decomp_result;
     int boundclass = UTF8PROC_BOUNDCLASS_START;
     while (1) {
-      if (options & UTF8PROC_nullptrTERM) {
+      if (options & UTF8PROC_NULLTERM) {
         rpos += utf8proc_iterate(str + rpos, -1, &uc);
         /* checking of return value is not necessary,
            as 'uc' is < 0 in case of error */
@@ -608,7 +608,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_custom(
 }
 
 UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options) {
-  /* UTF8PROC_nullptrTERM option will be ignored, 'length' is never ignored */
+  /* UTF8PROC_NULLTERM option will be ignored, 'length' is never ignored */
   if (options & (UTF8PROC_NLF2LS | UTF8PROC_NLF2PS | UTF8PROC_STRIPCC)) {
     utf8proc_ssize_t rpos;
     utf8proc_ssize_t wpos = 0;
@@ -720,7 +720,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *b
 }
 
 UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *buffer, utf8proc_ssize_t length, utf8proc_option_t options) {
-  /* UTF8PROC_nullptrTERM option will be ignored, 'length' is never ignored
+  /* UTF8PROC_NULLTERM option will be ignored, 'length' is never ignored
      ASSERT: 'buffer' has one spare byte of free space at the end! */
   length = utf8proc_normalize_utf32(buffer, length, options);
   if (length < 0) return length;
@@ -781,35 +781,35 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_map_custom(
 
 UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFD(const utf8proc_uint8_t *str) {
   utf8proc_uint8_t *retval;
-  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_nullptrTERM | UTF8PROC_STABLE |
+  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_NULLTERM | UTF8PROC_STABLE |
     UTF8PROC_DECOMPOSE) );
   return retval;
 }
 
 UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFC(const utf8proc_uint8_t *str) {
   utf8proc_uint8_t *retval;
-  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_nullptrTERM | UTF8PROC_STABLE |
+  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_NULLTERM | UTF8PROC_STABLE |
     UTF8PROC_COMPOSE) );
   return retval;
 }
 
 UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKD(const utf8proc_uint8_t *str) {
   utf8proc_uint8_t *retval;
-  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_nullptrTERM | UTF8PROC_STABLE |
+  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_NULLTERM | UTF8PROC_STABLE |
     UTF8PROC_DECOMPOSE | UTF8PROC_COMPAT) );
   return retval;
 }
 
 UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *str) {
   utf8proc_uint8_t *retval;
-  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_nullptrTERM | UTF8PROC_STABLE |
+  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_NULLTERM | UTF8PROC_STABLE |
     UTF8PROC_COMPOSE | UTF8PROC_COMPAT) );
   return retval;
 }
 
 UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKC_Casefold(const utf8proc_uint8_t *str) {
   utf8proc_uint8_t *retval;
-  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_nullptrTERM | UTF8PROC_STABLE |
+  utf8proc_map(str, 0, &retval, (utf8proc_option_t)(UTF8PROC_NULLTERM | UTF8PROC_STABLE |
     UTF8PROC_COMPOSE | UTF8PROC_COMPAT | UTF8PROC_CASEFOLD | UTF8PROC_IGNORE));
   return retval;
 }

@@ -147,8 +147,8 @@ extern "C" {
  * Option flags used by several functions in the library.
  */
 typedef enum {
-  /** The given UTF-8 input is nullptr terminated. */
-  UTF8PROC_nullptrTERM  = (1<<0),
+  /** The given UTF-8 input is NULL terminated. */
+  UTF8PROC_NULLTERM  = (1<<0),
   /** Unicode Versioning Stability has to be respected. */
   UTF8PROC_STABLE    = (1<<1),
   /** Compatibility decomposition (i.e. formatting information is lost). */
@@ -531,7 +531,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_decompose_char(
  * The same as utf8proc_decompose_char(), but acts on a whole UTF-8
  * string and orders the decomposed sequences correctly.
  *
- * If the @ref UTF8PROC_nullptrTERM flag in `options` is set, processing
+ * If the @ref UTF8PROC_NULLTERM flag in `options` is set, processing
  * will be stopped, when a nullptr byte is encountered, otherwise `strlen`
  * bytes are processed.  The result (in the form of 32-bit unicode
  * codepoints) is written into the buffer being pointed to by
@@ -703,7 +703,7 @@ UTF8PROC_DLLEXPORT const char *utf8proc_category_string(utf8proc_int32_t codepoi
  * Maps the given UTF-8 string pointed to by `str` to a new UTF-8
  * string, allocated dynamically by `malloc` and returned via `dstptr`.
  *
- * If the @ref UTF8PROC_nullptrTERM flag in the `options` field is set,
+ * If the @ref UTF8PROC_NULLTERM flag in the `options` field is set,
  * the length is determined by a nullptr terminator, otherwise the
  * parameter `strlen` is evaluated to determine the string length, but
  * in any case the result will be nullptr terminated (though it might
@@ -737,7 +737,7 @@ UTF8PROC_DLLEXPORT utf8proc_ssize_t utf8proc_map_custom(
  *
  * Returns a pointer to newly allocated memory of a NFD, NFC, NFKD, NFKC or
  * NFKC_Casefold normalized version of the nullptr-terminated string `str`.  These
- * are shortcuts to calling utf8proc_map() with @ref UTF8PROC_nullptrTERM
+ * are shortcuts to calling utf8proc_map() with @ref UTF8PROC_NULLTERM
  * combined with @ref UTF8PROC_STABLE and flags indicating the normalization.
  */
 /** @{ */
