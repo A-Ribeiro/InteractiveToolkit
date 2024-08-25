@@ -143,4 +143,31 @@ namespace STL_Tools
         return std::unique_ptr<_base_type>(new _base_type(std::forward<_param_args>(args)...));
     }
 
+    template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>
+    class Reversal_Impl
+    {
+    public:
+        using _ListT = ContainerT<ValueT, AllocatorT>;
+        _ListT &_obj;
+
+        Reversal_Impl(_ListT &obj) : _obj(obj)
+        {
+        }
+        typename _ListT::reverse_iterator begin()
+        {
+            return _obj.rbegin();
+        }
+        typename _ListT::reverse_iterator end()
+        {
+            return _obj.rend();
+        }
+    };
+
+    
+    template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>
+    static inline Reversal_Impl<ContainerT, ValueT, AllocatorT> Reversal(ContainerT<ValueT, AllocatorT> &obj)
+    {
+        return Reversal_Impl<ContainerT, ValueT, AllocatorT>(obj);
+    }
+
 }

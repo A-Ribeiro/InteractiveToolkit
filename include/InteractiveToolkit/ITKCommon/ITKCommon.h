@@ -15,3 +15,4 @@
 #include "FileSystem/File.h"
 #include "FileSystem/Directory.h"
 
+#include "STL_Tools.h"

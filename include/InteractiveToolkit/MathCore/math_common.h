@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../common.h"
-#include "../EventCore/STL_Tools.h"
+#include "../ITKCommon/STL_Tools.h"
 
 namespace MathCore
 {

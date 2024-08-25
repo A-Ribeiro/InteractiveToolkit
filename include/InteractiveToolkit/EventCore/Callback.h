@@ -9,7 +9,7 @@
 
 #include "../common.h"
 #include "HandleCallback.h"
-#include "STL_Tools.h"
+#include "../ITKCommon/STL_Tools.h"
 
 #if defined(_WIN32)
 #pragma warning( push )
