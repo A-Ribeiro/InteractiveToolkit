@@ -23,7 +23,8 @@ namespace MathCore
 
 		static constexpr int shift_to_get_sign = 7;
 		static constexpr int shift_to_get_sign_minus_one = 6;
-		static constexpr int8_t first_bit_zero = 0xfe;
+		static constexpr uint8_t first_bit_zero = UINT8_C(0xfe);
+        static constexpr uint8_t mask =  UINT8_C(0xff);
 		// static constexpr inline int shift_to_get_sign() { return 7; }
 	};
 	template <typename _input>
@@ -38,7 +39,8 @@ namespace MathCore
 
 		static constexpr int shift_to_get_sign = 15;
 		static constexpr int shift_to_get_sign_minus_one = 14;
-		static constexpr int16_t first_bit_zero = 0xfffe;
+		static constexpr uint16_t first_bit_zero = UINT16_C(0xfffe);
+        static constexpr uint16_t mask = UINT16_C(0xffff);
 		// static constexpr inline int shift_to_get_sign() { return 15; }
 	};
 	template <typename _input>
@@ -53,7 +55,8 @@ namespace MathCore
 
 		static constexpr int shift_to_get_sign = 31;
 		static constexpr int shift_to_get_sign_minus_one = 30;
-		static constexpr int32_t first_bit_zero = 0xfffffffe;
+		static constexpr uint32_t first_bit_zero = UINT32_C(0xfffffffe);
+        static constexpr uint32_t mask = UINT32_C(0xffffffff);
 		// static constexpr inline int shift_to_get_sign() { return 31; }
 	};
 	template <typename _input>
@@ -68,7 +71,8 @@ namespace MathCore
 
 		static constexpr int shift_to_get_sign = 63;
 		static constexpr int shift_to_get_sign_minus_one = 62;
-		static constexpr int64_t first_bit_zero = 0xfffffffffffffffe;
+		static constexpr uint64_t first_bit_zero = UINT64_C(0xfffffffffffffffe);
+        static constexpr uint64_t mask = UINT64_C(0xffffffffffffffff);
 		// static constexpr inline int shift_to_get_sign() { return 63; }
 	};
 
@@ -82,6 +86,15 @@ namespace MathCore
 	{
 		using type = _type;
 		using self_type = OP<_type>;
+
+
+		static ITK_INLINE bool is_power_of_two(const _type &v) noexcept
+        {
+            using type_unsigned = typename IntTypeInfo<_type>::type_unsigned;
+
+            type_unsigned v_unsigned = v;
+            return v_unsigned != 0 && (v_unsigned & (v_unsigned - 1)) == 0;
+        }
 
 		// optimized instructions
 		static ITK_INLINE _type abs(const _type &v) noexcept
