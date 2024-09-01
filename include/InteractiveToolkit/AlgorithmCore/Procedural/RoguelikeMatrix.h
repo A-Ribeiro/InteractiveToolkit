@@ -205,7 +205,7 @@ namespace AlgorithmCore
 			public:
 				ITKCommon::Matrix<Element> element_matrix;
 				// need to set this before begin gen algorithm
-				std::map<Element, T> element_map;
+				std::unordered_map<Element, T> element_map;
 				ITKCommon::Matrix<T> final_matrix;
 				
 				std::vector<Area> areas;

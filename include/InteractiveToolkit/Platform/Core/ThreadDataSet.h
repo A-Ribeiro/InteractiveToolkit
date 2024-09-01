@@ -60,7 +60,7 @@ namespace Platform
 
         Mutex register_mutex;
     public:
-        using MapT = typename std::map<ThreadIdentifier, Thread *>;
+        using MapT = typename std::unordered_map<ThreadIdentifier, Thread *>;
         ITKCommon::STLSemaphore semaphore;
         
 

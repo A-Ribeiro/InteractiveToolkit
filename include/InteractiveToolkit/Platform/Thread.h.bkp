@@ -198,7 +198,7 @@ namespace Platform
                 ThreadDataSet::Instance()->semaphore.acquire();
 
                 // printf("Interrupting %u threads...\n", ThreadDataSet::Instance()->threadData.size());
-                std::map<ThreadIdentifier, Thread *>::iterator it;
+                std::unordered_map<ThreadIdentifier, Thread *>::iterator it;
                 for (it = ThreadDataSet::Instance()->threadData.begin(); it != ThreadDataSet::Instance()->threadData.end(); it++)
                 {
                     Thread *thread = it->second;

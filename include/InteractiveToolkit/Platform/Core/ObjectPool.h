@@ -38,7 +38,7 @@ namespace Platform {
         Platform::Mutex mutex;
 
         ObjectQueue< ObjectPoolElement > available;
-        std::map< T*, ObjectPoolElement > in_use;
+        std::unordered_map< T*, ObjectPoolElement > in_use;
 
         bool released;
 
@@ -64,7 +64,7 @@ namespace Platform {
                 delete element.data;
             }
 
-            typename std::map< T*, ObjectPoolElement >::iterator it = in_use.begin();
+            typename std::unordered_map< T*, ObjectPoolElement >::iterator it = in_use.begin();
             while (it != in_use.end()) {
                 ObjectPoolElement element = it->second;
                 delete element.data;
@@ -108,7 +108,7 @@ namespace Platform {
             ITK_ABORT(released, "ERROR: trying to release element from a deleted pool\n");
 
             //check in_use elements
-            typename std::map< T*, ObjectPoolElement >::iterator it = in_use.find(data);
+            typename std::unordered_map< T*, ObjectPoolElement >::iterator it = in_use.find(data);
 
             if (it != in_use.end()) {
                 ObjectPoolElement removedElement = it->second;
