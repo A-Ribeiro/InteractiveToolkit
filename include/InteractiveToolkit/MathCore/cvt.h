@@ -18,6 +18,44 @@
 namespace MathCore
 {
 
+    template <>
+    struct CVT<float>
+    {
+        // smart float to double conversion
+        static ITK_INLINE double toDouble(float v) noexcept
+        {
+            char aux[32];
+            snprintf(aux, 32, "%.6e\n", v);
+            double result;
+            if (sscanf(aux, "%le", &result) != 1)
+                result = (double)v;
+            return result;
+        }
+        static ITK_INLINE float toFloat(float v) noexcept
+        {
+            return v;
+        }
+    };
+
+    template <>
+    struct CVT<double>
+    {
+        // smart float to double conversion
+        static ITK_INLINE double toDouble(double v) noexcept
+        {
+            return v;
+        }
+        static ITK_INLINE float toFloat(double v) noexcept
+        {
+            char aux[32];
+            snprintf(aux, 32, "%.6e\n", v);
+            float result;
+            if (sscanf(aux, "%e", &result) != 1)
+                result = (float)v;
+            return result;
+        }
+    };
+
     template <typename _type, typename _simd>
     struct CVT<vec4<_type, _simd>>
     // ,typename std::enable_if<
