@@ -15,6 +15,11 @@
 #include "mat3.h"
 #include "mat4.h"
 
+#if defined(_WIN32)
+#pragma warning( push )
+#pragma warning( disable : 4996)
+#endif
+
 namespace MathCore
 {
 
@@ -388,3 +393,7 @@ namespace MathCore
     };
 
 }
+
+#if defined(_WIN32)
+#pragma warning( pop )
+#endif
