@@ -502,7 +502,7 @@ namespace EventCore
 
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
-            struct_._ptr_class_member = reinterpret_cast<ptr_class_member>(class_member);
+            struct_._ptr_class_member = static_cast<ptr_class_member>(class_member);
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
             {
@@ -599,7 +599,7 @@ namespace EventCore
 
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
-            struct_._ptr_class_member = reinterpret_cast<ptr_class_member>(class_member);
+            struct_._ptr_class_member = static_cast<ptr_class_member>(class_member);
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
             struct_.mCallType = CallType::ClassMember;
