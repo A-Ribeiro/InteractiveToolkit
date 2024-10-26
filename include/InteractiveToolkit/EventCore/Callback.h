@@ -19,6 +19,12 @@
 namespace EventCore
 {
 
+// The member function in C++:
+//   void(_ClassType::*ptr_class_member)(args)
+// is equivalent to C functor:
+//   void(*ptr_class_member)(_ClassType*, args)
+#define USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION false
+
     // forward template
     template <typename _single_fnc_, typename _BaseClassType>
     class Event;
@@ -49,6 +55,7 @@ namespace EventCore
 
         // using std_function_class_member = typename std::function<_RetType(_BaseClassType*, _ArgsType...)>;
         using ptr_class_member = _RetType (_BaseClassType::*)(_ArgsType...);
+        using ptr_class_member_functor = _RetType(*)(_BaseClassType*, _ArgsType...);
 
         //
         // Functor
@@ -63,7 +70,11 @@ namespace EventCore
         // - std::function<void(_ClassType*,args)>
         // std_function_class_member _std_function_class_member;
         // - void(_ClassType::*ptr_class_member)(args)
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+        ptr_class_member_functor _ptr_class_member;
+#else 
         ptr_class_member _ptr_class_member;
+#endif
         // - ptr_instance*
         _BaseClassType *_ptr_instance;
 
@@ -89,7 +100,11 @@ namespace EventCore
             switch (mCallType)
             {
             case CallType::ClassMember:
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+                return _ptr_class_member(_ptr_instance, std::forward<_ArgsType>(_arg)...);
+#else
                 return (_ptr_instance->*_ptr_class_member)(std::forward<_ArgsType>(_arg)...);
+#endif
             case CallType::Functor:
                 return _ptr_functor(std::forward<_ArgsType>(_arg)...);
             default:
@@ -354,8 +369,13 @@ namespace EventCore
 
             // object
             _ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
-            _ptr_class_member = static_cast<ptr_class_member>(class_member);
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+            _ptr_class_member = *(ptr_class_member_functor*)&class_member;
+#else
+            _ptr_class_member = *(ptr_class_member*)&class_member;
+#endif
             //_std_function_class_member = _ptr_class_member;//std_function_class_member(_ptr_class_member);
+
 
             {
                 _std_function_functor = std::bind(_ptr_class_member, _ptr_instance,

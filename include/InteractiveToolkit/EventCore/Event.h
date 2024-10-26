@@ -39,6 +39,7 @@ namespace EventCore
 
         // using std_function_class_member = typename std::function<_RetType(_BaseClassType*, _ArgsType...)>;
         using ptr_class_member = _RetType (_BaseClassType::*)(_ArgsType...);
+        using ptr_class_member_functor = _RetType(*)(_BaseClassType*, _ArgsType...);
 
         using compatible_callback = Callback<_RetType(_ArgsType...), _BaseClassType>;
 
@@ -57,7 +58,11 @@ namespace EventCore
             // - std::function<void(_ClassType*,args)>
             // std_function_class_member _std_function_class_member;
             // - void(_ClassType::*ptr_class_member)(args)
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+            ptr_class_member_functor _ptr_class_member;
+#else 
             ptr_class_member _ptr_class_member;
+#endif
             // - ptr_instance*
             _BaseClassType *_ptr_instance;
 
@@ -85,12 +90,13 @@ namespace EventCore
             }
             else
                 fncs.push_back(std::move(struct_));
+
         }
         void _remove(__internal &&struct_)
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
 
-            auto rc = std::find_if(fncs.begin(), fncs.end(), [struct_](const __internal &_c)
+            auto rc = std::find_if(fncs.begin(), fncs.end(), [&struct_](const __internal &_c)
                                    {
                                        return
 
@@ -138,7 +144,11 @@ namespace EventCore
                 switch (_i_struct.mCallType)
                 {
                 case CallType::ClassMember:
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+                    _i_struct._ptr_class_member(_i_struct._ptr_instance, _arg...);
+#else
                     (_i_struct._ptr_instance->*_i_struct._ptr_class_member)(_arg...);
+#endif
                     break;
                 case CallType::Functor:
                     _i_struct._ptr_functor(_arg...);
@@ -502,7 +512,11 @@ namespace EventCore
 
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
-            struct_._ptr_class_member = static_cast<ptr_class_member>(class_member);
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+            struct_._ptr_class_member = *(ptr_class_member_functor*)&class_member;
+#else
+            struct_._ptr_class_member = *(ptr_class_member*)&class_member;
+#endif
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
             {
@@ -575,14 +589,28 @@ namespace EventCore
             _remove(std::move(struct_));
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB>
-        void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
+
+        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        void remove(_RetType(_ClassTypeA::* class_member)(_ArgsType...), _ClassTypeB* instance)
+        {
+            specialRemove(class_member, (_ClassTypeA*)instance, Indices());
+        }
+
+        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        void remove(_RetType(_ClassTypeA::* class_member)(_ArgsType...) const, _ClassTypeB* instance)
+        {
+            specialRemove((_RetType(_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA*)instance, Indices());
+        }
+
+        private:
+        template <typename _ClassType, std::size_t... I>
+        void specialRemove(_RetType(_ClassType::* class_member)(_ArgsType...), _ClassType* instance, STL_Tools::index_sequence<I...>)
         {
 
             //
             // ptr_class_member
             //
-            static_assert(std::is_base_of<_BaseClassType, _ClassTypeA>::value,
+            static_assert(std::is_base_of<_BaseClassType, _ClassType>::value,
                           "instance need to derive HandleCallback "
                           "to be used as an event receiver. "
                           "Example 'class Obj:public EventCore::HandleCallback'");
@@ -599,7 +627,11 @@ namespace EventCore
 
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
-            struct_._ptr_class_member = static_cast<ptr_class_member>(class_member);
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+            struct_._ptr_class_member = *(ptr_class_member_functor*)&class_member;
+#else
+            struct_._ptr_class_member = *(ptr_class_member*)&class_member;
+#endif
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
             struct_.mCallType = CallType::ClassMember;
@@ -607,11 +639,7 @@ namespace EventCore
             _remove(std::move(struct_));
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB>
-        void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
-        {
-            remove((_RetType(_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA*)instance);
-        }
+        public:
 
         void clear()
         {
