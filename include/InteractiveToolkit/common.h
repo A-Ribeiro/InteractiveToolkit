@@ -141,6 +141,13 @@ static ITK_INLINE uint32_t &_mm_u32_(const __m128i &v, int i) noexcept
     return ((uint32_t *)&v)[i];
 }
 
+#if defined(ITK_AVX2)
+static ITK_INLINE uint32_t &_mm256_u32_(const __m256i &v, int i) noexcept
+{
+    return ((uint32_t *)&v)[i];
+}
+#endif
+
 #endif
 
 static inline __m128i _sse2_mm_min_epi32(__m128i a, __m128i b)
