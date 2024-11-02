@@ -129,7 +129,7 @@ namespace AlgorithmCore
             //  if it's 0 (positive float), it flips the sign only
             static ITK_INLINE int32_t floatToInt(const float &_f)
             {
-                int32_t f = (int32_t)SortTool<uint32_t>::floatToInt(_f) + INT32_MIN;
+                uint32_t f = SortTool<uint32_t>::floatToInt(_f) ^ UINT32_C(0x80000000);
                 return (int32_t)f;
             }
 
@@ -139,9 +139,10 @@ namespace AlgorithmCore
             //  if sign is 0 (positive), it flips all bits back
             static ITK_INLINE float intToFloat(const int32_t &_f)
             {
-                uint32_t f = (uint32_t)((uint32_t)_f - (uint32_t)INT32_MIN);
+                uint32_t f = (uint32_t)_f ^ UINT32_C(0x80000000);
                 return SortTool<uint32_t>::intToFloat(f);
             }
+
 
             /// \brief Inplace replace
             ///
@@ -330,14 +331,13 @@ namespace AlgorithmCore
             //  if it's 0 (positive float), it flips the sign only
             static ITK_INLINE int64_t floatToInt(const float &_f)
             {
-                int64_t f = (int64_t)SortTool<uint64_t>::floatToInt(_f) + INT64_MIN;
-                return f;
+                return doubleToInt((double)_f);
             }
 
-            static ITK_INLINE uint64_t doubleToInt(const double &_f)
+            static ITK_INLINE int64_t doubleToInt(const double &_f)
             {
-                int64_t f = (int64_t)SortTool<uint64_t>::doubleToInt(_f) + INT64_MIN;
-                return f;
+                uint64_t f = SortTool<uint64_t>::doubleToInt(_f) ^ UINT64_C(0x8000000000000000);
+                return (int64_t)f;
             }
 
             // flip a float back (invert FloatFlip)
@@ -346,12 +346,11 @@ namespace AlgorithmCore
             //  if sign is 0 (positive), it flips all bits back
             static ITK_INLINE float intToFloat(const int64_t &_f)
             {
-                uint64_t f = (uint64_t)((uint64_t)_f - (uint64_t)INT64_MIN);
-                return SortTool<uint64_t>::intToFloat(f);
+                return (float)intToDouble(_f);
             }
-            static ITK_INLINE double intToDouble(const uint64_t &_f)
+            static ITK_INLINE double intToDouble(const int64_t &_f)
             {
-                uint64_t f = (uint64_t)((uint64_t)_f - (uint64_t)INT64_MIN);
+                uint64_t f = (uint64_t)_f ^ UINT64_C(0x8000000000000000);
                 return SortTool<uint64_t>::intToDouble(f);
             }
 

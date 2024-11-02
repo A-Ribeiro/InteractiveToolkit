@@ -18,7 +18,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-include(CheckCXXCompilerFlag)
+# include(CheckCXXCompilerFlag)
 
 if(MSVC)
     #disable size_t warning conversion... on 64build
@@ -36,6 +36,77 @@ endif()
 #
 # MACROS
 #
+
+macro(unix_check_cpu_flag flag var )
+if(WIN32)
+    execute_process(
+        COMMAND coreinfo.exe -v
+        RESULT_VARIABLE coreinfo_result
+        OUTPUT_VARIABLE coreinfo_output
+        ERROR_QUIET
+    )
+
+    set(to_test "EMPTY_CPU_FLAG")
+    if (${flag} STREQUAL "neon")
+        set(to_test "NEON")
+    elseif(${flag} STREQUAL "sse3")
+        set(to_test "SSE3")
+    elseif(${flag} STREQUAL "sse4_1")
+        set(to_test "SSE4.1")
+    elseif(${flag} STREQUAL "avx2")
+        set(to_test "AVX2")
+    endif()
+    
+    if(coreinfo_result EQUAL 0 AND coreinfo_output MATCHES "${to_test}")
+        set(${var} ON)
+    else()
+        set(${var} OFF)
+    endif()
+elseif(APPLE)
+    if (${flag} STREQUAL "neon")
+        # on arm systems it always supports neon
+        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(${var} ON)
+        else()
+            set(${var} OFF)
+        endif()
+    else()
+        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(${var} OFF)
+        else()
+            set(to_test "EMPTY_CPU_FLAG")
+            if(${flag} STREQUAL "sse3")
+                set(to_test "SSE 3")
+            elseif(${flag} STREQUAL "sse4_1")
+                set(to_test "SSE 4.1")
+            elseif(${flag} STREQUAL "avx2")
+                set(to_test "AVX2")
+            endif()
+            execute_process(
+                COMMAND sysctl -a
+                OUTPUT_VARIABLE sysctl_output
+            )
+            if(sysctl_output MATCHES "${to_test}")
+                set(${var} ON)
+            else()
+                set(${var} OFF)
+            endif()
+        endif()
+    endif()
+elseif(UNIX)
+    execute_process(
+        COMMAND bash -c "grep -m1 '${flag}' /proc/cpuinfo"
+        RESULT_VARIABLE grep_result
+        OUTPUT_VARIABLE grep_output
+        ERROR_QUIET
+    )
+    if(grep_result EQUAL 0)
+        set(${var} ON)
+    else()
+        set(${var} OFF)
+    endif()
+endif()
+endmacro()
 
 # automatically setup IDE source group. Useful for VSStudio
 macro(define_source_group )
@@ -292,7 +363,9 @@ endif()
 ############################################################################
 # Detect NEON compatible environment
 ############################################################################
-check_cxx_compiler_flag("-mfpu=neon" COMPILER_SUPPORTS_NEON)
+# check_cxx_compiler_flag("-mfpu=neon" COMPILER_SUPPORTS_NEON)
+
+unix_check_cpu_flag("neon" COMPILER_SUPPORTS_NEON)
 
 #if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 if(COMPILER_SUPPORTS_NEON)
@@ -343,9 +416,13 @@ endif()
 ############################################################################
 # Detect SSE2 compatible environment
 ############################################################################
-check_cxx_compiler_flag("-msse3" COMPILER_SUPPORTS_SSE3)
-check_cxx_compiler_flag("-msse4.1" COMPILER_SUPPORTS_SSE41)
-check_cxx_compiler_flag("-mavx2" COMPILER_SUPPORTS_AVX2)
+# check_cxx_compiler_flag("-msse3" COMPILER_SUPPORTS_SSE3)
+# check_cxx_compiler_flag("-msse4.1" COMPILER_SUPPORTS_SSE41)
+# check_cxx_compiler_flag("-mavx2" COMPILER_SUPPORTS_AVX2)
+
+unix_check_cpu_flag("sse3" COMPILER_SUPPORTS_SSE3)
+unix_check_cpu_flag("sse4_1" COMPILER_SUPPORTS_SSE41)
+unix_check_cpu_flag("avx2" COMPILER_SUPPORTS_AVX2)
 
 #if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 if(COMPILER_SUPPORTS_SSE41)
