@@ -11,8 +11,8 @@ namespace AlgorithmCore
 #if defined(__APPLE__) || defined(__linux__)
     typedef __uint128_t uint128;
 #elif defined(_MSC_VER)
-    //typedef unsigned __int128 uint128; // does not compile on all platforms
-    #define ___need_to_define_uint128_type
+// typedef unsigned __int128 uint128; // does not compile on all platforms
+#define ___need_to_define_uint128_type
 #elif defined(__GNUC__) || defined(__clang__)
     typedef __uint128_t uint128; // windows with gcc or clang
 #else
@@ -88,72 +88,54 @@ namespace AlgorithmCore
 
         uint128 &operator*=(const uint128 &other)
         {
-            // MIT license
-            // adapted from: https://github.com/calccrypto/uint128_t/blob/0c916f210828adc2e2edd35497456249563239a7/uint128_t.cpp#L317
 
-            const uint64_t _32bit_mask = UINT64_C(0x00000000ffffffff);
+            uint64_t uint64_byte0_self = low & UINT64_C(0xffffffff);
+            uint64_t uint64_byte0_other = other.low & UINT64_C(0xffffffff);
 
-            // split values into 4 32-bit parts
-            uint64_t top[4] = {
-                low & _32bit_mask,
-                low >> 32,
-                high & _32bit_mask,
-                high >> 32};
-            uint64_t bottom[4] = {other.high >> 32, other.high & _32bit_mask, other.low >> 32, other.low & _32bit_mask};
-            // uint64_t products[4][4];
+            uint64_t uint64_byte1_self = low >> 32;
+            uint64_t uint64_byte1_other = other.low >> 32;
 
-            // multiply each component of the values
+            uint64_t uint64_byte2_self = high & UINT64_C(0xffffffff);
+            uint64_t uint64_byte2_other = other.high & UINT64_C(0xffffffff);
 
-            // for (int x = 0; x < 4; x++)
-            //     for (int y = 0; y < 4; y++)
-            //         products[x][y] = top[x] * bottom[y];
+            uint64_t uint64_byte3_self = high >> 32;
+            uint64_t uint64_byte3_other = other.high >> 32;
 
-            uint64_t products_0_3 = top[0] * bottom[3];
-            uint64_t products_0_2 = top[0] * bottom[2];
-            uint64_t products_0_1 = top[0] * bottom[1];
-            uint64_t products_0_0 = top[0] * bottom[0];
+            uint64_t uint64_byte0_res = uint64_byte0_self * uint64_byte0_other;
+            uint64_t uint64_byte0_res_carry = uint64_byte0_res >> 32;
 
-            // first row
-            uint64_t fourth32 = (products_0_3 & _32bit_mask);
-            uint64_t third32 = (products_0_2 & _32bit_mask) + (products_0_3 >> 32);
-            uint64_t second32 = (products_0_1 & _32bit_mask) + (products_0_2 >> 32);
-            uint64_t first32 = (products_0_0 & _32bit_mask) + (products_0_1 >> 32);
+            // low_l = uint64_byte0_res & 0xffffffff;
 
-            uint64_t products_1_3 = top[1] * bottom[3];
-            uint64_t products_1_2 = top[1] * bottom[2];
-            uint64_t products_1_1 = top[1] * bottom[1];
+            uint64_t uint64_byte1_res =
+                uint64_byte1_self * uint64_byte0_other +
+                uint64_byte0_self * uint64_byte1_other +
+                uint64_byte0_res_carry;
+            uint64_t uint64_byte1_res_carry = uint64_byte1_res >> 32;
 
-            // second row
-            third32 += (products_1_3 & _32bit_mask);
-            second32 += (products_1_2 & _32bit_mask) + (products_1_3 >> 32);
-            first32 += (products_1_1 & _32bit_mask) + (products_1_2 >> 32);
+            // low_h = uint64_byte1_res & 0xffffffff;
+            low = (uint64_byte1_res << 32) | (uint64_byte0_res & UINT64_C(0xffffffff));
 
-            uint64_t products_2_3 = top[2] * bottom[3];
-            uint64_t products_2_2 = top[2] * bottom[2];
+            uint64_t uint64_byte2_res =
+                uint64_byte2_self * uint64_byte0_other +
+                uint64_byte1_self * uint64_byte1_other +
+                uint64_byte0_self * uint64_byte2_other +
+                uint64_byte1_res_carry;
+            uint64_t uint64_byte2_res_carry = uint64_byte2_res >> 32;
 
-            // third row
-            second32 += (products_2_3 & _32bit_mask);
-            first32 += (products_2_2 & _32bit_mask) + (products_2_3 >> 32);
+            // high_l = uint64_byte2_res & 0xffffffff;
 
-            uint64_t products_3_3 = top[3] * bottom[3];
+            uint64_t uint64_byte3_res =
+                uint64_byte3_self * uint64_byte0_other +
+                uint64_byte2_self * uint64_byte1_other +
+                uint64_byte1_self * uint64_byte2_other +
+                uint64_byte0_self * uint64_byte3_other +
+                uint64_byte2_res_carry;
+            // uint64_t uint64_byte3_res_carry = uint64_byte3_res >> 32;
 
-            // fourth row
-            first32 += (products_3_3 & _32bit_mask);
+            // high_h = uint64_byte3_res & 0xffffffff;
 
-            // move carry to next digit
-            third32 += fourth32 >> 32;
-            second32 += third32 >> 32;
-            first32 += second32 >> 32;
+            high = (uint64_byte3_res << 32) | (uint64_byte2_res & UINT64_C(0xffffffff));
 
-            // remove carry from current digit
-            fourth32 &= _32bit_mask;
-            third32 &= _32bit_mask;
-            second32 &= _32bit_mask;
-            first32 &= _32bit_mask;
-
-            // combine components
-            low = (third32 << 32) | fourth32;
-            high = (first32 << 32) | second32;
             return *this;
         }
 
