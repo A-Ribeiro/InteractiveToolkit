@@ -12,6 +12,8 @@ namespace AlgorithmCore
     typedef __uint128_t uint128;
 #elif defined(_MSC_VER)
     typedef unsigned __int128 uint128;
+#elif defined(__GNUC__) || defined(__clang__)
+    typedef __uint128_t uint128; // windows with gcc or clang
 #else
 #define ___need_to_define_uint128_type
 #endif
@@ -88,17 +90,16 @@ namespace AlgorithmCore
             // MIT license
             // adapted from: https://github.com/calccrypto/uint128_t/blob/0c916f210828adc2e2edd35497456249563239a7/uint128_t.cpp#L317
 
-            const uint64_t _32bit_mask = UINT64_C(0x00000000ffffffff); 
+            const uint64_t _32bit_mask = UINT64_C(0x00000000ffffffff);
 
             // split values into 4 32-bit parts
             uint64_t top[4] = {
                 low & _32bit_mask,
-                low >> 32, 
-                high & _32bit_mask, 
-                high >> 32
-            };
+                low >> 32,
+                high & _32bit_mask,
+                high >> 32};
             uint64_t bottom[4] = {other.high >> 32, other.high & _32bit_mask, other.low >> 32, other.low & _32bit_mask};
-            //uint64_t products[4][4];
+            // uint64_t products[4][4];
 
             // multiply each component of the values
 
@@ -116,7 +117,6 @@ namespace AlgorithmCore
             uint64_t third32 = (products_0_2 & _32bit_mask) + (products_0_3 >> 32);
             uint64_t second32 = (products_0_1 & _32bit_mask) + (products_0_2 >> 32);
             uint64_t first32 = (products_0_0 & _32bit_mask) + (products_0_1 >> 32);
-
 
             uint64_t products_1_3 = top[1] * bottom[3];
             uint64_t products_1_2 = top[1] * bottom[2];
