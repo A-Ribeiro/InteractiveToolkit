@@ -88,53 +88,58 @@ namespace AlgorithmCore
 
         uint128 &operator*=(const uint128 &other)
         {
+            const uint64_t _32bit_mask = UINT64_C(0x00000000ffffffff);
 
-            uint64_t uint64_byte0_self = low & UINT64_C(0xffffffff);
-            uint64_t uint64_byte0_other = other.low & UINT64_C(0xffffffff);
+            uint64_t s0 = low & _32bit_mask;
+            uint64_t s1 = low >> 32;
+            uint64_t s2 = high & _32bit_mask;
+            uint64_t s3 = high >> 32;
 
-            uint64_t uint64_byte1_self = low >> 32;
-            uint64_t uint64_byte1_other = other.low >> 32;
+            uint64_t o0 = other.low & _32bit_mask;
+            uint64_t o1 = other.low >> 32;
+            uint64_t o2 = other.high & _32bit_mask;
+            uint64_t o3 = other.high >> 32;
 
-            uint64_t uint64_byte2_self = high & UINT64_C(0xffffffff);
-            uint64_t uint64_byte2_other = other.high & UINT64_C(0xffffffff);
+            uint64_t s0o0 = o0 * s0;
+            uint64_t s1o0 = o0 * s1;
+            uint64_t s2o0 = o0 * s2;
+            uint64_t s3o0 = o0 * s3;
 
-            uint64_t uint64_byte3_self = high >> 32;
-            uint64_t uint64_byte3_other = other.high >> 32;
+            // 1st multiplication
+            uint64_t r0 = (s0o0 & _32bit_mask);
+            uint64_t r1 = (s1o0 & _32bit_mask) + (s0o0 >> 32);
+            uint64_t r2 = (s2o0 & _32bit_mask) + (s1o0 >> 32);
+            uint64_t r3 = (s3o0 & _32bit_mask) + (s2o0 >> 32);
 
-            uint64_t uint64_byte0_res = uint64_byte0_self * uint64_byte0_other;
-            uint64_t uint64_byte0_res_carry = uint64_byte0_res >> 32;
+            uint64_t s0o1 = o1 * s0;
+            uint64_t s1o1 = o1 * s1;
+            uint64_t s2o1 = o1 * s2;
 
-            // low_l = uint64_byte0_res & 0xffffffff;
+            // 2nd multiplication
+            r1 += (s0o1 & _32bit_mask);
+            r2 += (s1o1 & _32bit_mask) + (s0o1 >> 32);
+            r3 += (s2o1 & _32bit_mask) + (s1o1 >> 32);
 
-            uint64_t uint64_byte1_res =
-                uint64_byte1_self * uint64_byte0_other +
-                uint64_byte0_self * uint64_byte1_other +
-                uint64_byte0_res_carry;
-            uint64_t uint64_byte1_res_carry = uint64_byte1_res >> 32;
+            uint64_t s0o2 = o2 * s0;
+            uint64_t s1o2 = o2 * s1;
 
-            // low_h = uint64_byte1_res & 0xffffffff;
-            low = (uint64_byte1_res << 32) | (uint64_byte0_res & UINT64_C(0xffffffff));
+            // 3th multiplication
+            r2 += (s0o2 & _32bit_mask);
+            r3 += (s1o2 & _32bit_mask) + (s0o2 >> 32);
 
-            uint64_t uint64_byte2_res =
-                uint64_byte2_self * uint64_byte0_other +
-                uint64_byte1_self * uint64_byte1_other +
-                uint64_byte0_self * uint64_byte2_other +
-                uint64_byte1_res_carry;
-            uint64_t uint64_byte2_res_carry = uint64_byte2_res >> 32;
+            uint64_t products_3_3 = o3 * s0;
 
-            // high_l = uint64_byte2_res & 0xffffffff;
+            // 4th multiplication
+            r3 += (products_3_3 & _32bit_mask);
 
-            uint64_t uint64_byte3_res =
-                uint64_byte3_self * uint64_byte0_other +
-                uint64_byte2_self * uint64_byte1_other +
-                uint64_byte1_self * uint64_byte2_other +
-                uint64_byte0_self * uint64_byte3_other +
-                uint64_byte2_res_carry;
-            // uint64_t uint64_byte3_res_carry = uint64_byte3_res >> 32;
+            // carry
+            r1 += r0 >> 32;
+            r2 += r1 >> 32;
+            r3 += r2 >> 32;
 
-            // high_h = uint64_byte3_res & 0xffffffff;
-
-            high = (uint64_byte3_res << 32) | (uint64_byte2_res & UINT64_C(0xffffffff));
+            // result
+            low = (r1 << 32) | (r0 & _32bit_mask);
+            high = (r3 << 32) | (r2 & _32bit_mask);
 
             return *this;
         }
