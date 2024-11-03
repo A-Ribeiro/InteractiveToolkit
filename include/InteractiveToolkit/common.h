@@ -126,6 +126,9 @@ static void ITK_SYS_ALIGNED_FREE(void* data)
 #define _mm_f32_(v, i) (v).m128_f32[i]
 #define _mm_i32_(v, i) (v).m128i_i32[i]
 #define _mm_u32_(v, i) (v).m128i_u32[i]
+#if defined(ITK_AVX2)
+    #define _mm256_u32_(v, i) (v).m256i_u32[i]
+#endif
 #else
 //  GCC Intrinsics
 #include <x86intrin.h>

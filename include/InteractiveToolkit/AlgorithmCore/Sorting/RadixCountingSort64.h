@@ -340,7 +340,7 @@ namespace AlgorithmCore
                     }
 
                     // compute offsets
-                    uint64_t acc[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+                    uint32_t acc[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                     for (uint32_t j = 0; j < 256; j++)
                     {

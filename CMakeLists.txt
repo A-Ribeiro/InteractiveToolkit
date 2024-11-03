@@ -18,7 +18,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# include(CheckCXXCompilerFlag)
+include(CheckCXXCompilerFlag)
 
 if(MSVC)
     #disable size_t warning conversion... on 64build
@@ -39,29 +39,51 @@ endif()
 
 macro(unix_check_cpu_flag flag var )
 if(WIN32)
-    execute_process(
-        COMMAND coreinfo.exe -v
-        RESULT_VARIABLE coreinfo_result
-        OUTPUT_VARIABLE coreinfo_output
-        ERROR_QUIET
-    )
+    # execute_process(
+    #     COMMAND coreinfo.exe -v
+    #     RESULT_VARIABLE coreinfo_result
+    #     OUTPUT_VARIABLE coreinfo_output
+    #     ERROR_QUIET
+    # )
 
-    set(to_test "EMPTY_CPU_FLAG")
+    set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
     if (${flag} STREQUAL "neon")
-        set(to_test "NEON")
+        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+        else()
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+        endif()
     elseif(${flag} STREQUAL "sse3")
-        set(to_test "SSE3")
+        if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+        else()
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+        endif()
     elseif(${flag} STREQUAL "sse4_1")
-        set(to_test "SSE4.1")
+        if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+        else()
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+        endif()
     elseif(${flag} STREQUAL "avx2")
-        set(to_test "AVX2")
+        if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+        else()
+            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+        endif()
     endif()
-    
-    if(coreinfo_result EQUAL 0 AND coreinfo_output MATCHES "${to_test}")
+
+    if (COMPILER_SUPPORTS_REQUIRED_INTRINSICS)
         set(${var} ON)
     else()
         set(${var} OFF)
     endif()
+    
+    # if(coreinfo_result EQUAL 0 AND coreinfo_output MATCHES "${to_test}")
+    #     set(${var} ON)
+    # else()
+    #     set(${var} OFF)
+    # endif()
 elseif(APPLE)
     if (${flag} STREQUAL "neon")
         # on arm systems it always supports neon
@@ -459,6 +481,13 @@ if (ITK_SSE2)
             list(APPEND ITK_COMPILE_OPTIONS -mavx -mavx2)
         endif()
         list(APPEND ITK_COMPILE_OPTIONS -mfpmath=sse -minline-all-stringops -finline-functions)
+    else()
+        #visual studio
+        if (ITK_AVX2)
+            list(APPEND ITK_COMPILE_OPTIONS /arch:AVX2)
+        elseif(ITK_SSE2)
+            list(APPEND ITK_COMPILE_OPTIONS /arch:SSE2)
+        endif()
     endif()
 endif()
 ############################################################################

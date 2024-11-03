@@ -11,7 +11,8 @@ namespace AlgorithmCore
 #if defined(__APPLE__) || defined(__linux__)
     typedef __uint128_t uint128;
 #elif defined(_MSC_VER)
-    typedef unsigned __int128 uint128;
+    //typedef unsigned __int128 uint128; // does not compile on all platforms
+    #define ___need_to_define_uint128_type
 #elif defined(__GNUC__) || defined(__clang__)
     typedef __uint128_t uint128; // windows with gcc or clang
 #else
