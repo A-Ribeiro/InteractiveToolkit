@@ -107,7 +107,7 @@ namespace AlgorithmCore
 
             // 1st multiplication
             uint64_t r0 = (s0o0 & _32bit_mask);
-            uint64_t r1 = (s1o0 & _32bit_mask) + (s0o0 >> 32);
+            uint64_t r1 = (s1o0 & _32bit_mask) + (s0o0 >> 32) + (r0 >> 32);
             uint64_t r2 = (s2o0 & _32bit_mask) + (s1o0 >> 32);
             uint64_t r3 = (s3o0 & _32bit_mask) + (s2o0 >> 32);
 
@@ -117,7 +117,7 @@ namespace AlgorithmCore
 
             // 2nd multiplication
             r1 += (s0o1 & _32bit_mask);
-            r2 += (s1o1 & _32bit_mask) + (s0o1 >> 32);
+            r2 += (s1o1 & _32bit_mask) + (s0o1 >> 32) + (r1 >> 32);
             r3 += (s2o1 & _32bit_mask) + (s1o1 >> 32);
 
             uint64_t s0o2 = o2 * s0;
@@ -125,17 +125,12 @@ namespace AlgorithmCore
 
             // 3th multiplication
             r2 += (s0o2 & _32bit_mask);
-            r3 += (s1o2 & _32bit_mask) + (s0o2 >> 32);
+            r3 += (s1o2 & _32bit_mask) + (s0o2 >> 32) + (r2 >> 32);
 
-            uint64_t products_3_3 = o3 * s0;
+            uint64_t s0o3 = o3 * s0;
 
             // 4th multiplication
-            r3 += (products_3_3 & _32bit_mask);
-
-            // carry
-            r1 += r0 >> 32;
-            r2 += r1 >> 32;
-            r3 += r2 >> 32;
+            r3 += (s0o3 & _32bit_mask);
 
             // result
             low = (r1 << 32) | (r0 & _32bit_mask);
