@@ -695,7 +695,7 @@ namespace AlgorithmCore
                         {
                             const sortIndexType &currItem = in[j];
                             uint8_t bucket_index = (((uint64_t)currItem.toSort >> shift) & 0xff);
-                            uint64_t out_index = _mm256_u32_(counting[bucket_index], idx);
+                            uint32_t out_index = _mm256_u32_(counting[bucket_index], idx);
                             counting[bucket_index] = _mm256_add_epi32(counting[bucket_index], increment_c[idx]);
                             out[out_index] = currItem;
                         }
@@ -714,7 +714,7 @@ namespace AlgorithmCore
                         {
                             const sortIndexType &currItem = in[j];
                             uint8_t bucket_index = ((((int64_t)currItem.toSort >> shift) ^ _minus_128) & 0xff);
-                            uint64_t out_index = _mm256_u32_(counting[bucket_index], idx);
+                            uint32_t out_index = _mm256_u32_(counting[bucket_index], idx);
                             counting[bucket_index] = _mm256_add_epi32(counting[bucket_index], increment_c[idx]);
                             out[out_index] = currItem;
                         }
