@@ -2,6 +2,7 @@
 
 #include "../../common.h"
 #include "SortIndex.h"
+#include "uint128.h"
 
 namespace AlgorithmCore
 {
@@ -116,11 +117,13 @@ namespace AlgorithmCore
 
             static ITK_INLINE int32_t spread(int32_t min, int32_t max, int32_t v)
             {
-                uint64_t aux = (uint64_t)v - (uint64_t)min;
-                uint64_t delta = (uint64_t)max - (uint64_t)min;
-                aux = (aux * (uint64_t)UINT32_MAX) / delta;
-                aux += (uint64_t)INT32_MIN;
-                return (int32_t)aux;
+                // uint64_t aux = (uint64_t)v - (uint64_t)min;
+                // uint64_t delta = (uint64_t)max - (uint64_t)min;
+                // aux = (aux * (uint64_t)UINT32_MAX) / delta;
+                // aux += (uint64_t)INT32_MIN;
+                // return (int32_t)aux;
+
+                return SortTool<uint32_t>::spread(min ^ UINT32_C(0x80000000), max ^ UINT32_C(0x80000000), v ^ UINT32_C(0x80000000)) ^ UINT32_C(0x80000000);
             }
 
             // flip a float for sorting
@@ -142,7 +145,6 @@ namespace AlgorithmCore
                 uint32_t f = (uint32_t)_f ^ UINT32_C(0x80000000);
                 return SortTool<uint32_t>::intToFloat(f);
             }
-
 
             /// \brief Inplace replace
             ///
@@ -185,8 +187,9 @@ namespace AlgorithmCore
                         continue;
 
                     // redirect walk
-                    while (src_index < target_index){
-                        //printf("%u %u\n",src_index, target_index);
+                    while (src_index < target_index)
+                    {
+                        // printf("%u %u\n",src_index, target_index);
                         src_index = inplace_redirect[src_index];
                     }
 
@@ -209,21 +212,11 @@ namespace AlgorithmCore
             static ITK_INLINE uint64_t spread(uint64_t min, uint64_t max, uint64_t v)
             {
                 v = v - min;
-                uint64_t aux = v;
-                uint64_t delta = max - min;
-
-                // aux = (aux * UINT64_MAX) / delta;
-
-                uint64_t high = (aux >> 32) * UINT64_MAX;  // Upper 32 bits of `value`
-                uint64_t low = (aux & UINT64_C(0xFFFFFFFF)) * UINT64_MAX;  // Lower 32 bits of `value`
-
-                uint64_t tmp0 = high / delta;
-                uint64_t tmp1 = high - tmp0 * delta; // high % delta
-
-                uint64_t high_part = tmp0 << 32;
-                uint64_t low_part = (low + (tmp1 << 32)) / delta;
-
-                return high_part + low_part;
+                uint128 aux = v;
+                uint128 delta = max - min;
+                const uint128 _max_v = UINT64_MAX;
+                aux = (aux * _max_v) / delta;
+                return (uint64_t)aux;
             }
 
             // flip a float for sorting
@@ -232,7 +225,7 @@ namespace AlgorithmCore
             //  if it's 0 (positive float), it flips the sign only
             static ITK_INLINE uint64_t floatToInt(const float &_f)
             {
-                //return (uint64_t)SortTool<uint32_t>::floatToInt(_f);
+                // return (uint64_t)SortTool<uint32_t>::floatToInt(_f);
                 return doubleToInt((double)_f);
             }
 
@@ -249,7 +242,7 @@ namespace AlgorithmCore
             //  if sign is 0 (positive), it flips all bits back
             static ITK_INLINE float intToFloat(const uint64_t &_f)
             {
-                //return SortTool<uint32_t>::intToFloat(_f);
+                // return SortTool<uint32_t>::intToFloat(_f);
                 return (float)intToDouble(_f);
             }
 
@@ -322,7 +315,7 @@ namespace AlgorithmCore
 
             static ITK_INLINE int64_t spread(int64_t min, int64_t max, int64_t v)
             {
-                return SortTool<uint64_t>::spread(min - INT64_MIN, max - INT64_MIN, v - INT64_MIN) + INT64_MIN;
+                return SortTool<uint64_t>::spread(min ^ UINT64_C(0x8000000000000000), max ^ UINT64_C(0x8000000000000000), v ^ UINT64_C(0x8000000000000000)) ^ UINT64_C(0x8000000000000000);
             }
 
             // flip a float for sorting
@@ -395,8 +388,9 @@ namespace AlgorithmCore
                         continue;
 
                     // redirect walk
-                    while (src_index < target_index){
-                        //printf("%u %u\n",src_index, target_index);
+                    while (src_index < target_index)
+                    {
+                        // printf("%u %u\n",src_index, target_index);
                         src_index = inplace_redirect[src_index];
                     }
 
