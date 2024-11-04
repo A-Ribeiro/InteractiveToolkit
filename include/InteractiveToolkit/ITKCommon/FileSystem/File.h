@@ -381,7 +381,7 @@ namespace ITKCommon
                                                            { fclose(file); });
 
 #if defined(__APPLE__)
-                if (fseeko(file, (loff_t)read_offset, SEEK_SET) != 0)
+                if (fseeko(file, (off_t)read_offset, SEEK_SET) != 0)
 #elif defined(__linux__)
                 if (fseeko64(file, (loff_t)read_offset, SEEK_SET) != 0)
 #else
