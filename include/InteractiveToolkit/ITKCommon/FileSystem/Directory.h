@@ -258,14 +258,14 @@ namespace ITKCommon
                         return;
 
                     // skip . and ..
-                    struct stat64 sb;
+                    struct stat sb;
                     bool stat_success = false;
 
                     if (next_valid)
                     {
 
                         fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                        stat_success = stat64(fileInfo.full_path.c_str(), &sb) == 0;
+                        stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
 
                         // read next until a valid stat file stated
                         while (next_valid && !stat_success)
@@ -276,7 +276,7 @@ namespace ITKCommon
                             if (next_valid)
                             {
                                 fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                                stat_success = stat64(fileInfo.full_path.c_str(), &sb) == 0;
+                                stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
                             }
                         }
                     }
@@ -291,7 +291,7 @@ namespace ITKCommon
                         if (next_valid)
                         {
                             fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                            stat_success = stat64(fileInfo.full_path.c_str(),&sb) == 0;
+                            stat_success = stat(fileInfo.full_path.c_str(),&sb) == 0;
 
                             // read next until a valid stat file stated
                             while (next_valid && !stat_success)
@@ -302,7 +302,7 @@ namespace ITKCommon
                                 if (next_valid)
                                 {
                                     fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                                    stat_success = stat64(fileInfo.full_path.c_str(), &sb) == 0;
+                                    stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
                                 }
                             }
                         }
@@ -328,11 +328,11 @@ namespace ITKCommon
                         // date processing
                         fileInfo.lastWriteTime = Date::FromUnixTimestampUTC(
                             sb.st_mtimespec.tv_sec,
-                            sb.st_mtimespec.tv_nsec);
+                            (uint32_t)sb.st_mtimespec.tv_nsec);
 
                         fileInfo.creationTime = Date::FromUnixTimestampUTC(
                             sb.st_birthtimespec.tv_sec,
-                            sb.st_birthtimespec.tv_nsec);
+                            (uint32_t)sb.st_birthtimespec.tv_nsec);
 
                         fileInfo.size = (uint64_t)sb.st_size;
                     }
