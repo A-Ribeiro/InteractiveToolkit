@@ -543,7 +543,7 @@ namespace ITKCommon
 
                 char buf[BUFSIZ];
                 size_t size;
-                while (size = fread(buf, 1, BUFSIZ, source))
+                while ((size = fread(buf, 1, BUFSIZ, source)))
                 {
                     fwrite(buf, 1, size, dest);
                 }
