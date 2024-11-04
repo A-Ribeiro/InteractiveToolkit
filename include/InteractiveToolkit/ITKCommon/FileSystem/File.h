@@ -202,7 +202,9 @@ namespace ITKCommon
                     return false;
                 EventCore::ExecuteOnScopeEnd _close_source([=]()
                                                            { fclose(file); });
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, 0, SEEK_END) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, 0, SEEK_END) != 0)
 #else
                 if (_fseeki64(file, 0, SEEK_END) != 0)
@@ -213,7 +215,9 @@ namespace ITKCommon
                     return false;
                 }
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                int64_t _ftell = (int64_t)ftello(file);
+#elif defined(__linux__)
                 int64_t _ftell = (int64_t)ftello64(file);
 #else
                 int64_t _ftell = (int64_t)_ftelli64(file);
@@ -227,7 +231,9 @@ namespace ITKCommon
 
                 output->setSize(_ftell);
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, 0, SEEK_SET) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, 0, SEEK_SET) != 0)
 #else
                 if (_fseeki64(file, 0, SEEK_SET) != 0)
@@ -260,7 +266,9 @@ namespace ITKCommon
                 EventCore::ExecuteOnScopeEnd _close_source([=]()
                                                            { fclose(file); });
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, 0, SEEK_END) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, 0, SEEK_END) != 0)
 #else
                 if (_fseeki64(file, 0, SEEK_END) != 0)
@@ -271,7 +279,9 @@ namespace ITKCommon
                     return false;
                 }
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                int64_t _ftell = (int64_t)ftello(file);
+#elif defined(__linux__)
                 int64_t _ftell = (int64_t)ftello64(file);
 #else
                 int64_t _ftell = (int64_t)_ftelli64(file);
@@ -285,7 +295,9 @@ namespace ITKCommon
 
                 output->resize((size_t)_ftell);
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, 0, SEEK_SET) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, 0, SEEK_SET) != 0)
 #else
                 if (_fseeki64(file, 0, SEEK_SET) != 0)
@@ -331,7 +343,9 @@ namespace ITKCommon
                 EventCore::ExecuteOnScopeEnd _close_source([=]()
                                                            { fclose(file); });
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, 0, SEEK_END) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, 0, SEEK_END) != 0)
 #else
                 if (_fseeki64(file, 0, SEEK_END) != 0)
@@ -342,7 +356,9 @@ namespace ITKCommon
                     return -1;
                 }
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                int64_t _ftell = (int64_t)ftello(file);
+#elif defined(__linux__)
                 int64_t _ftell = (int64_t)ftello64(file);
 #else
                 int64_t _ftell = (int64_t)_ftelli64(file);
@@ -364,7 +380,9 @@ namespace ITKCommon
                 EventCore::ExecuteOnScopeEnd _close_source([=]()
                                                            { fclose(file); });
 
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__APPLE__)
+                if (fseeko(file, (loff_t)read_offset, SEEK_SET) != 0)
+#elif defined(__linux__)
                 if (fseeko64(file, (loff_t)read_offset, SEEK_SET) != 0)
 #else
                 if (_fseeki64(file, (__int64)read_offset, SEEK_SET) != 0)
