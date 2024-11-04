@@ -119,9 +119,36 @@ namespace ITKCommon
 
                     FindClose(hFind);
                 }
-#elif defined(__APPLE__) || defined(__linux__)
+#elif defined(__APPLE__)
 
-                // stat directory
+                // stat file
+                {
+                    struct stat sb;
+                    bool stat_success = stat(result.full_path.c_str(), &sb) == 0;
+                    if (stat_success)
+                    {
+                        result.isDirectory = (sb.st_mode & S_IFDIR) != 0;
+                        result.isFile = !result.isDirectory;
+
+                        if (result.isDirectory)
+                            result.full_path += "/";
+
+                        // date processing
+                        result.lastWriteTime = Date::FromUnixTimestampUTC(
+                            sb.st_mtimespec.tv_sec,
+                            static_cast<uint32_t>(sb.st_mtimespec.tv_nsec));
+
+                        result.creationTime = Date::FromUnixTimestampUTC(
+                            sb.st_birthtimespec.tv_sec,
+                            static_cast<uint32_t>(sb.st_birthtimespec.tv_nsec));
+
+                        result.size = (uint64_t)sb.st_size;
+                    }
+                }
+
+#elif defined(__linux__)
+
+                // stat file
                 {
                     struct statx sb;
                     int dirfd = AT_FDCWD;

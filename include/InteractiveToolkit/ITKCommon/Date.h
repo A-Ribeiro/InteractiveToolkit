@@ -226,7 +226,7 @@ namespace ITKCommon
 
         static Date FromTimeSpecUTC(struct timespec &_ts)
         {
-            return FromUnixTimestampUTC(_ts.tv_sec, (uint32_t)_ts.tv_nsec);
+            return FromUnixTimestampUTC(_ts.tv_sec, static_cast<uint32_t>(_ts.tv_nsec));
         }
 
         static Date FromUnixTimestampUTC(const time_t &unix_time_sec, uint32_t _nsec = 0)

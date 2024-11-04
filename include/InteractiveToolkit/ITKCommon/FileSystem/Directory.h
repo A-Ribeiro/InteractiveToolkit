@@ -328,11 +328,11 @@ namespace ITKCommon
                         // date processing
                         fileInfo.lastWriteTime = Date::FromUnixTimestampUTC(
                             sb.st_mtimespec.tv_sec,
-                            (uint32_t)sb.st_mtimespec.tv_nsec);
+                            static_cast<uint32_t>(sb.st_mtimespec.tv_nsec));
 
                         fileInfo.creationTime = Date::FromUnixTimestampUTC(
                             sb.st_birthtimespec.tv_sec,
-                            (uint32_t)sb.st_birthtimespec.tv_nsec);
+                            static_cast<uint32_t>(sb.st_birthtimespec.tv_nsec));
 
                         fileInfo.size = (uint64_t)sb.st_size;
                     }
