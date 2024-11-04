@@ -89,8 +89,8 @@ namespace ITKCommon
 #endif
                 }
 
-                const reference operator*() const { return fileInfo; }
-                const pointer operator->() const { return &fileInfo; }
+                reference operator*() const { return fileInfo; }
+                pointer operator->() const { return &fileInfo; }
 
                 // Postfix increment
                 const_iterator &operator++(int)
@@ -253,7 +253,91 @@ namespace ITKCommon
                         fileInfo.size =
                             ((uint64_t)findfiledata.nFileSizeHigh << 32) | (uint64_t)findfiledata.nFileSizeLow & UINT64_C(0xffffffff);
                     }
-#elif defined(__APPLE__) || defined(__linux__)
+#elif defined(__APPLE__)
+                    if (dp == nullptr)
+                        return;
+
+                    // skip . and ..
+                    struct stat sb;
+                    bool stat_success = false;
+
+                    if (next_valid)
+                    {
+
+                        fileInfo.full_path = fileInfo.base_path + entry->d_name;
+                        stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+
+                        // read next until a valid stat file stated
+                        while (next_valid && !stat_success)
+                        {
+                            // printf("cannot stat: %s\n", entry->d_name);
+                            entry = readdir(dp);
+                            next_valid = entry != nullptr;
+                            if (next_valid)
+                            {
+                                fileInfo.full_path = fileInfo.base_path + entry->d_name;
+                                stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+                            }
+                        }
+                    }
+
+                    while (next_valid &&
+                           (sb.st_mode & S_IFDIR) != 0 &&
+                           (strcmp(entry->d_name, ".") == 0 ||
+                            strcmp(entry->d_name, "..") == 0))
+                    {
+                        entry = readdir(dp);
+                        next_valid = entry != nullptr;
+                        if (next_valid)
+                        {
+                            fileInfo.full_path = fileInfo.base_path + entry->d_name;
+                            stat_success = stat(fileInfo.full_path.c_str(),&sb) == 0;
+
+                            // read next until a valid stat file stated
+                            while (next_valid && !stat_success)
+                            {
+                                // printf("cannot stat: %s\n", entry->d_name);
+                                entry = readdir(dp);
+                                next_valid = entry != nullptr;
+                                if (next_valid)
+                                {
+                                    fileInfo.full_path = fileInfo.base_path + entry->d_name;
+                                    stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!next_valid || !stat_success)
+                    {
+                        closedir(dp);
+                        dp = nullptr;
+                        entry = nullptr;
+                        fileInfo = value_type();
+                    }
+                    else
+                    {
+                        // use sb to fill the file properties
+                        fileInfo.isDirectory = (sb.st_mode & S_IFDIR) != 0;
+                        fileInfo.isFile = !fileInfo.isDirectory;
+                        fileInfo.name = entry->d_name;
+                        // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
+                        if (fileInfo.isDirectory)
+                            fileInfo.full_path += "/";
+
+                        // date processing
+                        fileInfo.lastWriteTime = Date::FromUnixTimestampUTC(
+                            sb.st_mtim.tv_sec,
+                            sb.st_mtim.tv_nsec);
+
+                        fileInfo.creationTime = fileInfo.lastWriteTime;
+                        // fileInfo.creationTime = Date::FromUnixTimestampUTC(
+                        //     sb.st_btime.tv_sec,
+                        //     sb.st_btime.tv_nsec);
+
+                        fileInfo.size = (uint64_t)sb.st_size;
+                    }
+#elif defined(__linux__)
                     if (dp == nullptr)
                         return;
 
@@ -322,7 +406,7 @@ namespace ITKCommon
                     else
                     {
                         // use sb to fill the file properties
-                        fileInfo.isDirectory = sb.stx_mode & S_IFDIR;
+                        fileInfo.isDirectory = (sb.stx_mode & S_IFDIR) != 0;
                         fileInfo.isFile = !fileInfo.isDirectory;
                         fileInfo.name = entry->d_name;
                         // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
@@ -340,6 +424,7 @@ namespace ITKCommon
 
                         fileInfo.size = (uint64_t)sb.stx_size;
                     }
+
 #endif
                 }
 
