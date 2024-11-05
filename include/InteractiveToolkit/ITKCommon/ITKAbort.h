@@ -96,26 +96,6 @@ namespace ITKCommon
 
         return final_str.data();
     }
-
-    static inline std::string PrintfToStdString(const char *format, ...){
-        
-        std::vector<char> char_buffer;
-        
-        va_list args;
-
-        va_start(args, format);
-        char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
-        va_end(args);
-
-        va_start(args, format);
-        int len = vsnprintf(char_buffer.data(), char_buffer.size(), format, args);
-        va_end(args);
-
-        return char_buffer.data();
-    }
-
-
-
 }
 
 #define ITK_ABORT(bool_exp, ...) \

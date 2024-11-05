@@ -284,3 +284,25 @@ static inline __m128 _sse2_mm_round_ps(const __m128 &input)
 #else
 
 #endif
+
+
+namespace ITKCommon {
+
+    static inline std::string PrintfToStdString(const char *format, ...){
+        
+        std::vector<char> char_buffer;
+        
+        va_list args;
+
+        va_start(args, format);
+        char_buffer.resize(vsnprintf(nullptr, 0, format, args) + 1);
+        va_end(args);
+
+        va_start(args, format);
+        int len = vsnprintf(char_buffer.data(), char_buffer.size(), format, args);
+        va_end(args);
+
+        return char_buffer.data();
+    }
+
+}

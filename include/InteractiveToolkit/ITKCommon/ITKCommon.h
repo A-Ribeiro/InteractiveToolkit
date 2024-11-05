@@ -16,3 +16,5 @@
 #include "FileSystem/Directory.h"
 
 #include "STL_Tools.h"
+
+#include "ByteUtils.h"
