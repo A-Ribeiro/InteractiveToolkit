@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../common.h"
+#include "./StringUtil.h"
 
 #if defined(__linux__)
 #include <sys/sysinfo.h>
