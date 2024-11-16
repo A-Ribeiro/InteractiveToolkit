@@ -100,9 +100,16 @@ namespace ITKCommon
             return getDouble01();
         }
 
-        int getRange(int min, int max)
+        // int getRange(int min, int max)
+        // {
+        //     std::uniform_int_distribution<int> dist(min, max);
+        //     return dist(mt);
+        // }
+
+        template<typename T>
+        T getRange(T min, T max)
         {
-            std::uniform_int_distribution<int> dist(min, max);
+            std::uniform_int_distribution<T> dist(min, max);
             return dist(mt);
         }
 
