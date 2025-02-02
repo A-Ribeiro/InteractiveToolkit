@@ -173,7 +173,7 @@ namespace ITKCommon
                                 if (stat_success)
                                 {
                                     sb = sb_aux;
-                                    mode_aux = (sb.stx_mode & S_IFMT);
+                                    mode_aux = (sb.st_mode & S_IFMT);
                                 }
                             }
                         }
