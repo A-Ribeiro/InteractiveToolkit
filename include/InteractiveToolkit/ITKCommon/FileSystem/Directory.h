@@ -282,7 +282,8 @@ namespace ITKCommon
                     }
 
                     while (next_valid &&
-                           (sb.st_mode & S_IFDIR) != 0 &&
+                           //(sb.st_mode & S_IFDIR) != 0 &&
+                           (sb.st_mode & S_IFMT) == S_IFDIR &&
                            (strcmp(entry->d_name, ".") == 0 ||
                             strcmp(entry->d_name, "..") == 0))
                     {
@@ -317,9 +318,27 @@ namespace ITKCommon
                     }
                     else
                     {
+                        int mode_aux = (sb.st_mode & S_IFMT);
+
+                        fileInfo.isLink = mode_aux == S_IFLNK;
+
+                        if ( fileInfo.isLink ) {
+                            // realpath, or read the path is pointing to
+                            char resolved_path[PATH_MAX];
+                            if (realpath(fileInfo.full_path.c_str(), resolved_path) != nullptr) {
+                                struct stat sb_aux;
+                                stat_success = stat(resolved_path, &sb_aux) == 0;
+                                if (stat_success){
+                                    sb = sb_aux;
+                                    mode_aux = (sb.stx_mode & S_IFMT);
+                                }
+                            }
+                        }
+
                         // use sb to fill the file properties
-                        fileInfo.isDirectory = (sb.st_mode & S_IFDIR) != 0;
-                        fileInfo.isFile = !fileInfo.isDirectory;
+                        fileInfo.isDirectory = mode_aux == S_IFDIR;
+                        //fileInfo.isFile = !fileInfo.isDirectory;
+                        fileInfo.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
                         fileInfo.name = entry->d_name;
                         // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
                         if (fileInfo.isDirectory)
@@ -369,7 +388,8 @@ namespace ITKCommon
                     }
 
                     while (next_valid &&
-                           (sb.stx_mode & S_IFDIR) != 0 &&
+                           //(sb.stx_mode & S_IFDIR) != 0 &&
+                           (sb.stx_mode & S_IFMT) == S_IFDIR &&
                            (strcmp(entry->d_name, ".") == 0 ||
                             strcmp(entry->d_name, "..") == 0))
                     {
@@ -404,9 +424,24 @@ namespace ITKCommon
                     }
                     else
                     {
+                        int mode_aux = (sb.stx_mode & S_IFMT);
+
+                        fileInfo.isLink = mode_aux == S_IFLNK;
+
+                        if ( fileInfo.isLink ) {
+                            int flags_aux = 0;// AT_SYMLINK_NOFOLLOW;
+                            struct statx sb_aux;
+                            stat_success = statx(dirfd, fileInfo.full_path.c_str(), flags_aux, mask, &sb_aux) == 0;
+                            if (stat_success){
+                                sb = sb_aux;
+                                mode_aux = (sb.stx_mode & S_IFMT);
+                            }
+                        }
+
                         // use sb to fill the file properties
-                        fileInfo.isDirectory = (sb.stx_mode & S_IFDIR) != 0;
-                        fileInfo.isFile = !fileInfo.isDirectory;
+                        fileInfo.isDirectory = mode_aux == S_IFDIR;
+                        //fileInfo.isFile = !fileInfo.isDirectory;
+                        fileInfo.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
                         fileInfo.name = entry->d_name;
                         // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
                         if (fileInfo.isDirectory)

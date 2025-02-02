@@ -26,6 +26,7 @@ namespace ITKCommon
             std::string name;
             bool isDirectory;
             bool isFile;
+            bool isLink;
 
             Date creationTime;
             Date lastWriteTime;
@@ -36,6 +37,7 @@ namespace ITKCommon
             {
                 isDirectory = false;
                 isFile = false;
+                isLink = false;
                 size = UINT64_C(0);
             }
 
@@ -64,14 +66,43 @@ namespace ITKCommon
                 return name.find_last_of('.') != -1;
             }
 
+            std::string readLink() const
+            {
+#if defined(_WIN32)
+                return "";
+#else
+                if (!isLink)
+                    return "";
+                
+                auto raw_path = full_path;
+
+#if defined(_WIN32)
+                ITKCommon::StringUtil::replaceAll(&raw_path, "\\", "/");
+#endif
+                if (ITKCommon::StringUtil::endsWith(raw_path, "/"))
+                    raw_path = raw_path.substr(0, raw_path.length() - 1);
+
+                char resolved_path[PATH_MAX];
+                ssize_t link_size = readlink(raw_path.c_str(), resolved_path, PATH_MAX - 1);
+                if (link_size == -1)
+                    return "";
+                resolved_path[link_size] = '\0';
+                return resolved_path;
+#endif
+            }
+
             // Will try to resolve the path with the OS.
             // If it fails, it will return the File representation
             // of this path without fill the statx information
-            static File FromPath(const std::string &_path)
+            static File FromPath(const std::string &_path, bool resolve_path = true)
             {
                 File result;
+                
+                if (resolve_path)
+                    result.full_path = ITKCommon::Path::getAbsolutePath(_path);
+                else
+                    result.full_path = _path;
 
-                result.full_path = ITKCommon::Path::getAbsolutePath(_path);
 #if defined(_WIN32)
                 ITKCommon::StringUtil::replaceAll(&result.full_path, "\\", "/");
 #endif
@@ -127,8 +158,29 @@ namespace ITKCommon
                     bool stat_success = stat(result.full_path.c_str(), &sb) == 0;
                     if (stat_success)
                     {
-                        result.isDirectory = (sb.st_mode & S_IFDIR) != 0;
-                        result.isFile = !result.isDirectory;
+                        int mode_aux = (sb.st_mode & S_IFMT);
+
+                        result.isLink = mode_aux == S_IFLNK;
+
+                        if (result.isLink)
+                        {
+                            // realpath, or read the path is pointing to
+                            char resolved_path[PATH_MAX];
+                            if (realpath(result.full_path.c_str(), resolved_path) != nullptr)
+                            {
+                                struct stat sb_aux;
+                                stat_success = stat(resolved_path, &sb_aux) == 0;
+                                if (stat_success)
+                                {
+                                    sb = sb_aux;
+                                    mode_aux = (sb.stx_mode & S_IFMT);
+                                }
+                            }
+                        }
+
+                        result.isDirectory = mode_aux == S_IFDIR;
+                        // result.isFile = !result.isDirectory;
+                        result.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
 
                         if (result.isDirectory)
                             result.full_path += "/";
@@ -158,8 +210,24 @@ namespace ITKCommon
                     bool stat_success = statx(dirfd, result.full_path.c_str(), flags, mask, &sb) == 0;
                     if (stat_success)
                     {
-                        result.isDirectory = sb.stx_mode & S_IFDIR;
-                        result.isFile = !result.isDirectory;
+                        int mode_aux = (sb.stx_mode & S_IFMT);
+
+                        result.isLink = mode_aux == S_IFLNK;
+                        if (result.isLink)
+                        {
+                            int flags_aux = 0; // AT_SYMLINK_NOFOLLOW;
+                            struct statx sb_aux;
+                            stat_success = statx(dirfd, result.full_path.c_str(), flags_aux, mask, &sb_aux) == 0;
+                            if (stat_success)
+                            {
+                                sb = sb_aux;
+                                mode_aux = (sb.stx_mode & S_IFMT);
+                            }
+                        }
+
+                        result.isDirectory = mode_aux == S_IFDIR;
+                        // result.isFile = !result.isDirectory;
+                        result.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
 
                         if (result.isDirectory)
                             result.full_path += "/";
