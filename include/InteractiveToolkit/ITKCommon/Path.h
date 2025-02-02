@@ -570,7 +570,21 @@ namespace ITKCommon
                 return is_dir;
             }
             else
-                return false;
+            {
+                // C:\ case
+
+                /*hFind = FindFirstFileW((LPCWSTR)(path_w + L"/*").c_str(), &findfiledata);
+                if (hFind != INVALID_HANDLE_VALUE)
+                {
+                    FindClose(hFind);
+                    return true;
+                }*/
+
+                auto _t = GetDriveTypeW(path_w.c_str());
+                return (_t != DRIVE_NO_ROOT_DIR && _t != DRIVE_UNKNOWN);
+
+                //return false;
+            }
             //return PathIsDirectoryW(path_w.c_str()) == TRUE;
 #elif defined(__APPLE__) || defined(__linux__)
             return unixIsDirectory(path_.c_str());
