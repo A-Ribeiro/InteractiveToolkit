@@ -265,7 +265,7 @@ namespace ITKCommon
                     {
 
                         fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                        stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+                        stat_success = lstat(fileInfo.full_path.c_str(), &sb) == 0;
 
                         // read next until a valid stat file stated
                         while (next_valid && !stat_success)
@@ -276,7 +276,7 @@ namespace ITKCommon
                             if (next_valid)
                             {
                                 fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                                stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+                                stat_success = lstat(fileInfo.full_path.c_str(), &sb) == 0;
                             }
                         }
                     }
@@ -292,7 +292,7 @@ namespace ITKCommon
                         if (next_valid)
                         {
                             fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                            stat_success = stat(fileInfo.full_path.c_str(),&sb) == 0;
+                            stat_success = lstat(fileInfo.full_path.c_str(),&sb) == 0;
 
                             // read next until a valid stat file stated
                             while (next_valid && !stat_success)
@@ -303,7 +303,7 @@ namespace ITKCommon
                                 if (next_valid)
                                 {
                                     fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                                    stat_success = stat(fileInfo.full_path.c_str(), &sb) == 0;
+                                    stat_success = lstat(fileInfo.full_path.c_str(), &sb) == 0;
                                 }
                             }
                         }
@@ -324,15 +324,15 @@ namespace ITKCommon
 
                         if ( fileInfo.isLink ) {
                             // realpath, or read the path is pointing to
-                            char resolved_path[PATH_MAX];
-                            if (realpath(fileInfo.full_path.c_str(), resolved_path) != nullptr) {
+                            // char resolved_path[PATH_MAX];
+                            // if (realpath(fileInfo.full_path.c_str(), resolved_path) != nullptr) {
                                 struct stat sb_aux;
-                                stat_success = stat(resolved_path, &sb_aux) == 0;
+                                stat_success = stat(fileInfo.full_path.c_str(), &sb_aux) == 0;
                                 if (stat_success){
                                     sb = sb_aux;
                                     mode_aux = (sb.st_mode & S_IFMT);
                                 }
-                            }
+                            // }
                         }
 
                         // use sb to fill the file properties

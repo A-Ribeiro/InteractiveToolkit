@@ -155,7 +155,7 @@ namespace ITKCommon
                 // stat file
                 {
                     struct stat sb;
-                    bool stat_success = stat(result.full_path.c_str(), &sb) == 0;
+                    bool stat_success = lstat(result.full_path.c_str(), &sb) == 0;
                     if (stat_success)
                     {
                         int mode_aux = (sb.st_mode & S_IFMT);
@@ -165,17 +165,17 @@ namespace ITKCommon
                         if (result.isLink)
                         {
                             // realpath, or read the path is pointing to
-                            char resolved_path[PATH_MAX];
-                            if (realpath(result.full_path.c_str(), resolved_path) != nullptr)
-                            {
+                            // char resolved_path[PATH_MAX];
+                            // if (realpath(result.full_path.c_str(), resolved_path) != nullptr)
+                            // {
                                 struct stat sb_aux;
-                                stat_success = stat(resolved_path, &sb_aux) == 0;
+                                stat_success = stat(result.full_path.c_str(), &sb_aux) == 0;
                                 if (stat_success)
                                 {
                                     sb = sb_aux;
                                     mode_aux = (sb.st_mode & S_IFMT);
                                 }
-                            }
+                            // }
                         }
 
                         result.isDirectory = mode_aux == S_IFDIR;
