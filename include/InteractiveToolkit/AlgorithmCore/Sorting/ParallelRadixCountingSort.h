@@ -104,21 +104,21 @@ namespace AlgorithmCore
 
                             threadpool->postTask([task]()
                                                  {
-                                                     uint32_t write_index = task.i;
-                                                     uint32_t write_max = task.i + (task.element_count << 1);
-                                                     if (write_max > (uint32_t)task.count)
-                                                         write_max = (uint32_t)task.count;
+                                                     int64_t write_index = task.i;
+                                                     int64_t write_max = task.i + (task.element_count << 1);
+                                                     if (write_max > (int64_t)task.count)
+                                                         write_max = (int64_t)task.count;
 
-                                                     uint32_t a_index = task.i;
-                                                     uint32_t b_index = task.i + task.element_count;
+                                                     int64_t a_index = task.i;
+                                                     int64_t b_index = task.i + task.element_count;
 
-                                                     uint32_t a_max = b_index;
-                                                     uint32_t b_max = b_index + task.element_count;
+                                                     int64_t a_max = b_index;
+                                                     int64_t b_max = b_index + task.element_count;
 
-                                                     if (a_max > (uint32_t)task.count)
-                                                         a_max = (uint32_t)task.count;
-                                                     if (b_max > (uint32_t)task.count)
-                                                         b_max = (uint32_t)task.count;
+                                                     if (a_max > (int64_t)task.count)
+                                                         a_max = (int64_t)task.count;
+                                                     if (b_max > (int64_t)task.count)
+                                                         b_max = (int64_t)task.count;
 
                                                      while (write_index < write_max &&
                                                             a_index < a_max &&
@@ -243,21 +243,21 @@ namespace AlgorithmCore
 
                             threadpool->postTask([task]()
                                                  {
-                                                     uint32_t write_index = task.i;
-                                                     uint32_t write_max = task.i + (task.element_count << 1);
-                                                     if (write_max > (uint32_t)task.count)
-                                                         write_max = (uint32_t)task.count;
+                                                     int64_t write_index = task.i;
+                                                     int64_t write_max = task.i + (task.element_count << 1);
+                                                     if (write_max > (int64_t)task.count)
+                                                         write_max = (int64_t)task.count;
 
-                                                     uint32_t a_index = task.i;
-                                                     uint32_t b_index = task.i + task.element_count;
+                                                     int64_t a_index = task.i;
+                                                     int64_t b_index = task.i + task.element_count;
 
-                                                     uint32_t a_max = b_index;
-                                                     uint32_t b_max = b_index + task.element_count;
+                                                     int64_t a_max = b_index;
+                                                     int64_t b_max = b_index + task.element_count;
 
-                                                     if (a_max > (uint32_t)task.count)
-                                                         a_max = (uint32_t)task.count;
-                                                     if (b_max > (uint32_t)task.count)
-                                                         b_max = (uint32_t)task.count;
+                                                     if (a_max > (int64_t)task.count)
+                                                         a_max = (int64_t)task.count;
+                                                     if (b_max > (int64_t)task.count)
+                                                         b_max = (int64_t)task.count;
 
                                                      while (write_index < write_max &&
                                                             a_index < a_max &&
