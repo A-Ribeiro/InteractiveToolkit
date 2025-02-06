@@ -712,6 +712,14 @@ namespace ITKCommon
 #if defined(_WIN32)
             WCHAR fullFilename[MAX_PATH];
             std::wstring path_w = StringUtil::string_to_WString(path_);
+
+            if (StringUtil::endsWith(path_, ":")) {
+                auto _is_drive_test = GetDriveTypeW(path_w.c_str());
+                if (_is_drive_test != DRIVE_NO_ROOT_DIR && _is_drive_test != DRIVE_UNKNOWN) {
+                    path_w += L"\\";
+                }
+            }
+            
             if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0) {
                 std::string result = StringUtil::wString_to_String(fullFilename);
                 if (StringUtil::endsWith(result, "\\"))
