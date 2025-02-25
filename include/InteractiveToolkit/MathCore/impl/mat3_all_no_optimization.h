@@ -417,7 +417,8 @@ namespace MathCore
 
         template <class _Type = _BaseType,
                   typename std::enable_if<
-                      std::is_integral<_Type>::value, bool>::type = true>
+                  !std::is_floating_point<_Type>::value, bool>::type = true>
+                  // std::is_integral<_Type>::value, bool>::type = true>
         ITK_INLINE bool operator==(const self_type &v) const
         {
             for (int i = 0; i < 9; i++)
