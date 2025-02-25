@@ -1,5 +1,8 @@
 #pragma once
 
+#include "uint128.h"
+#include "fixed_t.h"
+
 #include "math_common.h"
 
 #include "int.h"
@@ -16,13 +19,9 @@
 #include "mat4.h"
 
 #include "operator_overload.h"
-
 #include "op.h"
-
 #include "gen.h"
-
 #include "cvt.h"
-
 #include "util.h"
 
 //

@@ -4,7 +4,7 @@
 #include <utility>
 #include <stdexcept>
 
-namespace AlgorithmCore
+namespace MathCore
 {
 #pragma push_macro("___need_to_define_uint128_type")
 #if defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__)

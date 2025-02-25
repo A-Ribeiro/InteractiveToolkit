@@ -2,7 +2,7 @@
 
 #include "../../common.h"
 #include "SortIndex.h"
-#include "uint128.h"
+#include "../../MathCore/uint128.h"
 
 namespace AlgorithmCore
 {
@@ -212,9 +212,9 @@ namespace AlgorithmCore
             static ITK_INLINE uint64_t spread(uint64_t min, uint64_t max, uint64_t v)
             {
                 v = v - min;
-                uint128 aux = v;
-                uint128 delta = max - min;
-                const uint128 _max_v = UINT64_MAX;
+                MathCore::uint128 aux = v;
+                MathCore::uint128 delta = max - min;
+                const MathCore::uint128 _max_v = UINT64_MAX;
                 aux = (aux * _max_v) / delta;
                 return (uint64_t)aux;
             }
