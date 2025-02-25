@@ -225,6 +225,20 @@ namespace MathCore
         {
             *this = m;
         }
+        ITK_INLINE void operator=(const self_type &m)
+        {
+            a1 = m.a1;
+            a2 = m.a2;
+            a3 = m.a3;
+
+            b1 = m.b1;
+            b2 = m.b2;
+            b3 = m.b3;
+
+            c1 = m.c1;
+            c2 = m.c2;
+            c3 = m.c3;
+        }
 
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
@@ -767,6 +781,99 @@ namespace MathCore
             c3 /= v;
 
             return *this;
+        }
+
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator<<=(int shift)
+        {
+            a1 <<= shift;
+            a2 <<= shift;
+            a3 <<= shift;
+
+            b1 <<= shift;
+            b2 <<= shift;
+            b3 <<= shift;
+
+            c1 <<= shift;
+            c2 <<= shift;
+            c3 <<= shift;
+
+            return *this;
+        }
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator>>=(int shift)
+        {
+            a1 >>= shift;
+            a2 >>= shift;
+            a3 >>= shift;
+
+            b1 >>= shift;
+            b2 >>= shift;
+            b3 >>= shift;
+
+            c1 >>= shift;
+            c2 >>= shift;
+            c3 >>= shift;
+
+            return *this;
+        }
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator&=(const _BaseType &v)
+        {
+            a1 &= v;
+            a2 &= v;
+            a3 &= v;
+
+            b1 &= v;
+            b2 &= v;
+            b3 &= v;
+
+            c1 &= v;
+            c2 &= v;
+            c3 &= v;
+
+            return *this;
+        }
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator|=(const _BaseType &v)
+        {
+            a1 |= v;
+            a2 |= v;
+            a3 |= v;
+
+            b1 |= v;
+            b2 |= v;
+            b3 |= v;
+
+            c1 |= v;
+            c2 |= v;
+            c3 |= v;
+
+            return *this;
+        }
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator^=(const _BaseType &v)
+        {
+            a1 ^= v;
+            a2 ^= v;
+            a3 ^= v;
+
+            b1 ^= v;
+            b2 ^= v;
+            b3 ^= v;
+
+            c1 ^= v;
+            c2 ^= v;
+            c3 ^= v;
+
+            return *this;
+        }
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator~() const
+        {
+            return self_type(~a1, ~b1, ~c1,
+                             ~a2, ~b2, ~c2,
+                             ~a3, ~b3, ~c3);
         }
     };
 }

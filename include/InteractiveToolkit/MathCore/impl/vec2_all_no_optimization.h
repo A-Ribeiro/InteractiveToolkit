@@ -155,7 +155,15 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param v Vector to assign to the instance
         ///
-        constexpr ITK_INLINE vec2(const self_type &_v) : x(_v.x), y(_v.y) {}
+        ITK_INLINE vec2(const self_type &v)
+        {
+            *this = v;
+        }
+        ITK_INLINE void operator=(const self_type &v)
+        {
+            x = v.x;
+            y = v.y;
+        }
         /// \brief Constructs a bidimensional Vector from the subtraction b-a
         ///
         /// Initialize the vec2 components from two other vectors using the equation: <br />
@@ -551,6 +559,50 @@ namespace MathCore
         {
             return array[v];
         }
+
+
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator<<=(int shift)
+        {
+            x <<= shift;
+            y <<= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator>>=(int shift)
+        {
+            x >>= shift;
+            y >>= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator&=(int shift)
+        {
+            x &= shift;
+            y &= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator|=(int shift)
+        {
+            x |= shift;
+            y |= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator^=(int shift)
+        {
+            x ^= shift;
+            y ^= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator~() const
+        {
+            return self_type(~x, ~y);
+        }
+
+
     };
 
     // INLINE_OPERATION_IMPLEMENTATION(vec2)

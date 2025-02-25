@@ -72,6 +72,7 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         ///
         constexpr ITK_INLINE vec3() : array{0, 0, 0} {}
+        //constexpr ITK_INLINE vec3() : x(0), y(0), z(0) {}
         /// \brief Constructs a tridimensional Vector
         ///
         /// Initialize the vec3 components with the same float value (by scalar)
@@ -229,6 +230,12 @@ namespace MathCore
         ITK_INLINE vec3(const self_type &v)
         {
             *this = v;
+        }
+        ITK_INLINE void operator=(const self_type &v)
+        {
+            x = v.x;
+            y = v.y;
+            z = v.z;
         }
         // constexpr ITK_INLINE vec3(const self_type& _v) :array{_v.x, _v.y, _v.z} {}
         /// \brief Constructs a tridimensional Vector from the subtraction b-a
@@ -623,6 +630,52 @@ namespace MathCore
         ITK_INLINE const _BaseType &operator[](const int v) const
         {
             return array[v];
+        }
+
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator<<=(int shift)
+        {
+            x <<= shift;
+            y <<= shift;
+            z <<= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator>>=(int shift)
+        {
+            x >>= shift;
+            y >>= shift;
+            z >>= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator&=(int shift)
+        {
+            x &= shift;
+            y &= shift;
+            z &= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator|=(int shift)
+        {
+            x |= shift;
+            y |= shift;
+            z |= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator^=(int shift)
+        {
+            x ^= shift;
+            y ^= shift;
+            z ^= shift;
+            return *this;
+        }
+        template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator~() const
+        {
+            return self_type(~x, ~y, ~z);
         }
     };
 

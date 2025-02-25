@@ -67,6 +67,46 @@ namespace MathCore
     };
 
 #define INLINE_STATIC_ARITHMETIC_OPERATION_IMPLEMENTATION(TTYPE)                                                                                       \
+    template <typename _BaseType, typename _SimdType,                                                                                                  \
+              typename std::enable_if<                                                                                                                 \
+                  !std::is_floating_point<_BaseType>::value,                                                                                           \
+                  bool>::type = true>                                                                                                                  \
+    static ITK_INLINE TTYPE<_BaseType, _SimdType> operator&(const TTYPE<_BaseType, _SimdType> &vecA, int shift) noexcept                               \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) &= shift);                                                                                           \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType,                                                                                                  \
+              typename std::enable_if<                                                                                                                 \
+                  !std::is_floating_point<_BaseType>::value,                                                                                           \
+                  bool>::type = true>                                                                                                                  \
+    static ITK_INLINE TTYPE<_BaseType, _SimdType> operator|(const TTYPE<_BaseType, _SimdType> &vecA, int shift) noexcept                               \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) |= shift);                                                                                           \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType,                                                                                                  \
+              typename std::enable_if<                                                                                                                 \
+                  !std::is_floating_point<_BaseType>::value,                                                                                           \
+                  bool>::type = true>                                                                                                                  \
+    static ITK_INLINE TTYPE<_BaseType, _SimdType> operator^(const TTYPE<_BaseType, _SimdType> &vecA, int shift) noexcept                               \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) ^= shift);                                                                                           \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType,                                                                                                  \
+              typename std::enable_if<                                                                                                                 \
+                  !std::is_floating_point<_BaseType>::value,                                                                                           \
+                  bool>::type = true>                                                                                                                  \
+    static ITK_INLINE TTYPE<_BaseType, _SimdType> operator<<(const TTYPE<_BaseType, _SimdType> &vecA, int shift) noexcept                              \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) <<= shift);                                                                                          \
+    }                                                                                                                                                  \
+    template <typename _BaseType, typename _SimdType,                                                                                                  \
+              typename std::enable_if<                                                                                                                 \
+                  !std::is_floating_point<_BaseType>::value,                                                                                           \
+                  bool>::type = true>                                                                                                                  \
+    static ITK_INLINE TTYPE<_BaseType, _SimdType> operator>>(const TTYPE<_BaseType, _SimdType> &vecA, int shift) noexcept                              \
+    {                                                                                                                                                  \
+        return (TTYPE<_BaseType, _SimdType>(vecA) >>= shift);                                                                                          \
+    }                                                                                                                                                  \
     template <typename _BaseType, typename _SimdType>                                                                                                  \
     static ITK_INLINE TTYPE<_BaseType, _SimdType> operator/(const TTYPE<_BaseType, _SimdType> &vecA, const TTYPE<_BaseType, _SimdType> &vecB) noexcept \
     {                                                                                                                                                  \
