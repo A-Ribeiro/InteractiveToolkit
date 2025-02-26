@@ -576,28 +576,28 @@ namespace MathCore
             return *this;
         }
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
-        ITK_INLINE self_type &operator&=(int shift)
+        ITK_INLINE self_type &operator&=(const self_type& v)
         {
-            x &= shift;
-            y &= shift;
+            x &= v.x;
+            y &= v.y;
             return *this;
         }
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
-        ITK_INLINE self_type &operator|=(int shift)
+        ITK_INLINE self_type &operator|=(const self_type& v)
         {
-            x |= shift;
-            y |= shift;
+            x |= v.x;
+            y |= v.y;
             return *this;
         }
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
-        ITK_INLINE self_type &operator^=(int shift)
+        ITK_INLINE self_type &operator^=(const self_type& v)
         {
-            x ^= shift;
-            y ^= shift;
+            x ^= v.x;
+            y ^= v.y;
             return *this;
         }
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
-        ITK_INLINE self_type &operator~() const
+        ITK_INLINE self_type operator~() const
         {
             return self_type(~x, ~y);
         }

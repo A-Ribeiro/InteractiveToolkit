@@ -10,6 +10,15 @@
 
 #endif
 
+#if defined(ITK_SSE2)
+
+#include "impl/vec4_fixed32_simd.h"
+
+#endif
+
+#include "fixed_t.h"
+
+
 #include "vec3.h"
 //#include "mat3.h"
 
@@ -30,6 +39,12 @@ namespace MathCore
     using vec4u16 = vec4<uint16_t>;
     using vec4u32 = vec4<uint32_t>;
     using vec4u64 = vec4<uint64_t>;
+
+    template <int frac_bits>
+    using vec4fixed32 = vec4<FixedPoint::fixed_t<int32_t, frac_bits>, SIMD_TYPE::SIMD>;
+
+    template <int frac_bits>
+    using vec4ufixed32 = vec4<FixedPoint::fixed_t<uint32_t, frac_bits>, SIMD_TYPE::SIMD>;
 
     //
     // alias

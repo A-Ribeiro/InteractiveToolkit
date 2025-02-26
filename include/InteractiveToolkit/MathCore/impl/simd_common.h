@@ -20,22 +20,22 @@ namespace MathCore
     const __m128 _vec4_one_sse = _mm_set1_ps(1.0f);
     const __m128 _vec4_two_sse = _mm_set1_ps(2.0f);
     const __m128 _vec4_minus_one_sse = _mm_set1_ps(-1.0f);
-    //const __m128 _vec4_valid_bits_sse = _mm_castsi128_ps(_mm_set1_epi32((int)0xffffffff));
+    // const __m128 _vec4_valid_bits_sse = _mm_castsi128_ps(_mm_set1_epi32((int)0xffffffff));
 
     const __m128 _vec4_1000_sse = _mm_setr_ps(1.0f, 0.0f, 0.0f, 0.0f);
     const __m128 _vec4_0100_sse = _mm_setr_ps(0.0f, 1.0f, 0.0f, 0.0f);
     const __m128 _vec4_0010_sse = _mm_setr_ps(0.0f, 0.0f, 1.0f, 0.0f);
     const __m128 _vec4_0001_sse = _mm_setr_ps(0.0f, 0.0f, 0.0f, 1.0f);
 
-    //const __m128 _vec3_zero_sse = _mm_set1_ps(0.0f);
+    // const __m128 _vec3_zero_sse = _mm_set1_ps(0.0f);
     const __m128 _vec3_sign_mask_sse = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
     const __m128 _vec3_one_sse = _mm_setr_ps(1.0f, 1.0f, 1.0f, 0.0f);
     const __m128 _vec3_two_sse = _mm_setr_ps(2.0f, 2.0f, 2.0f, 0.0f);
     const __m128 _vec3_minus_one_sse = _mm_setr_ps(-1.0f, -1.0f, -1.0f, 0.0f);
     const __m128 _vec3_valid_bits_sse = _mm_castsi128_ps(_mm_set_epi32(0, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff));
 
-    //const __m128 _vec2_sign_mask = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
-    //const __m128 _vec2_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, 0, (int)0xffffffff, (int)0xffffffff));
+    // const __m128 _vec2_sign_mask = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
+    // const __m128 _vec2_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, 0, (int)0xffffffff, (int)0xffffffff));
 
     const __m128 _vec2_zero_sse = _mm_set1_ps(0.0f);
     const __m128 _vec2_sign_mask_sse = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
@@ -43,6 +43,14 @@ namespace MathCore
     const __m128 _vec2_minus_one_sse = _mm_setr_ps(-1.0f, -1.0f, 0.0f, 0.0f);
     const __m128 _vec2_valid_bits_sse = _mm_castsi128_ps(_mm_set_epi32(0, 0, (int)0xffffffff, (int)0xffffffff));
 
+    const __m128i _vec4i_zero_sse = _mm_setzero_si128();
+    const __m128i _vec4i_all_sse = _mm_set1_epi32((int)0xffffffff);
+    const __m128i _vec4i_xx00_sse = _mm_set_epi32(0, 0, (int)0xffffffff, (int)0xffffffff);
+    const __m128i _vec4i_00xx_sse = _mm_set_epi32((int)0xffffffff, (int)0xffffffff, 0, 0);
+    const __m128i _vec4i_x0x0_sse = _mm_set_epi32(0, (int)0xffffffff, 0, (int)0xffffffff);
+    const __m128i _vec4i_0x0x_sse = _mm_set_epi32((int)0xffffffff, 0, (int)0xffffffff, 0);
+
+    const __m128i _vec4i_int64_sign_sse = _mm_set_epi32((int)0x80000000, 0, (int)0x80000000, 0);
 
 #elif defined(ITK_NEON)
 
@@ -57,14 +65,14 @@ namespace MathCore
 
     const float32x4_t _vec4_zero = vset1(0.0f);
 
-    const float32x4_t _neon_1000 = (float32x4_t){ 1,0,0,0 };
-    const float32x4_t _neon_0100 = (float32x4_t){ 0,1,0,0 };
-    const float32x4_t _neon_0010 = (float32x4_t){ 0,0,1,0 };
-    const float32x4_t _neon_0001 = (float32x4_t){ 0,0,0,1 };
+    const float32x4_t _neon_1000 = (float32x4_t){1, 0, 0, 0};
+    const float32x4_t _neon_0100 = (float32x4_t){0, 1, 0, 0};
+    const float32x4_t _neon_0010 = (float32x4_t){0, 0, 1, 0};
+    const float32x4_t _neon_0001 = (float32x4_t){0, 0, 0, 1};
 
-    const float32x4_t _vec3_two = (float32x4_t) { 2.0f, 2.0f, 2.0f, 0 };
+    const float32x4_t _vec3_two = (float32x4_t){2.0f, 2.0f, 2.0f, 0};
 
-    const float32x4_t _quat_conjugate_sign = (float32x4_t) { -1, -1, -1, 1 };
+    const float32x4_t _quat_conjugate_sign = (float32x4_t){-1, -1, -1, 1};
 
 #endif
 

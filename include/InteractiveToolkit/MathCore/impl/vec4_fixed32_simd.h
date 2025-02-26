@@ -1,7 +1,7 @@
 #pragma once
 
-#if !defined(ITK_SSE2) && !defined(ITK_NEON)
-#error Invalid header 'vec4_float_simd.h' included. \
+#if !defined(ITK_SSE2) // && !defined(ITK_NEON)
+#error Invalid header 'vec4_fixed32_simd.h' included. \
         Need at least one of the following build flags set: \
         ITK_SSE2, ITK_NEON
 #endif
@@ -12,6 +12,8 @@
 #include "../vec3.h"
 
 #include "vec4_base.h"
+
+#include "../fixed_t.h"
 
 namespace MathCore
 {
@@ -38,16 +40,18 @@ namespace MathCore
     ///
     /// \author Alessandro Ribeiro
     ///
-    template <typename _BaseType, typename _SimdType>
-    class alignas(16) vec4<_BaseType, _SimdType,
+    template <typename store_type, int frac_bits, typename _SimdType>
+    class alignas(16) vec4<FixedPoint::fixed_t<store_type, frac_bits>, _SimdType,
                            typename std::enable_if<
-                               std::is_same<_BaseType, float>::value &&
-                               (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
-                                std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
+                               (std::is_same<store_type, int32_t>::value || std::is_same<store_type, uint32_t>::value) &&
+                               (std::is_same<_SimdType, SIMD_TYPE::SSE>::value
+                                // ||std::is_same<_SimdType, SIMD_TYPE::NEON>::value
+                                )>::type>
     {
+        using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
         using self_type = vec4<_BaseType, _SimdType>;
-        using vec3_compatible_type = vec3<_BaseType, _SimdType>;
-        using vec2_compatible_type = vec2<_BaseType, _SimdType>;
+        using vec3_compatible_type = vec3<_BaseType, SIMD_TYPE::NONE>;
+        using vec2_compatible_type = vec2<_BaseType, SIMD_TYPE::NONE>;
 
     public:
         static constexpr int array_count = 4;
@@ -74,14 +78,14 @@ namespace MathCore
                 _BaseType right, bottom;
             };
 #if defined(ITK_SSE2)
-            __m128 array_sse;
+            __m128i array_sse;
 #elif defined(ITK_NEON)
             float32x4_t array_neon;
 #endif
         };
 
 #if defined(ITK_SSE2)
-        ITK_INLINE vec4(const __m128 &v)
+        ITK_INLINE vec4(const __m128i &v)
         {
             array_sse = v;
         }
@@ -110,8 +114,8 @@ namespace MathCore
         ITK_INLINE vec4()
         {
 #if defined(ITK_SSE2)
-            // const __m128 _vec4_zero_sse = _mm_set1_ps(0.0f);
-            array_sse = _mm_set1_ps(0.0f); //_vec4_zero_sse;// = _mm_set1_ps(0.0f);
+            // const __m128i _vec4_zero_sse = _mm_set1_ps(0.0f);
+            array_sse = _mm_set1_epi32(0); //_vec4_zero_sse;// = _mm_set1_ps(0.0f);
 #elif defined(ITK_NEON)
             array_neon = vset1(0.0f); //(float32x4_t){0, 0, 0, 0};
 #else
@@ -140,7 +144,7 @@ namespace MathCore
         ITK_INLINE vec4(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_set1_ps(v);
+            array_sse = _mm_set1_epi32(v.value);
 #elif defined(ITK_NEON)
             array_neon = vset1(v);
 #else
@@ -177,7 +181,7 @@ namespace MathCore
         ITK_INLINE vec4(const _BaseType &x, const _BaseType &y, const _BaseType &z, const _BaseType &w)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_setr_ps(x, y, z, w);
+            array_sse = _mm_setr_epi32(x.value, y.value, z.value, w.value);
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){x, y, z, w};
 #else
@@ -228,9 +232,9 @@ namespace MathCore
         ITK_INLINE vec4(const vec3_compatible_type &xyz, const _BaseType &w)
         {
 #if defined(ITK_SSE2)
-            // array_sse = _mm_setr_ps(xyz.x, xyz.y, xyz.z, w);
-            array_sse = xyz.array_sse;
-            _mm_f32_(array_sse, 3) = w;
+            array_sse = _mm_setr_epi32(xyz.x.value, xyz.y.value, xyz.z.value, w.value);
+            // array_sse = xyz.array_sse;
+            // _mm_f32_(array_sse, 3) = w.value;
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){xyz.x, xyz.y, xyz.z, w};
 #else
@@ -274,9 +278,9 @@ namespace MathCore
         ITK_INLINE vec4(const _BaseType &x, const vec3_compatible_type &yzw)
         {
 #if defined(ITK_SSE2)
-            // array_sse = _mm_setr_ps(x, yzw.x, yzw.y, yzw.z);
-            array_sse = _mm_shuffle_ps(yzw.array_sse, yzw.array_sse, _MM_SHUFFLE(2, 1, 0, 2)); // first 2 can be ignored...
-            _mm_f32_(array_sse, 0) = x;
+            array_sse = _mm_setr_epi32(x.value, yzw.x.value, yzw.y.value, yzw.z.value);
+            // array_sse = _mm_shuffle_epi32(yzw.array_sse, _MM_SHUFFLE(2, 1, 0, 2)); // first 2 can be ignored...
+            // _mm_f32_(array_sse, 0) = x.value;
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){x, yzw.x, yzw.y, yzw.z};
 #else
@@ -302,7 +306,15 @@ namespace MathCore
         ITK_INLINE vec4(const vec2_compatible_type &a, const vec2_compatible_type &b)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_shuffle_ps(a.array_sse, b.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
+            array_sse = _mm_setr_epi32(a.x.value, a.y.value, b.x.value, b.y.value);
+            // #if defined(ITK_SSE_SKIP_SSE41)
+            //             array_sse = _mm_setr_epi32(a.x.value, a.y.value, b.x.value, b.y.value);
+            // #else
+            //             __m128i a_shuffle = _mm_shuffle_epi32(a.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
+            //             __m128i b_shuffle = _mm_shuffle_epi32(b.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
+            //             array_sse = _mm_blend_epi16(a_shuffle, b_shuffle, 0xf0);
+            // #endif
+
 #elif defined(ITK_NEON)
             array_neon = (float32x4_t){a.x, a.y, b.x, b.y};
 #else
@@ -356,6 +368,7 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
         ITK_INLINE void operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -392,7 +405,7 @@ namespace MathCore
         ITK_INLINE vec4(const self_type &a, const self_type &b)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_sub_ps(b.array_sse, a.array_sse);
+            array_sse = _mm_sub_epi32(b.array_sse, a.array_sse);
 #elif defined(ITK_NEON)
             array_neon = vsubq_f32(b.array_neon, a.array_neon);
 #else
@@ -425,16 +438,14 @@ namespace MathCore
         ITK_INLINE bool operator==(const self_type &v) const
         {
 #if defined(ITK_SSE2)
+            __m128i eq = _mm_cmpeq_epi32(a, b);
+#if defined(ITK_SSE_SKIP_SSE41)
+            int mask = _mm_movemask_epi8(eq);
+            return mask == 0xFFFF;
+#else
+            return _mm_test_all_ones(eq) != 0;
+#endif
 
-            __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
-            // abs
-            // const __m128 _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
-            diff_abs = _mm_andnot_ps(_vec4_sign_mask_sse, diff_abs);
-
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
-
-            return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
 #elif defined(ITK_NEON)
 
             float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
@@ -523,7 +534,7 @@ namespace MathCore
         ITK_INLINE self_type &operator+=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_add_ps(array_sse, v.array_sse);
+            array_sse = _mm_add_epi32(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
             array_neon = vaddq_f32(array_neon, v.array_neon);
 #else
@@ -553,7 +564,7 @@ namespace MathCore
         ITK_INLINE self_type &operator-=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_sub_ps(array_sse, v.array_sse);
+            array_sse = _mm_sub_epi32(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
             array_neon = vsubq_f32(array_neon, v.array_neon);
 #else
@@ -583,8 +594,8 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            // const __m128 _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
-            return _mm_xor_ps(_vec4_sign_mask_sse, array_sse);
+            // const __m128i _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
+            return _mm_sub_epi32(_vec4i_zero_sse, array_sse);
 #elif defined(ITK_NEON)
             return vnegq_f32(array_neon);
 #else
@@ -610,10 +621,27 @@ namespace MathCore
         /// \param v Vector to multiply the current vector instance
         /// \return A reference to the current instance after the multiplication
         ///
+
+        template <typename _internal_type = store_type,
+                  typename std::enable_if<
+                      std::is_same<_internal_type, int32_t>::value,
+                      bool>::type = true>
         ITK_INLINE self_type &operator*=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_mul_ps(array_sse, v.array_sse);
+            __m128i ac = _mm_mul_epi32(array_sse, v.array_sse);
+            __m128i bd = _mm_mul_epi32(_mm_srli_si128(array_sse, 4), _mm_srli_si128(v.array_sse, 4));
+            ac = _mm_srli_epi64(ac, frac_bits);
+            bd = _mm_srli_epi64(bd, frac_bits);
+            bd = _mm_slli_si128(bd, 4);
+#if defined(ITK_SSE_SKIP_SSE41)
+            ac = _mm_and_si128(_vec4i_x0x0_sse, ac);
+            bd = _mm_and_si128(_vec4i_0x0x_sse, bd);
+            array_sse = _mm_or_si128(ac, bd);
+#else
+            array_sse = _mm_blend_epi16(ac, bd, 0xcc);
+#endif
+
 #elif defined(ITK_NEON)
             array_neon = vmulq_f32(array_neon, v.array_neon);
 #else
@@ -621,6 +649,35 @@ namespace MathCore
 #endif
             return (*this);
         }
+
+        template <typename _internal_type = store_type,
+                  typename std::enable_if<
+                      std::is_same<_internal_type, uint32_t>::value,
+                      bool>::type = true>
+        ITK_INLINE self_type &operator*=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            __m128i ac = _mm_mul_epu32(array_sse, v.array_sse);
+            __m128i bd = _mm_mul_epu32(_mm_srli_si128(array_sse, 4), _mm_srli_si128(v.array_sse, 4));
+            ac = _mm_srli_epi64(ac, frac_bits);
+            bd = _mm_srli_epi64(bd, frac_bits);
+            bd = _mm_slli_si128(bd, 4);
+#if defined(ITK_SSE_SKIP_SSE41)
+            ac = _mm_and_si128(_vec4i_x0x0_sse, ac);
+            bd = _mm_and_si128(_vec4i_0x0x_sse, bd);
+            array_sse = _mm_or_si128(ac, bd);
+#else
+            array_sse = _mm_blend_epi16(ac, bd, 0xcc);
+#endif
+
+#elif defined(ITK_NEON)
+            array_neon = vmulq_f32(array_neon, v.array_neon);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return (*this);
+        }
+
         /// \brief Component-wise division operator overload
         ///
         /// Divides the vector by the components of another vector
@@ -643,7 +700,11 @@ namespace MathCore
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_div_ps(array_sse, v.array_sse);
+            x /= v.x;
+            y /= v.y;
+            z /= v.z;
+            w /= v.w;
+            // array_sse = _mm_div_ps(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
             array_neon = vdivq_f32(array_neon, v.array_neon);
 #else
@@ -674,7 +735,7 @@ namespace MathCore
         ITK_INLINE self_type &operator+=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_add_ps(array_sse, _mm_set1_ps(v));
+            array_sse = _mm_add_epi32(array_sse, _mm_set1_epi32(v.value));
 #elif defined(ITK_NEON)
             array_neon = vaddq_f32(array_neon, vset1(v));
 #else
@@ -705,7 +766,7 @@ namespace MathCore
         ITK_INLINE self_type &operator-=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_sub_ps(array_sse, _mm_set1_ps(v));
+            array_sse = _mm_sub_epi32(array_sse, _mm_set1_epi32(v.value));
 #elif defined(ITK_NEON)
             array_neon = vsubq_f32(array_neon, vset1(v));
 #else
@@ -735,7 +796,8 @@ namespace MathCore
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_mul_ps(array_sse, _mm_set1_ps(v));
+            (*this) *= self_type(v);
+            // array_sse = _mm_mul_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
             array_neon = vmulq_f32(array_neon, vset1(v));
 #else
@@ -765,7 +827,8 @@ namespace MathCore
         ITK_INLINE self_type &operator/=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_div_ps(array_sse, _mm_set1_ps(v));
+            // array_sse = _mm_div_ps(array_sse, _mm_set1_ps(v));
+            (*this) /= self_type(v);
 #elif defined(ITK_NEON)
             array_neon = vmulq_f32(array_neon, vset1(1.0f / v));
 #else
@@ -818,6 +881,114 @@ namespace MathCore
         ITK_INLINE const _BaseType &operator[](const int v) const
         {
             return array[v];
+        }
+
+        ITK_INLINE self_type &operator<<=(int shift)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_slli_epi32(array_sse, shift);
+#elif defined(ITK_NEON)
+            x <<= shift;
+            y <<= shift;
+            z <<= shift;
+            w <<= shift;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+
+        template <typename _internal_type = store_type,
+                  typename std::enable_if<
+                      std::is_same<_internal_type, int32_t>::value,
+                      bool>::type = true>
+        ITK_INLINE self_type &operator>>=(int shift)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_srai_epi32(array_sse, shift);
+#elif defined(ITK_NEON)
+            x >>= shift;
+            y >>= shift;
+            z >>= shift;
+            w >>= shift;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+
+        template <typename _internal_type = store_type,
+                  typename std::enable_if<
+                      std::is_same<_internal_type, uint32_t>::value,
+                      bool>::type = true>
+        ITK_INLINE self_type &operator>>=(int shift)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_srli_epi32(array_sse, shift);
+#elif defined(ITK_NEON)
+            x >>= shift;
+            y >>= shift;
+            z >>= shift;
+            w >>= shift;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+
+        ITK_INLINE self_type &operator&=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_and_si128(array_sse, v.array_sse);
+#elif defined(ITK_NEON)
+            x &= v.x;
+            y &= v.y;
+            z &= v.z;
+            w &= v.w;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+        ITK_INLINE self_type &operator|=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_or_si128(array_sse, v.array_sse);
+#elif defined(ITK_NEON)
+            x |= v.x;
+            y |= v.y;
+            z |= v.z;
+            w |= v.w;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+        ITK_INLINE self_type &operator^=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            array_sse = _mm_xor_si128(array_sse, v.array_sse);
+#elif defined(ITK_NEON)
+            x ^= v.x;
+            y ^= v.y;
+            z ^= v.z;
+            w ^= v.w;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+        
+        ITK_INLINE self_type operator~() const
+        {
+#if defined(ITK_SSE2)
+            __m128i result = _mm_xor_si128(_vec4i_all_sse, array_sse);
+            return self_type(result);
+#elif defined(ITK_NEON)
+            return self_type(~x, ~y, ~z, ~w);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
         }
     };
 

@@ -316,6 +316,16 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+        ITK_INLINE void operator=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            array_sse = v.array_sse;
+#elif defined(ITK_NEON)
+            array_neon = v.array_neon;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
         /// \brief Constructs a tridimensional Vector from the subtraction b-a
         ///
         /// Initialize the vec3 components from two other vectors using the equation: <br />

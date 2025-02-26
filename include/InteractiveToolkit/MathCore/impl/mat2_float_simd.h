@@ -249,6 +249,16 @@ namespace MathCore
         {
             *this = m;
         }
+        ITK_INLINE void operator=(const self_type &m)
+        {
+#if defined(ITK_SSE2)
+            array_sse = m.array_sse;
+#elif defined(ITK_NEON)
+            array_neon = m.array_neon;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
 
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
