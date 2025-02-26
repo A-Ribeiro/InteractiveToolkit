@@ -18,9 +18,8 @@
 
 #include "fixed_t.h"
 
-
 #include "vec3.h"
-//#include "mat3.h"
+// #include "mat3.h"
 
 namespace MathCore
 {
@@ -40,11 +39,23 @@ namespace MathCore
     using vec4u32 = vec4<uint32_t>;
     using vec4u64 = vec4<uint64_t>;
 
+#if defined(ITK_SSE2)
+
     template <int frac_bits>
     using vec4fixed32 = vec4<FixedPoint::fixed_t<int32_t, frac_bits>, SIMD_TYPE::SIMD>;
 
     template <int frac_bits>
     using vec4ufixed32 = vec4<FixedPoint::fixed_t<uint32_t, frac_bits>, SIMD_TYPE::SIMD>;
+
+#else
+
+    template <int frac_bits>
+    using vec4fixed32 = vec4<FixedPoint::fixed_t<int32_t, frac_bits>>;
+
+    template <int frac_bits>
+    using vec4ufixed32 = vec4<FixedPoint::fixed_t<uint32_t, frac_bits>>;
+
+#endif
 
     //
     // alias
@@ -73,7 +84,5 @@ namespace MathCore
         static constexpr ITK_INLINE type Zero() noexcept { return type(); }
         static constexpr ITK_INLINE type One() noexcept { return type((_type)1); }
     };
-
-    
 
 }
