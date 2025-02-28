@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(ITK_SSE2) // && !defined(ITK_NEON)
+#if !defined(ITK_SSE2) && !defined(ITK_NEON)
 #error Invalid header 'vec4_fixed32_simd.h' included. \
         Need at least one of the following build flags set: \
         ITK_SSE2, ITK_NEON
@@ -44,14 +44,16 @@ namespace MathCore
     class alignas(16) vec4<FixedPoint::fixed_t<store_type, frac_bits>, _SimdType,
                            typename std::enable_if<
                                (std::is_same<store_type, int32_t>::value || std::is_same<store_type, uint32_t>::value) &&
-                               (std::is_same<_SimdType, SIMD_TYPE::SSE>::value
-                                // ||std::is_same<_SimdType, SIMD_TYPE::NEON>::value
-                                )>::type>
+                               (std::is_same<_SimdType, SIMD_TYPE::SSE>::value || std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
         using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
         using self_type = vec4<_BaseType, _SimdType>;
         using vec3_compatible_type = vec3<_BaseType, SIMD_TYPE::NONE>;
         using vec2_compatible_type = vec2<_BaseType, SIMD_TYPE::NONE>;
+
+#if defined(ITK_NEON)
+        using neon_type = typename iNeonOps<store_type>::type;
+#endif
 
     public:
         static constexpr int array_count = 4;
@@ -80,7 +82,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128i array_sse;
 #elif defined(ITK_NEON)
-            float32x4_t array_neon;
+            neon_type array_neon;
 #endif
         };
 
@@ -90,7 +92,7 @@ namespace MathCore
             array_sse = v;
         }
 #elif defined(ITK_NEON)
-        ITK_INLINE vec4(const float32x4_t &v)
+        ITK_INLINE vec4(const neon_type &v)
         {
             array_neon = v;
         }
@@ -117,7 +119,7 @@ namespace MathCore
             // const __m128i _vec4_zero_sse = _mm_set1_ps(0.0f);
             array_sse = _mm_set1_epi32(0); //_vec4_zero_sse;// = _mm_set1_ps(0.0f);
 #elif defined(ITK_NEON)
-            array_neon = vset1(0.0f); //(float32x4_t){0, 0, 0, 0};
+            array_neon = iNeonOps<store_type>::vset1(0); //(neon_type){0, 0, 0, 0};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -146,7 +148,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_set1_epi32(v.value);
 #elif defined(ITK_NEON)
-            array_neon = vset1(v);
+            array_neon = iNeonOps<store_type>::vset1(v.value);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -183,7 +185,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_setr_epi32(x.value, y.value, z.value, w.value);
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){x, y, z, w};
+            array_neon = (neon_type){x.value, y.value, z.value, w.value};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -236,7 +238,7 @@ namespace MathCore
             // array_sse = xyz.array_sse;
             // _mm_f32_(array_sse, 3) = w.value;
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){xyz.x, xyz.y, xyz.z, w};
+            array_neon = (neon_type){xyz.x.value, xyz.y.value, xyz.z.value, w.value};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -282,7 +284,7 @@ namespace MathCore
             // array_sse = _mm_shuffle_epi32(yzw.array_sse, _MM_SHUFFLE(2, 1, 0, 2)); // first 2 can be ignored...
             // _mm_f32_(array_sse, 0) = x.value;
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){x, yzw.x, yzw.y, yzw.z};
+            array_neon = (neon_type){x.value, yzw.x.value, yzw.y.value, yzw.z.value};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -316,7 +318,7 @@ namespace MathCore
             // #endif
 
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){a.x, a.y, b.x, b.y};
+            array_neon = (neon_type){a.x.value, a.y.value, b.x.value, b.y.value};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -407,7 +409,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_epi32(b.array_sse, a.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(b.array_neon, a.array_neon);
+            array_neon = iNeonOps<store_type>::vsubq(b.array_neon, a.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -447,15 +449,7 @@ namespace MathCore
 #endif
 
 #elif defined(ITK_NEON)
-
-            float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
-            // abs
-            diff_abs = vabsq_f32(diff_abs);
-
-            float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
-            acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
-
-            return acc_2_elements[0] <= EPSILON<_BaseType>::high_precision;
+            return iNeonOps<store_type>::eq(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -536,7 +530,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_add_epi32(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vaddq_f32(array_neon, v.array_neon);
+            array_neon = iNeonOps<store_type>::vaddq(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -566,7 +560,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_epi32(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(array_neon, v.array_neon);
+            array_neon = iNeonOps<store_type>::vsubq(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -597,7 +591,7 @@ namespace MathCore
             // const __m128i _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
             return _mm_sub_epi32(_vec4i_zero_sse, array_sse);
 #elif defined(ITK_NEON)
-            return vnegq_f32(array_neon);
+            return iNeonOps<store_type>::vneg(array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -643,7 +637,11 @@ namespace MathCore
 #endif
 
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, v.array_neon);
+            // array_neon = vmulq_f32(array_neon, v.array_neon);
+            x *= v.x;
+            y *= v.y;
+            z *= v.z;
+            w *= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -671,7 +669,11 @@ namespace MathCore
 #endif
 
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, v.array_neon);
+            // array_neon = vmulq_f32(array_neon, v.array_neon);
+            x *= v.x;
+            y *= v.y;
+            z *= v.z;
+            w *= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -706,7 +708,11 @@ namespace MathCore
             w /= v.w;
             // array_sse = _mm_div_ps(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vdivq_f32(array_neon, v.array_neon);
+            // array_neon = vdivq_f32(array_neon, v.array_neon);
+            x /= v.x;
+            y /= v.y;
+            z /= v.z;
+            w /= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -737,7 +743,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_add_epi32(array_sse, _mm_set1_epi32(v.value));
 #elif defined(ITK_NEON)
-            array_neon = vaddq_f32(array_neon, vset1(v));
+            array_neon = iNeonOps<store_type>::vaddq(array_neon, iNeonOps<store_type>::vset1(v.value));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -768,7 +774,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_epi32(array_sse, _mm_set1_epi32(v.value));
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(array_neon, vset1(v));
+            array_neon = iNeonOps<store_type>::vsubq(array_neon, iNeonOps<store_type>::vset1(v.value));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -799,7 +805,8 @@ namespace MathCore
             (*this) *= self_type(v);
             // array_sse = _mm_mul_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, vset1(v));
+            // array_neon = vmulq_f32(array_neon, iNeonOps<store_type>::vset1(v));
+            (*this) *= self_type(v);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -830,7 +837,8 @@ namespace MathCore
             // array_sse = _mm_div_ps(array_sse, _mm_set1_ps(v));
             (*this) /= self_type(v);
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, vset1(1.0f / v));
+            // array_neon = vmulq_f32(array_neon, iNeonOps<store_type>::vset1(1.0f / v));
+            (*this) /= self_type(v);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -888,10 +896,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_slli_epi32(array_sse, shift);
 #elif defined(ITK_NEON)
-            x <<= shift;
-            y <<= shift;
-            z <<= shift;
-            w <<= shift;
+            array_neon = iNeonOps<store_type>::vshlq_n(array_neon, shift);
+            // x <<= shift;
+            // y <<= shift;
+            // z <<= shift;
+            // w <<= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -907,10 +916,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_srai_epi32(array_sse, shift);
 #elif defined(ITK_NEON)
-            x >>= shift;
-            y >>= shift;
-            z >>= shift;
-            w >>= shift;
+            array_neon = iNeonOps<store_type>::vshrq_n(array_neon, shift);
+            // x >>= shift;
+            // y >>= shift;
+            // z >>= shift;
+            // w >>= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -926,10 +936,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_srli_epi32(array_sse, shift);
 #elif defined(ITK_NEON)
-            x >>= shift;
-            y >>= shift;
-            z >>= shift;
-            w >>= shift;
+            array_neon = iNeonOps<store_type>::vshrq_n(array_neon, shift);
+            // x >>= shift;
+            // y >>= shift;
+            // z >>= shift;
+            // w >>= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -941,10 +952,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_and_si128(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            x &= v.x;
-            y &= v.y;
-            z &= v.z;
-            w &= v.w;
+            array_neon = iNeonOps<store_type>::vandq(array_neon, v.array_neon);
+            // x &= v.x;
+            // y &= v.y;
+            // z &= v.z;
+            // w &= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -955,10 +967,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_or_si128(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            x |= v.x;
-            y |= v.y;
-            z |= v.z;
-            w |= v.w;
+            array_neon = iNeonOps<store_type>::vorrq(array_neon, v.array_neon);
+            // x |= v.x;
+            // y |= v.y;
+            // z |= v.z;
+            // w |= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -969,23 +982,25 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_xor_si128(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            x ^= v.x;
-            y ^= v.y;
-            z ^= v.z;
-            w ^= v.w;
+            array_neon = iNeonOps<store_type>::veorq(array_neon, v.array_neon);
+            // x ^= v.x;
+            // y ^= v.y;
+            // z ^= v.z;
+            // w ^= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
             return *this;
         }
-        
+
         ITK_INLINE self_type operator~() const
         {
 #if defined(ITK_SSE2)
             __m128i result = _mm_xor_si128(_vec4i_all_sse, array_sse);
             return self_type(result);
 #elif defined(ITK_NEON)
-            return self_type(~x, ~y, ~z, ~w);
+            return iNeonOps<store_type>::vmvnq(array_neon);
+            // return self_type(~x, ~y, ~z, ~w);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
