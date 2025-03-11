@@ -158,13 +158,13 @@ namespace MathCore
 			static const rangeT FRAC_RANGE_MAX = StoreSpec::FRACTIONAL_PART_MAX_RANGE(FRAC_BITS);
 
 			template <typename T = StoreSpec, typename std::enable_if<T::_is_signed::value, bool>::type = true>
-			inline fixed_t(valueT integerPart, valueT fractionalPart)
+			inline fixed_t(const valueT &integerPart, const valueT &fractionalPart)
 			{
 				value = (integerPart << FRACTIONAL_BITS) + fractionalPart;
 			}
 
 			template <typename T = StoreSpec, typename std::enable_if<!T::_is_signed::value, bool>::type = true>
-			inline fixed_t(valueT integerPart, valueT fractionalPart)
+			inline fixed_t(const valueT &integerPart, const valueT &fractionalPart)
 			{
 				value = (integerPart << FRACTIONAL_BITS) | (fractionalPart & FRACTIONAL_MASK);
 			}
@@ -174,9 +174,13 @@ namespace MathCore
 				value = 0;
 			}
 
-			inline fixed_t(valueT integerPart)
+			template <typename _valueT,
+					  typename std::enable_if<
+						  std::is_integral<_valueT>::value,
+						  bool>::type = true>
+			inline fixed_t(const _valueT &integerPart)
 			{
-				value = (integerPart << FRACTIONAL_BITS);
+				value = ((valueT)integerPart << FRACTIONAL_BITS);
 			}
 
 			inline fixed_t(const fixed_t &rawValue)
@@ -189,7 +193,17 @@ namespace MathCore
 				value = rawValue.value;
 			}
 
-			static constexpr fixed_t fromRaw(valueT rawValue) noexcept
+			inline fixed_t(const float &v)
+			{
+				*this = fixed_t::fromFloat(v);
+			}
+
+			inline fixed_t(const double &v)
+			{
+				*this = fixed_t::fromDouble(v);
+			}
+
+			static constexpr fixed_t fromRaw(const valueT &rawValue) noexcept
 			{
 				fixed_t result;
 				result.value = rawValue;
@@ -470,10 +484,109 @@ namespace MathCore
 				return fixed_t(integerPart, fractionalPart);
 			}
 
-			inline operator valueT() const
+			template <typename _valueT,
+					  typename std::enable_if<
+						  std::is_integral<_valueT>::value,
+						  bool>::type = true>
+			inline operator _valueT() const
 			{
-				return signed_integer_part();
+				return (_valueT)signed_integer_part();
 			}
+
+			inline operator float() const
+			{
+				return this->toFloat();
+			}
+
+			inline operator double() const
+			{
+				return this->toDouble();
+			}
+
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  (_frac_bits > _frac_bits_b),
+						  bool>::type = true>
+			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+				this->value >>= _frac_bits - _frac_bits_b;
+			}
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  (_frac_bits < _frac_bits_b),
+						  bool>::type = true>
+			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+				this->value <<= _frac_bits_b - _frac_bits;
+			}
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  !std::is_same<_store_type, _store_type_b>::value &&
+							  (_frac_bits == _frac_bits_b),
+						  bool>::type = true>
+			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+			}
+
+
+
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  (_frac_bits > _frac_bits_b),
+						  bool>::type = true>
+			inline fixed_t(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+				this->value >>= _frac_bits - _frac_bits_b;
+			}
+
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  (_frac_bits < _frac_bits_b),
+						  bool>::type = true>
+			inline fixed_t(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+				this->value <<= _frac_bits_b - _frac_bits;
+			}
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  std::is_convertible<_store_type, _store_type_b>::value &&
+							  !std::is_same<_store_type, _store_type_b>::value &&
+							  (_frac_bits == _frac_bits_b),
+						  bool>::type = true>
+			inline fixed_t(const fixed_t<_store_type, _frac_bits> &vec)
+			{
+				this->value = (_store_type_b)vec.value;
+			}
+
+			template <typename _store_type, int _frac_bits,
+					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
+					  typename std::enable_if<
+						  !std::is_same<_store_type_b, _store_type>::value ||
+							  (_frac_bits != _frac_bits_b),
+						  bool>::type = true>
+			inline operator fixed_t<_store_type, _frac_bits>() const
+			{
+				fixed_t<_store_type, _frac_bits> result;
+				result = *this;
+				return result;
+			}
+
 		};
 
 		//
@@ -487,19 +600,19 @@ namespace MathCore
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator/(const fixed_t<store_type, frac_bits> &vec, const _InputType &value) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>(vec) /= (store_type)value);
+			return (fixed_t<store_type, frac_bits>(vec) /= (fixed_t<store_type, frac_bits>)value);
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator/(const _InputType &value, const fixed_t<store_type, frac_bits> &vec) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>((store_type)value) /= vec);
+			return (fixed_t<store_type, frac_bits>(value) /= vec);
 		}
 		template <typename store_type, int frac_bits>
 		static inline fixed_t<store_type, frac_bits> operator*(const fixed_t<store_type, frac_bits> &vecA, const fixed_t<store_type, frac_bits> &vecB) noexcept
@@ -508,19 +621,19 @@ namespace MathCore
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator*(const fixed_t<store_type, frac_bits> &vec, const _InputType &value) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>(vec) *= (store_type)value);
+			return (fixed_t<store_type, frac_bits>(vec) *= (fixed_t<store_type, frac_bits>)value);
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator*(const _InputType &value, const fixed_t<store_type, frac_bits> &vec) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>((store_type)value) *= vec);
+			return ((fixed_t<store_type, frac_bits>)value *= vec);
 		}
 		template <typename store_type, int frac_bits>
 		static inline fixed_t<store_type, frac_bits> operator+(const fixed_t<store_type, frac_bits> &vecA, const fixed_t<store_type, frac_bits> &vecB) noexcept
@@ -529,19 +642,19 @@ namespace MathCore
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator+(const fixed_t<store_type, frac_bits> &vec, const _InputType &value) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>(vec) += (store_type)value);
+			return (fixed_t<store_type, frac_bits>(vec) += (fixed_t<store_type, frac_bits>)value);
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator+(const _InputType &value, const fixed_t<store_type, frac_bits> &vec) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>((store_type)value) += vec);
+			return ((fixed_t<store_type, frac_bits>)value += vec);
 		}
 		template <typename store_type, int frac_bits>
 		static inline fixed_t<store_type, frac_bits> operator-(const fixed_t<store_type, frac_bits> &vecA, const fixed_t<store_type, frac_bits> &vecB) noexcept
@@ -550,19 +663,19 @@ namespace MathCore
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator-(const fixed_t<store_type, frac_bits> &vec, const _InputType &value) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>(vec) -= (store_type)value);
+			return (fixed_t<store_type, frac_bits>(vec) -= (fixed_t<store_type, frac_bits>)value);
 		}
 		template <typename store_type, typename _InputType, int frac_bits,
 				  typename std::enable_if<
-					  std::is_convertible<_InputType, store_type>::value,
+					  std::is_convertible<_InputType, fixed_t<store_type, frac_bits>>::value,
 					  bool>::type = true>
 		static inline fixed_t<store_type, frac_bits> operator-(const _InputType &value, const fixed_t<store_type, frac_bits> &vec) noexcept
 		{
-			return (fixed_t<store_type, frac_bits>((store_type)value) -= vec);
+			return ((fixed_t<store_type, frac_bits>)value -= vec);
 		}
 
 		//
