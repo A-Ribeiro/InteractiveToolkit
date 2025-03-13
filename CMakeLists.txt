@@ -55,19 +55,80 @@ if(WIN32)
         endif()
     elseif(${flag} STREQUAL "sse3")
         if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+            include(CheckCXXSourceRuns)
+            if (MSVC)
+                set(CMAKE_REQUIRED_FLAGS "/arch:SSE2")
+            else()
+                set(CMAKE_REQUIRED_FLAGS "-msse3")
+            endif()
+            set(SSE3_TEST_CODE "
+                #include <pmmintrin.h>
+                int main() {
+                    __m128 a = _mm_set1_ps(1.0); // SSE3 intrinsic
+                    __m128 b = _mm_set1_ps(2.0); // SSE3 intrinsic
+                    __m128 c = _mm_addsub_ps(a, b); // SSE3 intrinsic
+                    return 0;
+                }"
+            )
+            check_cxx_source_runs("${SSE3_TEST_CODE}" SSE3_SUPPORTED)
+            unset(CMAKE_REQUIRED_FLAGS)
+            if (SSE3_SUPPORTED)
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+            else()
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+            endif()
         else()
             set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
         endif()
     elseif(${flag} STREQUAL "sse4_1")
         if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+            include(CheckCXXSourceRuns)
+            if (MSVC)
+                set(CMAKE_REQUIRED_FLAGS "/arch:SSE2")
+            else()
+                set(CMAKE_REQUIRED_FLAGS "-msse4.1")
+            endif()
+            set(SSE41_TEST_CODE "
+                #include <smmintrin.h>
+                int main() {
+                    __m128i a = _mm_set1_epi32(1); // SSE4.1 intrinsic
+                    __m128i b = _mm_set1_epi32(2); // SSE4.1 intrinsic
+                    __m128i c = _mm_blend_epi16(a, b, 0xF0); // SSE4.1 intrinsic
+                    return 0;
+                }"
+            )
+            check_cxx_source_runs("${SSE41_TEST_CODE}" SSE41_SUPPORTED)
+            unset(CMAKE_REQUIRED_FLAGS)
+            if (SSE41_SUPPORTED)
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+            else()
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+            endif()
         else()
             set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
         endif()
     elseif(${flag} STREQUAL "avx2")
-        if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-            set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+        if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")# AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+            include(CheckCXXSourceRuns)
+            if (MSVC)
+                set(CMAKE_REQUIRED_FLAGS "/arch:AVX2")
+            else()
+                set(CMAKE_REQUIRED_FLAGS "-mavx2")
+            endif()
+            set(AVX2_TEST_CODE "
+                #include <immintrin.h>
+                int main() {
+                    __m256i vec = _mm256_set1_epi32(0);
+                    return 0;
+                }"
+            )
+            check_cxx_source_runs("${AVX2_TEST_CODE}" AVX2_SUPPORTED)
+            unset(CMAKE_REQUIRED_FLAGS)
+            if (AVX2_SUPPORTED)
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS ON)
+            else()
+                set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
+            endif()
         else()
             set(COMPILER_SUPPORTS_REQUIRED_INTRINSICS OFF)
         endif()
