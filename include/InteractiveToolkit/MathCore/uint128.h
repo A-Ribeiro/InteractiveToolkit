@@ -26,36 +26,36 @@ namespace MathCore
 #if defined(___need_to_define_uint128_type)
 
 	struct uint128;
-	static inline uint128 operator*(const uint128& a, const uint128& b);
-	static inline uint128 operator/(const uint128& a, const uint128& b);
-	static inline uint128 operator+(const uint128& a, const uint128& b);
-	static inline uint128 operator-(const uint128& a, const uint128& b);
-	static inline uint128 operator<<(const uint128& a, int shift);
-	static inline uint128 operator>>(const uint128& a, int shift);
-	static inline uint128 operator|(const uint128& a, const uint128& b);
-	static inline uint128 operator&(const uint128& a, const uint128& b);
-	static inline bool operator>=(const uint128& a, const uint128& b);
-	static inline bool operator>(const uint128& a, const uint128& b);
-	static inline bool operator<=(const uint128& a, const uint128& b);
-	static inline bool operator<(const uint128& a, const uint128& b);
-	static inline bool operator==(const uint128& a, const uint128& b);
-	static inline bool operator!=(const uint128& a, const uint128& b);
+	static inline uint128 operator*(const uint128 &a, const uint128 &b);
+	static inline uint128 operator/(const uint128 &a, const uint128 &b);
+	static inline uint128 operator+(const uint128 &a, const uint128 &b);
+	static inline uint128 operator-(const uint128 &a, const uint128 &b);
+	static inline uint128 operator<<(const uint128 &a, int shift);
+	static inline uint128 operator>>(const uint128 &a, int shift);
+	static inline uint128 operator|(const uint128 &a, const uint128 &b);
+	static inline uint128 operator&(const uint128 &a, const uint128 &b);
+	static inline bool operator>=(const uint128 &a, const uint128 &b);
+	static inline bool operator>(const uint128 &a, const uint128 &b);
+	static inline bool operator<=(const uint128 &a, const uint128 &b);
+	static inline bool operator<(const uint128 &a, const uint128 &b);
+	static inline bool operator==(const uint128 &a, const uint128 &b);
+	static inline bool operator!=(const uint128 &a, const uint128 &b);
 
 #if defined(ITK_SSE2)
 
-	static ITK_INLINE uint16_t& _mm_u16_c(const __m128i& v, int i) noexcept
+	static ITK_INLINE uint16_t &_mm_u16_c(const __m128i &v, int i) noexcept
 	{
-		return ((uint16_t*)&v)[i];
+		return ((uint16_t *)&v)[i];
 	}
 
-	static ITK_INLINE uint64_t& _mm_u64_c(const __m128i& v, int i) noexcept
+	static ITK_INLINE uint64_t &_mm_u64_c(const __m128i &v, int i) noexcept
 	{
-		return ((uint64_t*)&v)[i];
+		return ((uint64_t *)&v)[i];
 	}
 
 #if defined(ITK_AVX2)
 
-	static inline __m256i _mm256_slli_si256_c_8bytes(const __m256i& v) noexcept
+	static inline __m256i _mm256_slli_si256_c_8bytes(const __m256i &v) noexcept
 	{
 		constexpr int shift_bytes = 8;
 
@@ -69,7 +69,7 @@ namespace MathCore
 
 		//__m128i _compose_h_sft = _mm_or_si128(_h_sft, low_overflow);
 
-		//return _mm256_set_m128i(_compose_h_sft, _l_sft);
+		// return _mm256_set_m128i(_compose_h_sft, _l_sft);
 
 		__m128i low_overflow = _mm_srli_si128(_mm256_extracti128_si256(v, 0), 16 - shift_bytes);
 		__m256i tmp = _mm256_set_m128i(low_overflow, _mm_setzero_si128());
@@ -119,13 +119,13 @@ namespace MathCore
 		}
 
 #if defined(ITK_SSE2)
-		inline uint128(const __m128i& v)
+		inline uint128(const __m128i &v)
 		{
 			_sse = v;
 		}
 #endif
 
-		inline uint128(const uint128& v)
+		inline uint128(const uint128 &v)
 		{
 #if defined(ITK_SSE2)
 			_sse = v._sse;
@@ -135,7 +135,7 @@ namespace MathCore
 #endif
 		}
 
-		inline void operator=(const uint128& v)
+		inline void operator=(const uint128 &v)
 		{
 #if defined(ITK_SSE2)
 			_sse = v._sse;
@@ -145,25 +145,25 @@ namespace MathCore
 #endif
 		}
 
-		inline uint128(const uint64_t& l, const uint64_t& h)
+		inline uint128(const uint64_t &l, const uint64_t &h)
 		{
 			low = l;
 			high = h;
 		}
 
-		inline uint128(const uint64_t& v)
+		inline uint128(const uint64_t &v)
 		{
 			low = v;
 			high = 0;
 		}
 
-		inline void operator=(const uint64_t& v)
+		inline void operator=(const uint64_t &v)
 		{
 			low = v;
 			high = 0;
 		}
 
-		uint128& operator*=(const uint128& other)
+		uint128 &operator*=(const uint128 &other)
 		{
 #if defined(ITK_AVX2) && false
 
@@ -215,7 +215,6 @@ namespace MathCore
 
 			r = _mm256_add_epi64(r, _mm256_add_epi64(_lower_part, _high_part));
 
-
 			o = _mm256_permute4x64_epi64(other_expanded, el_3);
 			// 128bit lane shift... the lanes are only in the 128bit high part
 			s = _mm256_slli_si256(s, 8);
@@ -233,7 +232,6 @@ namespace MathCore
 			const __m256i mask_2 = _mm256_setr_epi64x(0, 0, UINT64_C(0x00000000ffffffff), 0);
 			const __m256i mask_3 = _mm256_setr_epi64x(0, 0, 0, UINT64_C(0x00000000ffffffff));
 
-
 			const __m256i _8_el_1 = _mm256_set1_epi32(1);
 			const __m256i _8_el_3 = _mm256_set1_epi32(3);
 			const __m256i _8_el_5 = _mm256_set1_epi32(5);
@@ -250,7 +248,6 @@ namespace MathCore
 			r = _mm256_permutevar8x32_epi32(r, low_32bit_extract);
 
 			_sse = _mm256_extracti128_si256(r, 0);
-
 
 #elif defined(ITK_SSE2) && false
 
@@ -420,7 +417,7 @@ namespace MathCore
 		}
 
 		// Division
-		uint128& operator/=(const uint128& _divisor)
+		uint128 &operator/=(const uint128 &_divisor)
 		{
 			const uint128 uint128_0(0);
 			const uint128 uint128_1(1);
@@ -449,7 +446,7 @@ namespace MathCore
 				return *this;
 			}
 
-			const uint128& dividend = *this;
+			const uint128 &dividend = *this;
 			uint128 divisor = _divisor;
 
 			uint128 quotient = 0;
@@ -462,7 +459,7 @@ namespace MathCore
 				shift_count++;
 			}
 
-			while (shift_count >= 0)
+			while (shift_count > 0)
 			{
 				divisor >>= 1;
 				shift_count--;
@@ -478,35 +475,51 @@ namespace MathCore
 			return *this;
 		}
 
-		uint128& operator+=(const uint128& b)
+		uint128 &operator+=(const uint128 &b)
 		{
 			high += b.high + ((low + b.low) < low);
 			low += b.low;
 			return *this;
 		}
 
-		uint128& operator-=(const uint128& b)
+		uint128 &operator-=(const uint128 &b)
 		{
 			high = high - b.high - ((low - b.low) > low);
 			low = low - b.low;
 			return *this;
 		}
 
-		uint128& operator<<=(int shift)
+		uint128 &operator<<=(int shift)
 		{
-			high = high << shift | low >> (64 - shift);
-			low = low << shift;
+			if (shift >= 64)
+			{
+				high = (low << (shift - 64));
+				low = 0;
+			}
+			else
+			{
+				high = (high << shift) | ((low >> (64 - shift)) & -(shift != 0));
+				low <<= shift;
+			}
 			return *this;
 		}
 
-		uint128& operator>>=(int shift)
+		uint128 &operator>>=(int shift)
 		{
-			low = (high << (64 - shift)) + (low >> shift);
-			high = high >> shift;
+			if (shift >= 64)
+			{
+				low = (high >> (shift - 64)) & -(shift != 128);
+				high = 0;
+			}
+			else
+			{
+				low = (low >> shift) | (high << (64 - shift));
+				high >>= shift;
+			}
 			return *this;
 		}
 
-		uint128& operator|=(const uint128& b)
+		uint128 &operator|=(const uint128 &b)
 		{
 #if defined(ITK_SSE2)
 			_sse = _mm_or_si128(_sse, b._sse);
@@ -527,7 +540,7 @@ namespace MathCore
 #endif
 		}
 
-		uint128& operator&=(const uint128& b)
+		uint128 &operator&=(const uint128 &b)
 		{
 #if defined(ITK_SSE2)
 			_sse = _mm_and_si128(_sse, b._sse);
@@ -539,72 +552,72 @@ namespace MathCore
 		}
 	};
 
-	static inline uint128 operator*(const uint128& a, const uint128& b)
+	static inline uint128 operator*(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } *= b;
+		return uint128{a} *= b;
 	}
 
-	static inline uint128 operator/(const uint128& a, const uint128& b)
+	static inline uint128 operator/(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } /= b;
+		return uint128{a} /= b;
 	}
 
-	static inline uint128 operator+(const uint128& a, const uint128& b)
+	static inline uint128 operator+(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } += b;
+		return uint128{a} += b;
 	}
 
-	static inline uint128 operator-(const uint128& a, const uint128& b)
+	static inline uint128 operator-(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } -= b;
+		return uint128{a} -= b;
 	}
 
-	static inline uint128 operator<<(const uint128& a, int shift)
+	static inline uint128 operator<<(const uint128 &a, int shift)
 	{
-		return uint128{ a } <<= shift;
+		return uint128{a} <<= shift;
 	}
 
-	static inline uint128 operator>>(const uint128& a, int shift)
+	static inline uint128 operator>>(const uint128 &a, int shift)
 	{
-		return uint128{ a } >>= shift;
+		return uint128{a} >>= shift;
 	}
 
-	static inline uint128 operator|(const uint128& a, const uint128& b)
+	static inline uint128 operator|(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } |= b;
+		return uint128{a} |= b;
 	}
 
-	static inline uint128 operator&(const uint128& a, const uint128& b)
+	static inline uint128 operator&(const uint128 &a, const uint128 &b)
 	{
-		return uint128{ a } &= b;
+		return uint128{a} &= b;
 	}
 
-	static inline bool operator>=(const uint128& a, const uint128& b)
+	static inline bool operator>=(const uint128 &a, const uint128 &b)
 	{
 		return a.high > b.high || (a.high == b.high && a.low >= b.low);
 	}
 
-	static inline bool operator>(const uint128& a, const uint128& b)
+	static inline bool operator>(const uint128 &a, const uint128 &b)
 	{
 		return a.high > b.high || (a.high == b.high && a.low > b.low);
 	}
 
-	static inline bool operator<=(const uint128& a, const uint128& b)
+	static inline bool operator<=(const uint128 &a, const uint128 &b)
 	{
 		return a.high < b.high || (a.high == b.high && a.low <= b.low);
 	}
 
-	static inline bool operator<(const uint128& a, const uint128& b)
+	static inline bool operator<(const uint128 &a, const uint128 &b)
 	{
 		return a.high < b.high || (a.high == b.high && a.low < b.low);
 	}
 
-	static inline bool operator==(const uint128& a, const uint128& b)
+	static inline bool operator==(const uint128 &a, const uint128 &b)
 	{
 		return a.high == b.high && a.low == b.low;
 	}
 
-	static inline bool operator!=(const uint128& a, const uint128& b)
+	static inline bool operator!=(const uint128 &a, const uint128 &b)
 	{
 		return a.high != b.high || a.low != b.low;
 	}

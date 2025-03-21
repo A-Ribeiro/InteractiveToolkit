@@ -27,8 +27,8 @@ namespace AlgorithmCore
 
                 T *in;
                 T *out;
-                int64_t i;
-                int64_t element_count;
+                uint64_t i;
+                uint64_t element_count;
                 size_t count;
                 Platform::Semaphore *completion_semaphore;
             };
@@ -38,7 +38,7 @@ namespace AlgorithmCore
             static void sort(_type *data,
                              const size_t &count,
                              Platform::ThreadPool *threadpool,
-                             int64_t thread_count = -1)
+                             uint64_t thread_count = -1)
             {
                 if (thread_count == -1)
                 {
@@ -52,7 +52,7 @@ namespace AlgorithmCore
                 buffer.setSize(sizeof(_type) * count);
                 _type *aux = ((_type *)buffer.data);
 
-                int64_t job_thread_size = (int64_t)(count / thread_count);
+                uint64_t job_thread_size = (uint64_t)(count / thread_count);
                 if (job_thread_size == 0)
                     job_thread_size = 1;
 
@@ -60,10 +60,10 @@ namespace AlgorithmCore
                 Platform::Semaphore completion_semaphore(0);
                 {
                     TaskSort<_type> task;
-                    for (int64_t i = 0; i < count; i += job_thread_size)
+                    for (uint64_t i = 0; i < count; i += job_thread_size)
                     {
-                        int64_t index_start = i;
-                        int64_t index_end_exclusive = i + job_thread_size;
+                        uint64_t index_start = i;
+                        uint64_t index_end_exclusive = i + job_thread_size;
                         if (index_end_exclusive > count)
                             index_end_exclusive = count;
 
@@ -79,7 +79,7 @@ namespace AlgorithmCore
                     }
 
                     // barrier -- finish all sorting
-                    for (int64_t i = 0; i < count; i += job_thread_size)
+                    for (uint64_t i = 0; i < count; i += job_thread_size)
                         completion_semaphore.blockingAcquire();
                 }
 
@@ -88,12 +88,12 @@ namespace AlgorithmCore
                     _type *in = data;
                     _type *out = aux;
 
-                    int64_t element_count = job_thread_size;
+                    uint64_t element_count = job_thread_size;
                     TaskMerge<_type> task;
                     while (element_count < count)
                     {
                         // merge operation
-                        for (int64_t i = 0; i < count; i += (element_count << 1))
+                        for (uint64_t i = 0; i < count; i += (element_count << 1))
                         {
                             task.in = in;
                             task.out = out;
@@ -104,21 +104,21 @@ namespace AlgorithmCore
 
                             threadpool->postTask([task]()
                                                  {
-                                                     int64_t write_index = task.i;
-                                                     int64_t write_max = task.i + (task.element_count << 1);
-                                                     if (write_max > (int64_t)task.count)
-                                                         write_max = (int64_t)task.count;
+                                                     uint64_t write_index = task.i;
+                                                     uint64_t write_max = task.i + (task.element_count << 1);
+                                                     if (write_max > (uint64_t)task.count)
+                                                         write_max = (uint64_t)task.count;
 
-                                                     int64_t a_index = task.i;
-                                                     int64_t b_index = task.i + task.element_count;
+                                                     uint64_t a_index = task.i;
+                                                     uint64_t b_index = task.i + task.element_count;
 
-                                                     int64_t a_max = b_index;
-                                                     int64_t b_max = b_index + task.element_count;
+                                                     uint64_t a_max = b_index;
+                                                     uint64_t b_max = b_index + task.element_count;
 
-                                                     if (a_max > (int64_t)task.count)
-                                                         a_max = (int64_t)task.count;
-                                                     if (b_max > (int64_t)task.count)
-                                                         b_max = (int64_t)task.count;
+                                                     if (a_max > (uint64_t)task.count)
+                                                         a_max = (uint64_t)task.count;
+                                                     if (b_max > (uint64_t)task.count)
+                                                         b_max = (uint64_t)task.count;
 
                                                      while (write_index < write_max &&
                                                             a_index < a_max &&
@@ -151,7 +151,7 @@ namespace AlgorithmCore
                         }
 
                         // barrier - wait all jobs done
-                        for (int64_t i = 0; i < count; i += (element_count << 1))
+                        for (uint64_t i = 0; i < count; i += (element_count << 1))
                             completion_semaphore.blockingAcquire();
 
                         // swap in/out
@@ -189,7 +189,7 @@ namespace AlgorithmCore
                 buffer.setSize(sizeof(AlgorithmCore::Sorting::SortIndex<_type>) * (uint32_t)count);
                 AlgorithmCore::Sorting::SortIndex<_type> *aux = ((AlgorithmCore::Sorting::SortIndex<_type> *)buffer.data);
 
-                int64_t job_thread_size = (int64_t) (count / thread_count);
+                uint64_t job_thread_size = (uint64_t) (count / thread_count);
                 if (job_thread_size == 0)
                     job_thread_size = 1;
 
@@ -197,10 +197,10 @@ namespace AlgorithmCore
                 Platform::Semaphore completion_semaphore(0);
                 {
                     TaskSort<AlgorithmCore::Sorting::SortIndex<_type>> task;
-                    for (int64_t i = 0; i < count; i += job_thread_size)
+                    for (uint64_t i = 0; i < count; i += job_thread_size)
                     {
-                        int64_t index_start = i;
-                        int64_t index_end_exclusive = i + job_thread_size;
+                        uint64_t index_start = i;
+                        uint64_t index_end_exclusive = i + job_thread_size;
                         if (index_end_exclusive > count)
                             index_end_exclusive = count;
 
@@ -216,7 +216,7 @@ namespace AlgorithmCore
                     }
 
                     // barrier -- finish all sorting
-                    for (int64_t i = 0; i < count; i += job_thread_size)
+                    for (uint64_t i = 0; i < count; i += job_thread_size)
                         completion_semaphore.blockingAcquire();
                 }
 
@@ -225,13 +225,13 @@ namespace AlgorithmCore
                     AlgorithmCore::Sorting::SortIndex<_type> *in = data;
                     AlgorithmCore::Sorting::SortIndex<_type> *out = aux;
 
-                    int64_t element_count = job_thread_size;
+                    uint64_t element_count = job_thread_size;
 
                     TaskMerge<AlgorithmCore::Sorting::SortIndex<_type>> task;
                     while (element_count < count)
                     {
                         // merge operation
-                        for (int64_t i = 0; i < count; i += (element_count << 1))
+                        for (uint64_t i = 0; i < count; i += (element_count << 1))
                         {
                             
                             task.in = in;
@@ -243,21 +243,21 @@ namespace AlgorithmCore
 
                             threadpool->postTask([task]()
                                                  {
-                                                     int64_t write_index = task.i;
-                                                     int64_t write_max = task.i + (task.element_count << 1);
-                                                     if (write_max > (int64_t)task.count)
-                                                         write_max = (int64_t)task.count;
+                                                     uint64_t write_index = task.i;
+                                                     uint64_t write_max = task.i + (task.element_count << 1);
+                                                     if (write_max > (uint64_t)task.count)
+                                                         write_max = (uint64_t)task.count;
 
-                                                     int64_t a_index = task.i;
-                                                     int64_t b_index = task.i + task.element_count;
+                                                     uint64_t a_index = task.i;
+                                                     uint64_t b_index = task.i + task.element_count;
 
-                                                     int64_t a_max = b_index;
-                                                     int64_t b_max = b_index + task.element_count;
+                                                     uint64_t a_max = b_index;
+                                                     uint64_t b_max = b_index + task.element_count;
 
-                                                     if (a_max > (int64_t)task.count)
-                                                         a_max = (int64_t)task.count;
-                                                     if (b_max > (int64_t)task.count)
-                                                         b_max = (int64_t)task.count;
+                                                     if (a_max > (uint64_t)task.count)
+                                                         a_max = (uint64_t)task.count;
+                                                     if (b_max > (uint64_t)task.count)
+                                                         b_max = (uint64_t)task.count;
 
                                                      while (write_index < write_max &&
                                                             a_index < a_max &&
@@ -290,7 +290,7 @@ namespace AlgorithmCore
                         }
 
                         // barrier - wait all jobs done
-                        for (int64_t i = 0; i < count; i += (element_count << 1))
+                        for (uint64_t i = 0; i < count; i += (element_count << 1))
                             completion_semaphore.blockingAcquire();
 
                         // swap in/out
