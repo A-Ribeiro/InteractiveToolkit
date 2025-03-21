@@ -493,7 +493,7 @@ namespace MathCore
 		{
 			if (shift >= 64)
 			{
-				high = (low << (shift - 64));
+				high = (low << (shift - 64)) & -(shift != 128);
 				low = 0;
 			}
 			else
@@ -513,7 +513,7 @@ namespace MathCore
 			}
 			else
 			{
-				low = (low >> shift) | (high << (64 - shift));
+				low = (low >> shift) | ((high << (64 - shift))) & -(shift != 0);
 				high >>= shift;
 			}
 			return *this;
