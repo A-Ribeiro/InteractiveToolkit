@@ -212,11 +212,16 @@ namespace AlgorithmCore
             static ITK_INLINE uint64_t spread(uint64_t min, uint64_t max, uint64_t v)
             {
                 v = v - min;
-                MathCore::uint128 aux = v;
-                MathCore::uint128 delta = max - min;
-                const MathCore::uint128 _max_v = UINT64_MAX;
-                aux = (aux * _max_v) / delta;
-                return (uint64_t)aux;
+                uint64_t delta = max - min;
+                uint64_t r_low, r_high;
+                MathCore::multiply_uint64_to_uint128(v, UINT64_MAX, &r_high , &r_low);
+                return MathCore::divide_uint128_by_uint64(r_high, r_low, delta);
+
+                //MathCore::uint128 aux = v;
+                //MathCore::uint128 delta = max - min;
+                //const MathCore::uint128 _max_v = UINT64_MAX;
+                //aux = (aux * _max_v) / delta;
+                //return (uint64_t)aux;
             }
 
             // flip a float for sorting
