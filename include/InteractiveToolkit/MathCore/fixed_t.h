@@ -715,26 +715,29 @@ namespace MathCore
 			template <typename _store_type, int _frac_bits,
 					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
 					  typename std::enable_if<
-						  std::is_signed<_store_type>::value &&
+						  (std::is_signed<_store_type>::value ||
+						  std::is_signed<_store_type_b>::value) &&
 							  std::is_convertible<_store_type, _store_type_b>::value &&
 							  (_frac_bits > _frac_bits_b),
 						  bool>::type = true>
 			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
-				this->value = (_store_type_b)(vec.value >> (_frac_bits - _frac_bits_b));
+				int64_t aux = static_cast<int64_t>(vec.value);
+				this->value = (_store_type_b)(aux >> (_frac_bits - _frac_bits_b));
 				// this->value >>= _frac_bits - _frac_bits_b;
 			}
 			template <typename _store_type, int _frac_bits,
 					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
 					  typename std::enable_if<
 						  !std::is_signed<_store_type>::value &&
+						  !std::is_signed<_store_type_b>::value &&
 							  std::is_convertible<_store_type, _store_type_b>::value &&
 							  (_frac_bits > _frac_bits_b),
 						  bool>::type = true>
 			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
-				this->value = (_store_type_b)vec.value;
-				this->value >>= (_frac_bits - _frac_bits_b);
+				uint64_t aux = static_cast<uint64_t>(vec.value);
+				this->value = (_store_type_b)(aux >> (_frac_bits - _frac_bits_b));
 			}
 			template <typename _store_type, int _frac_bits,
 					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
@@ -745,8 +748,8 @@ namespace MathCore
 						  bool>::type = true>
 			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
-				this->value = (_store_type_b)(vec.value << (_frac_bits_b - _frac_bits));
-				// this->value <<= _frac_bits_b - _frac_bits;
+				uint64_t aux = static_cast<uint64_t>(vec.value);
+				this->value = (_store_type_b)(aux << (_frac_bits_b - _frac_bits));
 			}
 			// template <typename _store_type, int _frac_bits,
 			//	typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
