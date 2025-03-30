@@ -148,13 +148,13 @@ if(WIN32)
 elseif(APPLE)
     if (${flag} STREQUAL "neon")
         # on arm systems it always supports neon
-        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
             set(${var} ON)
         else()
             set(${var} OFF)
         endif()
     else()
-        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+        if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
             set(${var} OFF)
         else()
             set(to_test "EMPTY_CPU_FLAG")
@@ -177,16 +177,21 @@ elseif(APPLE)
         endif()
     endif()
 elseif(UNIX)
-    execute_process(
-        COMMAND bash -c "grep -m1 '${flag}' /proc/cpuinfo"
-        RESULT_VARIABLE grep_result
-        OUTPUT_VARIABLE grep_output
-        ERROR_QUIET
-    )
-    if(grep_result EQUAL 0)
+    # aarch64 always has neon
+    if (${flag} STREQUAL "neon" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
         set(${var} ON)
     else()
-        set(${var} OFF)
+        execute_process(
+            COMMAND bash -c "grep -m1 '${flag}' /proc/cpuinfo"
+            RESULT_VARIABLE grep_result
+            OUTPUT_VARIABLE grep_output
+            ERROR_QUIET
+        )
+        if(grep_result EQUAL 0)
+            set(${var} ON)
+        else()
+            set(${var} OFF)
+        endif()
     endif()
 endif()
 endmacro()
@@ -460,11 +465,19 @@ if (ITK_NEON)
     #add_definitions(-DITK_NEON)
     list(APPEND ITK_COMPILE_DEFINITIONS ITK_NEON)
     #add_compile_options(-mfpu=neon -finline-functions)
-    if(NOT CMAKE_GENERATOR STREQUAL Xcode)
-        list(APPEND ITK_COMPILE_OPTIONS -mfloat-abi=hard -mfpu=neon -finline-functions)
-    else()
+#    if(NOT CMAKE_GENERATOR STREQUAL Xcode)
+#        list(APPEND ITK_COMPILE_OPTIONS -mfloat-abi=hard -mfpu=neon -finline-functions)
+#    else()
+#        list(APPEND ITK_COMPILE_OPTIONS -finline-functions)
+#    endif()
+
+    # aarch64 includes neon automatically
+    if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
         list(APPEND ITK_COMPILE_OPTIONS -finline-functions)
+    else()
+        list(APPEND ITK_COMPILE_OPTIONS -mfloat-abi=hard -mfpu=neon -finline-functions)
     endif()
+
     #message(STATUS "[NEON ENABLED]")
 endif()
 ############################################################################
