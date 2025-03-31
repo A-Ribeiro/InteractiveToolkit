@@ -178,7 +178,15 @@ elseif(APPLE)
     endif()
 elseif(UNIX)
     # aarch64 always has neon
-    if (${flag} STREQUAL "neon" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+    execute_process(
+        COMMAND uname -i
+        OUTPUT_VARIABLE UNAME_OUTPUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if ( ${flag} STREQUAL "neon" AND 
+        ( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64" OR 
+            ( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND ${UNAME_OUTPUT} MATCHES "aarch64" )
+        ) )
         set(${var} ON)
     else()
         execute_process(
@@ -415,7 +423,9 @@ set(ITK_INCLUDE_DIRECTORIES)
 ############################################################################
 # Detect Raspberry Pi
 ############################################################################
-if(UNIX AND EXISTS "/opt/vc/include/bcm_host.h" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+if(UNIX AND EXISTS "/opt/vc/include/bcm_host.h" AND
+    (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" OR
+    ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64"))
     set(ITK_RPI ON CACHE BOOL "Set this if you are buinding for Raspberry PI" )
 else()
     set(ITK_RPI OFF CACHE BOOL "Set this if you are buinding for Raspberry PI" )
