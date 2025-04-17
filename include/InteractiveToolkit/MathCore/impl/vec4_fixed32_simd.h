@@ -637,11 +637,27 @@ namespace MathCore
 #endif
 
 #elif defined(ITK_NEON)
-            // array_neon = vmulq_f32(array_neon, v.array_neon);
-            x *= v.x;
-            y *= v.y;
-            z *= v.z;
-            w *= v.w;
+            // // array_neon = vmulq_f32(array_neon, v.array_neon);
+            // x *= v.x;
+            // y *= v.y;
+            // z *= v.z;
+            // w *= v.w;
+
+            int64x2_t r1_64 = vmull_s32( vget_low_s32(array_neon), vget_low_s32(v.array_neon) );
+            int64x2_t r2_64 = vmull_s32( vget_high_s32(array_neon), vget_high_s32(v.array_neon) );
+
+            r1_64 = vshrq_n_s64(r1_64, frac_bits);
+            r2_64 = vshrq_n_s64(r2_64, frac_bits);
+
+            // r1_64[0] >>= frac_bits;
+            // r1_64[1] >>= frac_bits;
+            // r2_64[0] >>= frac_bits;
+            // r2_64[1] >>= frac_bits;
+
+            int32x2_t low = vmovn_s64(r1_64);
+            int32x2_t high = vmovn_s64(r2_64);
+
+            array_neon = vcombine_s32(low, high);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -670,10 +686,27 @@ namespace MathCore
 
 #elif defined(ITK_NEON)
             // array_neon = vmulq_f32(array_neon, v.array_neon);
-            x *= v.x;
-            y *= v.y;
-            z *= v.z;
-            w *= v.w;
+            // x *= v.x;
+            // y *= v.y;
+            // z *= v.z;
+            // w *= v.w;
+
+            uint64x2_t r1_64 = vmull_u32( vget_low_u32(array_neon), vget_low_u32(v.array_neon) );
+            uint64x2_t r2_64 = vmull_u32( vget_high_u32(array_neon), vget_high_u32(v.array_neon) );
+
+            r1_64 = vshrq_n_u64(r1_64, frac_bits);
+            r2_64 = vshrq_n_u64(r2_64, frac_bits);
+
+            // r1_64[0] >>= frac_bits;
+            // r1_64[1] >>= frac_bits;
+            // r2_64[0] >>= frac_bits;
+            // r2_64[1] >>= frac_bits;
+
+            uint32x2_t low = vmovn_u64(r1_64);
+            uint32x2_t high = vmovn_u64(r2_64);
+
+            array_neon = vcombine_u32(low, high);
+
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

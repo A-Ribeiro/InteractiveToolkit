@@ -121,13 +121,15 @@ namespace MathCore
         // iNeonOps<store_type>::vshlq_n <<
         static ITK_INLINE int32x4_t vshlq_n(const int32x4_t &a, int shift) noexcept
         {
-            return vshlq_s32(a, vdupq_n_s32(shift));
+            return vshlq_n_s32(a, shift);
+            //return vshlq_s32(a, vdupq_n_s32(shift));
         }
         // iNeonOps<store_type>::vshrq_n >>
         static ITK_INLINE int32x4_t vshrq_n(const int32x4_t &a, int shift) noexcept
         {
+            return vshrq_n_s32(a, shift);
             // return vshrq_s32(a, vdupq_n_s32(shift));
-            return int32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
+            // return int32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
         }
         // iNeonOps<store_type>::vandq &
         static ITK_INLINE int32x4_t vandq(const int32x4_t &a, const int32x4_t &b) noexcept
@@ -193,13 +195,15 @@ namespace MathCore
         // iNeonOps<store_type>::vshlq_n <<
         static ITK_INLINE uint32x4_t vshlq_n(const uint32x4_t &a, int shift) noexcept
         {
-            return vshlq_u32(a, vdupq_n_s32(shift));
+            return vshlq_n_u32(a, shift);
+            // return vshlq_u32(a, vdupq_n_s32(shift));
         }
         // iNeonOps<store_type>::vshrq_n >>
         static ITK_INLINE uint32x4_t vshrq_n(const uint32x4_t &a, int shift) noexcept
         {
-            return uint32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
+            return vshrq_n_u32(a, shift);
             // return vshrq_u32(a, vdupq_n_s32(shift));
+            // return uint32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
         }
         // iNeonOps<store_type>::vandq &
         static ITK_INLINE uint32x4_t vandq(const uint32x4_t &a, const uint32x4_t &b) noexcept
