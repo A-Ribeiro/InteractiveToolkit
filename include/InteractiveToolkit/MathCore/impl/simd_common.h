@@ -111,11 +111,9 @@ namespace MathCore
         // iNeonOps<store_type>::eq
         static ITK_INLINE bool eq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
-            uint32x4_t result = vceqq_s32(a, b);
-            return result[0] == 0xffffffff &&
-                   result[1] == 0xffffffff &&
-                   result[2] == 0xffffffff &&
-                   result[3] == 0xffffffff;
+            int32x4_t cmp = vceqq_s32(a, b);
+            uint64x2_t cmp64 = vreinterpretq_u64_s32(cmp);
+            return (vgetq_lane_u64(cmp64, 0) & vgetq_lane_u64(cmp64, 1)) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
         // iNeonOps<store_type>::vshlq_n <<
@@ -185,11 +183,9 @@ namespace MathCore
         // iNeonOps<store_type>::eq
         static ITK_INLINE bool eq(const uint32x4_t &a, const uint32x4_t &b) noexcept
         {
-            uint32x4_t result = vceqq_u32(a, b);
-            return result[0] == 0xffffffff &&
-                   result[1] == 0xffffffff &&
-                   result[2] == 0xffffffff &&
-                   result[3] == 0xffffffff;
+            uint32x4_t cmp = vceqq_u32(a, b);
+            uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
+            return (vgetq_lane_u64(cmp64, 0) & vgetq_lane_u64(cmp64, 1)) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
         // iNeonOps<store_type>::vshlq_n <<
