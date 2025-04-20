@@ -111,8 +111,8 @@ namespace MathCore
         // iNeonOps<store_type>::eq
         static ITK_INLINE bool eq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
-            int32x4_t cmp = vceqq_s32(a, b);
-            uint64x2_t cmp64 = vreinterpretq_u64_s32(cmp);
+            uint32x4_t cmp = vceqq_s32(a, b);
+            uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
             return (vgetq_lane_u64(cmp64, 0) & vgetq_lane_u64(cmp64, 1)) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
