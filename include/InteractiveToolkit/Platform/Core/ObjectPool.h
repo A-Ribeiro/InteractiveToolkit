@@ -42,11 +42,11 @@ namespace Platform {
 
         bool released;
 
-        //private copy constructores, to avoid copy...
-        ObjectPool(const ObjectPool& v) {}
-        ObjectPool& operator=(const ObjectPool& v) {return *this;}
-
     public:
+
+        //deleted copy constructor and assign operator, to avoid copy...
+        ObjectPool(const ObjectPool& v) = delete;
+        ObjectPool& operator=(const ObjectPool& v) = delete;
 
         ObjectPool() : available(false)
         {

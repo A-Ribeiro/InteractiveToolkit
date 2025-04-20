@@ -23,11 +23,11 @@ namespace Platform
         fake_sem_t semaphore;
 #endif
 
-        // private copy constructores, to avoid copy...
-        Semaphore(const Semaphore &v) {}
-        Semaphore& operator=(const Semaphore &v) { return *this; }
-
     public:
+        //deleted copy constructor and assign operator, to avoid copy...
+        Semaphore(const Semaphore &v) = delete;
+        Semaphore& operator=(const Semaphore &v) = delete;
+        
         Semaphore(int count = 0)
         {
             // signaled = false;

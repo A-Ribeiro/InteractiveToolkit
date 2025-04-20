@@ -27,11 +27,11 @@ namespace Platform {
 
         std::list<T> list;
 
-        //private copy constructores, to avoid copy...
-        ObjectQueue(const ObjectQueue& v) {}
-        ObjectQueue& operator=(const ObjectQueue& v) {return *this;}
-
     public:
+
+        //deleted copy constructor and assign operator, to avoid copy...
+        ObjectQueue(const ObjectQueue& v) = delete;
+        ObjectQueue& operator=(const ObjectQueue& v) = delete;
 
         ObjectQueue(bool blocking = true) :semaphore(0) {
             this->blocking = blocking;

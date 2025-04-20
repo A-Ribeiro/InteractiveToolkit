@@ -18,11 +18,11 @@ namespace ITKCommon
     ///
     class StringUtil
     {
-        // private copy constructores, to avoid copy...
-        StringUtil(const StringUtil &v) {}
-        StringUtil& operator=(const StringUtil &v) { return *this; }
-
     public:
+        //deleted copy constructor and assign operator, to avoid copy...
+        StringUtil(const StringUtil &v) = delete;
+        StringUtil& operator=(const StringUtil &v) = delete;
+        
         StringUtil() {}
 
         std::vector<char> char_buffer;     ///< Result of the use of the #StringUtil::printf method

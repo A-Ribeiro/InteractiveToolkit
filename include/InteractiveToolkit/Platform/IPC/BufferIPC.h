@@ -118,11 +118,11 @@ namespace Platform
             Platform::Mutex shm_mutex;
             bool force_finish_initialization;
 
-            // private copy constructores, to avoid copy...
-            BufferIPC(const BufferIPC &v) {}
-            BufferIPC& operator=(const BufferIPC &v) {return *this;}
-
         public:
+
+            //deleted copy constructor and assign operator, to avoid copy...
+            BufferIPC(const BufferIPC &v) = delete;
+            BufferIPC& operator=(const BufferIPC &v) = delete;
 
             std::string name;
 

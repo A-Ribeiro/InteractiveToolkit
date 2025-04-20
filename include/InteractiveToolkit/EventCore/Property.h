@@ -42,14 +42,14 @@ namespace EventCore
     class Property
     {
 
-        // avoid copy, using copy constructors
-        Property(const Property &) {}
-        Property& operator=(const Property &) { return *this; }
-
         T oldValue; ///< The property last value, before the modification
         T value;    ///< The property current value
 
     public:
+        //deleted copy constructor and assign operator, to avoid copy...
+        Property(const Property &) = delete;
+        Property& operator=(const Property &) = delete;
+        
         Event<void(const T &value, const T &oldValue)> OnChange; ///< Called when a modification occurs
 
         /// \brief Construct this property with an initial value.

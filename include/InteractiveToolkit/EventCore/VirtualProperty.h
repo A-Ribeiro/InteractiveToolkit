@@ -54,14 +54,14 @@ namespace EventCore
     class VirtualProperty
     {
 
-        // avoid copy, using copy constructors
-        VirtualProperty(const VirtualProperty &) {}
-        VirtualProperty& operator=(const VirtualProperty &) { return *this; }
-
         Callback<T()> _get;
         Callback<void(const T &)> _set;
 
     public:
+        //deleted copy constructor and assign operator, to avoid copy...
+        VirtualProperty(const VirtualProperty &) = delete;
+        VirtualProperty& operator=(const VirtualProperty &) = delete;
+        
         ITK_INLINE VirtualProperty(Callback<T()> p_get, Callback<void(const T &)> p_set)
         {
             _get = p_get;

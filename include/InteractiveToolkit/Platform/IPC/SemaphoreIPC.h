@@ -34,11 +34,6 @@ namespace Platform
             sem_t *semaphore;
 #endif
 
-            // private copy constructores, to avoid copy...
-            SemaphoreIPC(const SemaphoreIPC &v) {}
-            SemaphoreIPC& operator=(const SemaphoreIPC &v) {return *this;}
-
-
             void OnAbort_SemaphoreIPC(const char *file, int line, const char *message){
                 Platform::AutoLock lock(&aquireMutex);
                 for(int i=0;i<aquired_count;i++)
@@ -46,6 +41,11 @@ namespace Platform
             }
 
         public:
+
+            //deleted copy constructor and assign operator, to avoid copy...
+            SemaphoreIPC(const SemaphoreIPC &v) = delete;
+            SemaphoreIPC& operator=(const SemaphoreIPC &v) = delete;
+
 #if defined(__linux__) || defined(__APPLE__)
             // unlink all resources
             static void force_shm_unlink(const std::string &name)

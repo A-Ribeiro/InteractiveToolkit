@@ -148,10 +148,6 @@ namespace Platform
                 queue_header_ptr->size -= size;
             }
 
-            // private copy constructores, to avoid copy...
-            QueueIPC(const QueueIPC &v) {}
-            QueueIPC& operator=(const QueueIPC &v) { return *this; }
-
             void onAbort(const char *file, int line, const char *message)
             {
                 releaseAll();
@@ -243,6 +239,10 @@ namespace Platform
             Platform::Mutex shm_mutex;
 
         public:
+
+            //deleted copy constructor and assign operator, to avoid copy...
+            QueueIPC(const QueueIPC &v) = delete;
+            QueueIPC& operator=(const QueueIPC &v) = delete;
 
         #if defined(__linux__) || defined(__APPLE__)
             // unlink all resources

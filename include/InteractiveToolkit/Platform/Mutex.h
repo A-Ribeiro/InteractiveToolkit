@@ -35,11 +35,12 @@ namespace Platform
         pthread_mutex_t mLock;
 #endif
 
-        // private copy constructores, to avoid copy...
-        Mutex(const Mutex &v) {}
-        Mutex& operator=(const Mutex &v) { return *this; }
-
     public:
+
+        //deleted copy constructor and assign operator, to avoid copy...
+        Mutex(const Mutex &v) = delete;
+        Mutex& operator=(const Mutex &v) = delete;
+        
         /// \brief Construct the mutex in the current platform (windows, linux, mac)
         ///
         /// \author Alessandro Ribeiro

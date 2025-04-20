@@ -32,10 +32,6 @@ namespace Platform
 
         struct sockaddr_in addr_in;
 
-        // private copy constructores, to avoid copy...
-        SocketUDP(const SocketUDP &v) {}
-        SocketUDP& operator=(const SocketUDP &v) {return *this;}
-
         Platform::Mutex mutex;
 
 #if defined(_WIN32)
@@ -72,6 +68,11 @@ namespace Platform
         }
 
     public:
+
+        //deleted copy constructor and assign operator, to avoid copy...
+        SocketUDP(const SocketUDP &v) = delete;
+        SocketUDP& operator=(const SocketUDP &v) = delete;
+        
         bool isSignaled() const
         {
             return Platform::Thread::isCurrentThreadInterrupted();
