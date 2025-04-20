@@ -18,7 +18,7 @@ namespace Platform {
 
         //private copy constructores, to avoid copy...
         SocketTCP(const SocketTCP& v) :read_semaphore(1), write_semaphore(1) {}
-        void operator=(const SocketTCP& v) {}
+        SocketTCP& operator=(const SocketTCP& v) { return *this; }
 
 #if defined(_WIN32)
         SOCKET fd;
@@ -697,7 +697,7 @@ namespace Platform {
 
         //private copy constructores, to avoid copy...
         SocketTCPAccept(const SocketTCPAccept& v) :semaphore(1) {}
-        void operator=(const SocketTCPAccept& v) {}
+        SocketTCPAccept& operator=(const SocketTCPAccept& v) { return *this; }
 
 
         void initialize(bool blocking = true, bool reuseAddress = true, bool noDelay = true) {

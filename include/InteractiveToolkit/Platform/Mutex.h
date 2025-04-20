@@ -37,7 +37,7 @@ namespace Platform
 
         // private copy constructores, to avoid copy...
         Mutex(const Mutex &v) {}
-        void operator=(const Mutex &v) {}
+        Mutex& operator=(const Mutex &v) { return *this; }
 
     public:
         /// \brief Construct the mutex in the current platform (windows, linux, mac)

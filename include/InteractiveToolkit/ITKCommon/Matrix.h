@@ -71,10 +71,11 @@ namespace ITKCommon
 			setSize(m.size);
 			memcpy(array, m.array, size.width * size.height * sizeof(T));
 		}
-		void operator=(const Matrix &m)
+		Matrix& operator=(const Matrix &m)
 		{
 			setSize(m.size);
 			memcpy(array, m.array, size.width * size.height * sizeof(T));
+			return *this;
 		}
 
 		// rvalue copy constructor and assignment
@@ -86,13 +87,15 @@ namespace ITKCommon
 			m.array = nullptr;
 			m.size = MathCore::vec2i(0);
 		}
-		void operator=(Matrix &&m)
+		Matrix& operator=(Matrix &&m)
 		{
 			array = m.array;
 			size = m.size;
 
 			m.array = nullptr;
 			m.size = MathCore::vec2i(0);
+
+			return *this;
 		}
 
 #if defined(MATRIX_THROW_OUT_OF_BOUND_EXCEPTION)

@@ -150,7 +150,7 @@ namespace Platform
 
             // private copy constructores, to avoid copy...
             QueueIPC(const QueueIPC &v) {}
-            void operator=(const QueueIPC &v) {}
+            QueueIPC& operator=(const QueueIPC &v) { return *this; }
 
             void onAbort(const char *file, int line, const char *message)
             {

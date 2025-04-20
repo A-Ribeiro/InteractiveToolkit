@@ -56,7 +56,7 @@ namespace EventCore
 
         // avoid copy, using copy constructors
         VirtualProperty(const VirtualProperty &) {}
-        void operator=(const VirtualProperty &) {}
+        VirtualProperty& operator=(const VirtualProperty &) { return *this; }
 
         Callback<T()> _get;
         Callback<void(const T &)> _set;
@@ -68,9 +68,10 @@ namespace EventCore
             _set = p_set;
         }
 
-        ITK_INLINE void operator=(const T &param) const
+        ITK_INLINE const VirtualProperty& operator=(const T &param) const
         {
             _set(param);
+            return *this;
         }
 
         ITK_INLINE operator T() const

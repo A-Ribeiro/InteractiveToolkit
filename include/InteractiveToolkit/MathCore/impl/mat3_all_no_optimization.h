@@ -225,7 +225,7 @@ namespace MathCore
         {
             *this = m;
         }
-        ITK_INLINE void operator=(const self_type &m)
+        ITK_INLINE self_type& operator=(const self_type &m)
         {
             a1 = m.a1;
             a2 = m.a2;
@@ -238,6 +238,8 @@ namespace MathCore
             c1 = m.c1;
             c2 = m.c2;
             c3 = m.c3;
+
+            return *this;
         }
 
         //---------------------------------------------------------------------------
@@ -448,12 +450,13 @@ namespace MathCore
                           (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
                            !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const mat3<_InputType, _InputSimdTypeAux> &m)
+        ITK_INLINE self_type& operator=(const mat3<_InputType, _InputSimdTypeAux> &m)
         {
             *this = self_type(
                 (_BaseType)m.a1, (_BaseType)m.b1, (_BaseType)m.c1,
                 (_BaseType)m.a2, (_BaseType)m.b2, (_BaseType)m.c2,
                 (_BaseType)m.a3, (_BaseType)m.b3, (_BaseType)m.c3);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,

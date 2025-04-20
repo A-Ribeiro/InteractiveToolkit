@@ -371,7 +371,7 @@ namespace MathCore
 #endif
         }
 
-        ITK_INLINE void operator=(const self_type &v)
+        ITK_INLINE self_type& operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
             array_sse = v.array_sse;
@@ -380,6 +380,7 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
+            return *this;
         }
 
         /// \brief Constructs a tridimensional Vector with homogeneous component from the subtraction b-a
@@ -462,9 +463,10 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const vec4<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type& operator=(const vec4<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y, (_BaseType)vec.z, (_BaseType)vec.w);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,

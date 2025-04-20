@@ -200,9 +200,10 @@ namespace MathCore
 				// value = rawValue.value;
 			}
 
-			inline void operator=(const fixed_t &rawValue) noexcept
+			inline fixed_t& operator=(const fixed_t &rawValue) noexcept
 			{
 				value = rawValue.value;
+				return *this;
 			}
 
 			inline constexpr fixed_t(const float &v) noexcept : value(fixed_t::fromFloat(v).value)
@@ -720,11 +721,12 @@ namespace MathCore
 							  std::is_convertible<_store_type, _store_type_b>::value &&
 							  (_frac_bits > _frac_bits_b),
 						  bool>::type = true>
-			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
+			inline fixed_t& operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
 				int64_t aux = static_cast<int64_t>(vec.value);
 				this->value = (_store_type_b)(aux >> (_frac_bits - _frac_bits_b));
 				// this->value >>= _frac_bits - _frac_bits_b;
+				return *this;
 			}
 			template <typename _store_type, int _frac_bits,
 					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
@@ -734,10 +736,11 @@ namespace MathCore
 							  std::is_convertible<_store_type, _store_type_b>::value &&
 							  (_frac_bits > _frac_bits_b),
 						  bool>::type = true>
-			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
+			inline fixed_t& operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
 				uint64_t aux = static_cast<uint64_t>(vec.value);
 				this->value = (_store_type_b)(aux >> (_frac_bits - _frac_bits_b));
+				return *this;
 			}
 			template <typename _store_type, int _frac_bits,
 					  typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
@@ -746,10 +749,11 @@ namespace MathCore
 						  std::is_convertible<_store_type, _store_type_b>::value &&
 							  (_frac_bits < _frac_bits_b),
 						  bool>::type = true>
-			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
+			inline fixed_t& operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
 				uint64_t aux = static_cast<uint64_t>(vec.value);
 				this->value = (_store_type_b)(aux << (_frac_bits_b - _frac_bits));
+				return *this;
 			}
 			// template <typename _store_type, int _frac_bits,
 			//	typename _store_type_b = store_type, int _frac_bits_b = frac_bits,
@@ -770,9 +774,10 @@ namespace MathCore
 							  !std::is_same<_store_type, _store_type_b>::value &&
 							  (_frac_bits == _frac_bits_b),
 						  bool>::type = true>
-			inline void operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
+			inline fixed_t& operator=(const fixed_t<_store_type, _frac_bits> &vec) noexcept
 			{
 				this->value = (_store_type_b)vec.value;
+				return *this;
 			}
 
 			// template <typename _store_type, int _frac_bits,

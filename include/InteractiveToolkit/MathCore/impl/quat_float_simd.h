@@ -162,6 +162,18 @@ namespace MathCore
 #endif
         }
 
+        ITK_INLINE self_type& operator=(const self_type &v)
+        {
+#if defined(ITK_SSE2)
+            array_sse = v.array_sse;
+#elif defined(ITK_NEON)
+            array_neon = v.array_neon;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+            return *this;
+        }
+
         // constexpr ITK_INLINE quat(const self_type& q) :x(q.x), y(q.y), z(q.z), w(q.w) {}
 
         /// \brief Comparison of quaternions (equal)
@@ -221,9 +233,10 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const quat<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type& operator=(const quat<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y, (_BaseType)vec.z, (_BaseType)vec.w);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,

@@ -20,7 +20,7 @@ namespace ITKCommon
     {
         // private copy constructores, to avoid copy...
         StringUtil(const StringUtil &v) {}
-        void operator=(const StringUtil &v) {}
+        StringUtil& operator=(const StringUtil &v) { return *this; }
 
     public:
         StringUtil() {}

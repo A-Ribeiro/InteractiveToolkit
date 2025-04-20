@@ -29,7 +29,7 @@ namespace Platform {
 
         //private copy constructores, to avoid copy...
         ObjectQueue(const ObjectQueue& v) {}
-        void operator=(const ObjectQueue& v) {}
+        ObjectQueue& operator=(const ObjectQueue& v) {return *this;}
 
     public:
 

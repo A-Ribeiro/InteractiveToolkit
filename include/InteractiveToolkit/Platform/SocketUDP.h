@@ -34,7 +34,7 @@ namespace Platform
 
         // private copy constructores, to avoid copy...
         SocketUDP(const SocketUDP &v) {}
-        void operator=(const SocketUDP &v) {}
+        SocketUDP& operator=(const SocketUDP &v) {return *this;}
 
         Platform::Mutex mutex;
 

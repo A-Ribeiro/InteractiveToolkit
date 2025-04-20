@@ -146,7 +146,7 @@ namespace MathCore
 #endif
         }
 
-        inline void operator=(const uint128 &v)
+        inline uint128& operator=(const uint128 &v)
         {
 #if defined(ITK_SSE2)
             _sse = v._sse;
@@ -154,6 +154,7 @@ namespace MathCore
             low = v.low;
             high = v.high;
 #endif
+            return *this;
         }
 
         inline uint128(const uint64_t &l, const uint64_t &h)
@@ -168,10 +169,12 @@ namespace MathCore
             high = 0;
         }
 
-        inline void operator=(const uint64_t &v)
+        inline uint128& operator=(const uint64_t &v)
         {
             low = v;
             high = 0;
+
+            return *this;
         }
 
         uint128 &operator*=(const uint128 &other)

@@ -44,7 +44,7 @@ namespace EventCore
 
         // avoid copy, using copy constructors
         Property(const Property &) {}
-        void operator=(const Property &) {}
+        Property& operator=(const Property &) { return *this; }
 
         T oldValue; ///< The property last value, before the modification
         T value;    ///< The property current value
@@ -128,7 +128,7 @@ namespace EventCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        ITK_INLINE void operator=(const T &v)
+        ITK_INLINE Property& operator=(const T &v)
         {
             if (value != v)
             {
@@ -136,6 +136,7 @@ namespace EventCore
                 value = v;
                 OnChange(value, oldValue); // OnChange(this);
             }
+            return *this;
         }
 
         /// \brief Cast the property to the template parameter class

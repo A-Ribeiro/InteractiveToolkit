@@ -111,6 +111,14 @@ namespace MathCore
         {
             *this = v;
         }
+        ITK_INLINE self_type& operator=(const self_type &v)
+        {
+            x = v.x;
+            y = v.y;
+            z = v.z;
+            w = v.w;
+            return *this;
+        }
         // constexpr ITK_INLINE quat(const self_type& q) :array{q.x, q.y, q.z, q.w} {}
         /// \brief Comparison of quaternions (equal)
         ///
@@ -164,9 +172,10 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const quat<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type& operator=(const quat<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y, (_BaseType)vec.z, (_BaseType)vec.w);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,

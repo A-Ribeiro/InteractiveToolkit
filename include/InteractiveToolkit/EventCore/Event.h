@@ -257,7 +257,7 @@ namespace EventCore
             fncs = std::move(_v.fncs);
             op_fncs = std::move(_v.op_fncs);
         }
-        self_type &operator=(self_type &&_v)
+        self_type& operator=(self_type &&_v)
         {
             std::lock_guard<decltype(mtx)> lock_self(mtx);
             std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
@@ -274,9 +274,10 @@ namespace EventCore
             _runtime_inside_call = false;
         }
 
-        void operator=(nullptr_t)
+        self_type& operator=(nullptr_t)
         {
             clear();
+            return *this;
         }
 
         bool operator==(nullptr_t) const

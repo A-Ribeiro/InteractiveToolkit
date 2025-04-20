@@ -153,7 +153,7 @@ namespace ITKCommon
 
                     fileInfo = v.fileInfo;
                 }
-                void operator=(const const_iterator &v)
+                const_iterator& operator=(const const_iterator &v)
                 {
 #if defined(_WIN32)
                     memset(&findfiledata, 0, sizeof(WIN32_FIND_DATAW));
@@ -164,6 +164,8 @@ namespace ITKCommon
 #endif
 
                     fileInfo = v.fileInfo;
+
+                    return *this;
                 }
 
                 const_iterator(const_iterator &&v) noexcept
@@ -187,7 +189,7 @@ namespace ITKCommon
                     v.fileInfo = value_type();
                 }
 
-                void operator=(const_iterator &&v) noexcept
+                const_iterator& operator=(const_iterator &&v) noexcept
                 {
 #if defined(_WIN32)
                     findfiledata = v.findfiledata;
@@ -206,6 +208,8 @@ namespace ITKCommon
                     v.dp = nullptr;
 #endif
                     v.fileInfo = value_type();
+
+                    return *this;
                 }
 
             private:

@@ -25,7 +25,7 @@ namespace Platform
 
         // private copy constructores, to avoid copy...
         Semaphore(const Semaphore &v) {}
-        void operator=(const Semaphore &v) {}
+        Semaphore& operator=(const Semaphore &v) { return *this; }
 
     public:
         Semaphore(int count = 0)

@@ -44,7 +44,7 @@ namespace Platform {
 
         //private copy constructores, to avoid copy...
         ObjectPool(const ObjectPool& v) {}
-        void operator=(const ObjectPool& v) {}
+        ObjectPool& operator=(const ObjectPool& v) {return *this;}
 
     public:
 

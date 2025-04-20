@@ -288,7 +288,7 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-        ITK_INLINE void operator=(const self_type &m)
+        ITK_INLINE self_type& operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
             array_sse[0] = m.array_sse[0];
@@ -301,6 +301,7 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
+            return *this;
         }
 
         //---------------------------------------------------------------------------
@@ -683,12 +684,13 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const mat3<_InputType, _InputSimdTypeAux> &m)
+        ITK_INLINE self_type& operator=(const mat3<_InputType, _InputSimdTypeAux> &m)
         {
             *this = self_type(
                 (_BaseType)m.a1, (_BaseType)m.b1, (_BaseType)m.c1,
                 (_BaseType)m.a2, (_BaseType)m.b2, (_BaseType)m.c2,
                 (_BaseType)m.a3, (_BaseType)m.b3, (_BaseType)m.c3);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,

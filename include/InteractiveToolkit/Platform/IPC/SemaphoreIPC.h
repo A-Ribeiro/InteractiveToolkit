@@ -36,7 +36,7 @@ namespace Platform
 
             // private copy constructores, to avoid copy...
             SemaphoreIPC(const SemaphoreIPC &v) {}
-            void operator=(const SemaphoreIPC &v) {}
+            SemaphoreIPC& operator=(const SemaphoreIPC &v) {return *this;}
 
 
             void OnAbort_SemaphoreIPC(const char *file, int line, const char *message){

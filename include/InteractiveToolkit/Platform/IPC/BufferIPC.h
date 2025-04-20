@@ -120,7 +120,7 @@ namespace Platform
 
             // private copy constructores, to avoid copy...
             BufferIPC(const BufferIPC &v) {}
-            void operator=(const BufferIPC &v) {}
+            BufferIPC& operator=(const BufferIPC &v) {return *this;}
 
         public:
 

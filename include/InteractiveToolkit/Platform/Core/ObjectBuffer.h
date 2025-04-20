@@ -62,7 +62,7 @@ namespace Platform
         {
             *this = v;
         }
-        void operator=(const ObjectBuffer &v)
+        ObjectBuffer& operator=(const ObjectBuffer &v)
         {
             Platform::AutoLock _lovk_self(&mutex);
             // only to clean the vars ref
@@ -70,15 +70,18 @@ namespace Platform
                 free();
             setSize(v.size, v.align);
             memcpy(data, v.data, size);
+
+            return *this;
         }
         ObjectBuffer(ObjectBuffer &v)
         {
             *this = v;
         }
-        void operator=(ObjectBuffer &v)
+        ObjectBuffer& operator=(ObjectBuffer &v)
         {
             Platform::AutoLock _lovk_v(&v.mutex);
             *this = *(const ObjectBuffer*)&v;
+            return *this;
         }
 
         // rvalue attribution
@@ -86,7 +89,7 @@ namespace Platform
         {
             *this = std::move(v);
         }
-        void operator=(ObjectBuffer &&v)
+        ObjectBuffer& operator=(ObjectBuffer &&v)
         {
             Platform::AutoLock _lovk_self(&mutex);
             Platform::AutoLock _lovk_v(&v.mutex);
@@ -106,7 +109,8 @@ namespace Platform
                 v.align = 32;
                 v.constructed_from_external_buffer = false;
             }
-
+            
+            return *this;
         }
 
         ~ObjectBuffer()

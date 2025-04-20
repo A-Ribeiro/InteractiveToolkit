@@ -159,10 +159,11 @@ namespace MathCore
         {
             *this = v;
         }
-        ITK_INLINE void operator=(const self_type &v)
+        ITK_INLINE self_type& operator=(const self_type &v)
         {
             x = v.x;
             y = v.y;
+            return *this;
         }
         /// \brief Constructs a bidimensional Vector from the subtraction b-a
         ///
@@ -238,9 +239,10 @@ namespace MathCore
                           (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
                            !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE void operator=(const vec2<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type& operator=(const vec2<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y);
+            return *this;
         }
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,
