@@ -457,7 +457,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
         quat<_type, _simd> result(v.array_neon);
         result.w = (_type)0;
-        result = a ^ result ^ OP<quat<_type, _simd>>::conjugate(a);
+        result = OP<quat<_type, _simd>>::conjugate(a) ^ result ^ a;
         result.w = (_type)0;
         return result.array_neon;
 #else
@@ -489,7 +489,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
         quat<_type, _simd> result(v.array_neon);
         result.w = (_type)0;
-        result = a ^ result ^ OP<quat<_type, _simd>>::conjugate(a);
+        result = OP<quat<_type, _simd>>::conjugate(a) ^ result ^ a;
         result.w = v.w;
         return result.array_neon;
 #else
