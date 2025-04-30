@@ -302,7 +302,7 @@ namespace MathCore
             return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
-        static ITK_INLINE bool eq_v2(const uint32x4_t &a, const uint32x4_t &b) noexcept
+        static ITK_INLINE bool eq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
         {
             uint32x2_t cmp = vceq_u32(a, b);
             uint64x1_t cmp64 = vreinterpret_u64_u32(cmp);
