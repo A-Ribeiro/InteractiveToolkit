@@ -55,7 +55,7 @@ namespace MathCore
 
         union
         {
-            _BaseType array[4];
+            _BaseType array[3];
             struct
             {
                 _BaseType x, y, z;
