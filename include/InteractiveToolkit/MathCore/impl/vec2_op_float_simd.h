@@ -1261,7 +1261,7 @@ namespace MathCore
 
             int32x2_t sign_aux = vreinterpret_s32_f32(v.array_neon);
             sign_aux = vand_s32(sign_aux, v2_mask);
-            int32x2_t sign = vor_s32(sign_aux, v2_one);
+            int32x2_t sign = vorr_s32(sign_aux, v2_one);
 
             return vreinterpret_f32_s32(sign);
             // return type2(

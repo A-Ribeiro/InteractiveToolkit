@@ -1288,7 +1288,7 @@ namespace MathCore
 
             int32x4_t sign_aux = vreinterpretq_s32_f32(v.array_neon);
             sign_aux = vandq_s32(sign_aux, v4_mask);
-            int32x4_t sign = vorq_s32(sign_aux, v4_one);
+            int32x4_t sign = vorrq_s32(sign_aux, v4_one);
 
             return vreinterpretq_f32_s32(sign);
 
