@@ -78,9 +78,14 @@ namespace MathCore
 
 #elif defined(ITK_NEON)
 
-    ITK_INLINE float32x4_t vset1(const float32_t &a)
+    ITK_INLINE float32x4_t vset1(const float32_t &a) noexcept
     {
         return vdupq_n_f32(a);
+    }
+
+    ITK_INLINE float32x2_t vset1_v2(const float32_t &a) noexcept
+    {
+        return vdup_n_f32(a);
     }
 
     const float32x4_t _vec4_minus_one = vset1(-1.0f);
@@ -831,17 +836,30 @@ namespace MathCore
 
     ITK_INLINE float32x4_t dot_neon_3(const float32x4_t &a, const float32x4_t &b)
     {
-        float32x4_t aux = a; // 2x faster
-        aux[3] = 0;
+        float32x4_t aux = vsetq_lane_f32(0.0f, a, 3); // 2x faster
+        //aux[3] = 0;
         return dot_neon_4(aux, b);
         // const float32x4_t _const_n = (float32x4_t){ 1,1,1,0 };
         // return dot_neon_4(vmulq_f32(a,_const_n),b);
+    }
+
+    ITK_INLINE float32x2_t dot_neon_2(const float32x2_t &a, const float32x2_t &b)
+    {
+        float32x2_t mul0 = vmul_f32(a.array_neon, N.array_neon);
+        return vpadd_f32(mul0, mul0);
     }
 
     ITK_INLINE float32x4_t clamp_neon_4(const float32x4_t &value, const float32x4_t &min, const float32x4_t &max)
     {
         float32x4_t maxStep = vmaxq_f32(value, min);
         float32x4_t minStep = vminq_f32(maxStep, max);
+        return minStep;
+    }
+
+    ITK_INLINE float32x2_t clamp_neon_4_v2(const float32x2_t &value, const float32x2_t &min, const float32x2_t &max)
+    {
+        float32x2_t maxStep = vmaxq_f32(value, min);
+        float32x2_t minStep = vminq_f32(maxStep, max);
         return minStep;
     }
 

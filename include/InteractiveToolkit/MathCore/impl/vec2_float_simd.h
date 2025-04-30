@@ -63,7 +63,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128 array_sse;
 #elif defined(ITK_NEON)
-            float32x4_t array_neon;
+            float32x2_t array_neon;
 #endif
         };
 
@@ -73,7 +73,7 @@ namespace MathCore
             array_sse = v;
         }
 #elif defined(ITK_NEON)
-        ITK_INLINE vec2(const float32x4_t &v)
+        ITK_INLINE vec2(const float32x2_t &v)
         {
             array_neon = v;
         }
@@ -99,7 +99,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_set1_ps(0.0f);
 #elif defined(ITK_NEON)
-            array_neon = vset1(0.0f); //(float32x4_t){ 0, 0, 0, 0 };
+            array_neon = vset1_v2(0.0f); //(float32x2_t){ 0, 0, 0, 0 };
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -126,9 +126,9 @@ namespace MathCore
         ITK_INLINE vec2(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_setr_ps(v, v, 0, 0);
+            array_sse = _mm_set1_ps(v);
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){v, v, 0, 0};
+            array_neon = vset1_v2(v);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -164,7 +164,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_setr_ps(x, y, 0, 0);
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){x, y, 0, 0};
+            array_neon = (float32x2_t){x, y};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -253,7 +253,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_ps(b.array_sse, a.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(b.array_neon, a.array_neon);
+            array_neon = vsub_f32(b.array_neon, a.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -297,17 +297,13 @@ namespace MathCore
             return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
 #elif defined(ITK_NEON)
 
-            float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
+            float32x2_t diff_abs = vsub_f32(array_neon, v.array_neon);
             // abs
-            diff_abs = vabsq_f32(diff_abs);
+            diff_abs = vabs_f32(diff_abs);
 
-            diff_abs[2] = 0.0f;
-            diff_abs[3] = 0.0f;
+            float32x2_t acc_2_elements = vpadd_f32(diff_abs, diff_abs);
 
-            float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
-            acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
-
-            return acc_2_elements[0] <= EPSILON<_BaseType>::high_precision;
+            return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -389,7 +385,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_add_ps(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vaddq_f32(array_neon, v.array_neon);
+            array_neon = vadd_f32(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -420,7 +416,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_ps(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(array_neon, v.array_neon);
+            array_neon = vsub_f32(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -451,7 +447,7 @@ namespace MathCore
             // const __m128 _vec2_sign_mask = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
             return _mm_xor_ps(_vec2_sign_mask_sse, array_sse);
 #elif defined(ITK_NEON)
-            return vnegq_f32(array_neon);
+            return vneg_f32(array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -481,7 +477,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_mul_ps(array_sse, v.array_sse);
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, v.array_neon);
+            array_neon = vmul_f32(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -520,10 +516,7 @@ namespace MathCore
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)
-            float32x4_t param = v.array_neon;
-            param[2] = 1.0f;
-            param[3] = 1.0f;
-            array_neon = vdivq_f32(array_neon, param);
+            array_neon = vdiv_f32(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -554,7 +547,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_add_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
-            array_neon = vaddq_f32(array_neon, vset1(v));
+            array_neon = vadd_f32(array_neon, vset1_v2(v));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -585,7 +578,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_sub_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
-            array_neon = vsubq_f32(array_neon, vset1(v));
+            array_neon = vsub_f32(array_neon, vset1_v2(v));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -616,7 +609,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_mul_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, vset1(v));
+            array_neon = vmul_f32(array_neon, vset1_v2(v));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -647,7 +640,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_div_ps(array_sse, _mm_set1_ps(v));
 #elif defined(ITK_NEON)
-            array_neon = vmulq_f32(array_neon, vset1(1.0f / v));
+            array_neon = vmul_f32(array_neon, vset1_v2(1.0f / v));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

@@ -316,7 +316,7 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-        ITK_INLINE self_type& operator=(const self_type &v)
+        ITK_INLINE self_type &operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
             array_sse = v.array_sse;
@@ -401,12 +401,12 @@ namespace MathCore
             // abs
             diff_abs = vabsq_f32(diff_abs);
 
-            diff_abs[3] = 0.0f;
+            diff_abs = vsetq_lane_f32(0.0f, diff_abs, 3);
 
             float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
             acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
 
-            return acc_2_elements[0] <= EPSILON<_BaseType>::high_precision;
+            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -419,7 +419,7 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE self_type& operator=(const vec3<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type &operator=(const vec3<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y, (_BaseType)vec.z);
             return *this;
