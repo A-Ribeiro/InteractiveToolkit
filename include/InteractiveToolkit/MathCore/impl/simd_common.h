@@ -845,7 +845,7 @@ namespace MathCore
 
     ITK_INLINE float32x2_t dot_neon_2(const float32x2_t &a, const float32x2_t &b)
     {
-        float32x2_t mul0 = vmul_f32(a.array_neon, N.array_neon);
+        float32x2_t mul0 = vmul_f32(a, b);
         return vpadd_f32(mul0, mul0);
     }
 
