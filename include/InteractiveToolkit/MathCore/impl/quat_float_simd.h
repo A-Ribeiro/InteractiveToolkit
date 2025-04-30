@@ -220,7 +220,7 @@ namespace MathCore
             float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
             acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
 
-            return acc_2_elements[0] <= EPSILON<_BaseType>::high_precision;
+            return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

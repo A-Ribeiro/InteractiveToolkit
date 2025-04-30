@@ -94,7 +94,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             return _mm_f32_(dot_sse_4(a.array_sse, b.array_sse), 0);
 #elif defined(ITK_NEON)
-            return dot_neon_4(a.array_neon, b.array_neon)[0];
+            return vgetq_lane_f32(dot_neon_4(a.array_neon, b.array_neon),0);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -130,7 +130,7 @@ namespace MathCore
             return _mm_mul_ps(vec.array_sse, magInv);
 #elif defined(ITK_NEON)
             float32x4_t mag2 = dot_neon_4(vec.array_neon, vec.array_neon);
-            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(mag2[0]);
+            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(vgetq_lane_f32(mag2,0));
             float32x4_t magInv = vset1(mag2_rsqrt);
             return vmulq_f32(vec.array_neon, magInv);
 #else
@@ -195,7 +195,7 @@ namespace MathCore
                 self_type::normalize(b).array_neon);
             dot0 = vabsq_f32(dot0);
             float32x4_t cosA = vminq_f32(dot0, _vec4_one);
-            return OP<_type>::acos(cosA[0]) * 2.0f;
+            return OP<_type>::acos(vgetq_lane_f32(cosA,0)) * 2.0f;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -376,7 +376,7 @@ namespace MathCore
             *angle = OP<_type>::acos(OP<_type>::clamp(q.w, (_type)-1, (_type)1)) * (_type)2;
 #elif defined(ITK_NEON)
             float32x4_t dot0 = dot_neon_3(q.array_neon, q.array_neon);
-            _type _rsqrt = OP<_type, void, _algorithm>::rsqrt(dot0[0]);
+            _type _rsqrt = OP<_type, void, _algorithm>::rsqrt(vgetq_lane_f32(dot0,0));
             float32x4_t inv_length = vset1(_rsqrt);
             float32x4_t result = vmulq_f32(q.array_neon, inv_length);
             axis->array_neon = result;
