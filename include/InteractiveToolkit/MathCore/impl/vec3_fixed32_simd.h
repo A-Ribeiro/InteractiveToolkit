@@ -389,7 +389,7 @@ namespace MathCore
         ITK_INLINE bool operator==(const self_type &v) const
         {
 #if defined(ITK_SSE2)
-            __m128i eq = _mm_cmpeq_epi32(a, b);
+            __m128i eq = _mm_cmpeq_epi32(array_sse, v.array_sse);
             eq = _mm_or_si128(eq, _vec4i_000x_sse);
 #if defined(ITK_SSE_SKIP_SSE41)
             int mask = _mm_movemask_epi8(eq);
