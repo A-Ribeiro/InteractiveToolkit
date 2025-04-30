@@ -29,6 +29,12 @@ namespace MathCore
     using vec3u32 = vec3<uint32_t>;
     using vec3u64 = vec3<uint64_t>;
 
+    template <int frac_bits>
+    using vec3fixed32 = vec3<FixedPoint::fixed_t<int32_t, frac_bits>, SIMD_TYPE::SIMD>;
+
+    template <int frac_bits>
+    using vec3ufixed32 = vec3<FixedPoint::fixed_t<uint32_t, frac_bits>, SIMD_TYPE::SIMD>;
+
     //
     // alias
     //
