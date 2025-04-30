@@ -858,8 +858,8 @@ namespace MathCore
 
     ITK_INLINE float32x2_t clamp_neon_4_v2(const float32x2_t &value, const float32x2_t &min, const float32x2_t &max)
     {
-        float32x2_t maxStep = vmaxq_f32(value, min);
-        float32x2_t minStep = vminq_f32(maxStep, max);
+        float32x2_t maxStep = vmax_f32(value, min);
+        float32x2_t minStep = vmin_f32(maxStep, max);
         return minStep;
     }
 
