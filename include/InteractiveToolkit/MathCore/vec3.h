@@ -7,6 +7,7 @@
 #if defined(ITK_SSE2) || defined(ITK_NEON)
 
 #include "impl/vec3_float_simd.h"
+#include "impl/vec3_fixed32_simd.h"
 
 #endif
 
