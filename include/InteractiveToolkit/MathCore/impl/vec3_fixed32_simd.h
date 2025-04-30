@@ -573,8 +573,8 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128i ac = _mm_mul_epi32(array_sse, v.array_sse);
             __m128i bd = _mm_mul_epi32(_mm_srli_si128(array_sse, 4), _mm_srli_si128(v.array_sse, 4));
-            ac = _mm_srai_epi64(ac, frac_bits);
-            bd = _mm_srai_epi64(bd, frac_bits);
+            ac = _mm_srli_epi64(ac, frac_bits);
+            bd = _mm_srli_epi64(bd, frac_bits);
             bd = _mm_slli_si128(bd, 4);
 #if defined(ITK_SSE_SKIP_SSE41)
             ac = _mm_and_si128(_vec4i_x0x0_sse, ac);

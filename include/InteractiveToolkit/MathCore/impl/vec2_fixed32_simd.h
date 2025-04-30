@@ -481,7 +481,7 @@ namespace MathCore
             __m128i aabb_v = _mm_shuffle_epi32(v.array_sse, _MM_SHUFFLE(1, 1, 0, 0));
 
             __m128i ab = _mm_mul_epi32(aabb_self, aabb_v);
-            ab = _mm_srai_epi64(ab, frac_bits);
+            ab = _mm_srli_epi64(ab, frac_bits);
 
             array_sse = _mm_shuffle_epi32(ab, _MM_SHUFFLE(2, 0, 2, 0));
 #elif defined(ITK_NEON)
