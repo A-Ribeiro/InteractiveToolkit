@@ -107,11 +107,17 @@ namespace MathCore
     struct iNeonOps<int32_t>
     {
         using type = int32x4_t;
+        using type_v2 = int32x2_t;
 
         // iNeonOps<store_type>::vset1
         static ITK_INLINE int32x4_t vset1(const int32_t &a) noexcept
         {
             return vdupq_n_s32(a);
+        }
+
+        static ITK_INLINE int32x2_t vset1_v2(const int32_t &a) noexcept
+        {
+            return vdup_n_s32(a);
         }
 
         // iNeonOps<store_type>::vsubq
@@ -120,16 +126,31 @@ namespace MathCore
             return vsubq_s32(a, b);
         }
 
+        static ITK_INLINE int32x2_t vsubq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            return vsub_s32(a, b);
+        }
+
         // iNeonOps<store_type>::vaddq
         static ITK_INLINE int32x4_t vaddq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
             return vaddq_s32(a, b);
         }
 
+        static ITK_INLINE int32x2_t vaddq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            return vadd_s32(a, b);
+        }
+
         // iNeonOps<store_type>::vneg
         static ITK_INLINE int32x4_t vneg(const int32x4_t &a) noexcept
         {
             return vnegq_s32(a);
+        }
+
+        static ITK_INLINE int32x2_t vneg_v2(const int32x2_t &a) noexcept
+        {
+            return vneg_s32(a);
         }
 
         // iNeonOps<store_type>::eq
@@ -140,17 +161,29 @@ namespace MathCore
             return (vgetq_lane_u64(cmp64, 0) & vgetq_lane_u64(cmp64, 1)) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
-        static ITK_INLINE bool eq_v3(const uint32x4_t &a, const uint32x4_t &b) noexcept
+        static ITK_INLINE bool eq_v3(const int32x4_t &a, const int32x4_t &b) noexcept
         {
             uint32x4_t cmp = vceqq_s32(a, b);
             uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
             return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
+        static ITK_INLINE bool eq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            uint32x2_t cmp = vceq_s32(a, b);
+            uint64x1_t cmp64 = vreinterpret_u64_u32(cmp);
+            return vget_lane_u64(cmp64, 0) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+        }
+
         // iNeonOps<store_type>::vshlq_n <<
         static ITK_INLINE int32x4_t vshlq_n(const int32x4_t &a, int shift) noexcept
         {
             return vshlq_n_s32(a, shift);
+            // return vshlq_s32(a, vdupq_n_s32(shift));
+        }
+        static ITK_INLINE int32x2_t vshlq_n_v2(const int32x2_t &a, int shift) noexcept
+        {
+            return vshl_n_s32(a, shift);
             // return vshlq_s32(a, vdupq_n_s32(shift));
         }
         // iNeonOps<store_type>::vshrq_n >>
@@ -160,25 +193,47 @@ namespace MathCore
             // return vshrq_s32(a, vdupq_n_s32(shift));
             // return int32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
         }
+        static ITK_INLINE int32x2_t vshrq_n_v2(const int32x2_t &a, int shift) noexcept
+        {
+            return vshr_n_s32(a, shift);
+            // return vshrq_s32(a, vdupq_n_s32(shift));
+            // return int32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
+        }
         // iNeonOps<store_type>::vandq &
         static ITK_INLINE int32x4_t vandq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
             return vandq_s32(a, b);
+        }
+        static ITK_INLINE int32x2_t vandq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            return vand_s32(a, b);
         }
         // iNeonOps<store_type>::vorrq |
         static ITK_INLINE int32x4_t vorrq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
             return vorrq_s32(a, b);
         }
+        static ITK_INLINE int32x2_t vorrq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            return vorr_s32(a, b);
+        }
         // iNeonOps<store_type>::veorq ^
         static ITK_INLINE int32x4_t veorq(const int32x4_t &a, const int32x4_t &b) noexcept
         {
             return veorq_s32(a, b);
         }
+        static ITK_INLINE int32x2_t veorq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
+        {
+            return veor_s32(a, b);
+        }
         // iNeonOps<store_type>::vmvnq ~
         static ITK_INLINE int32x4_t vmvnq(const int32x4_t &a) noexcept
         {
             return vmvnq_s32(a);
+        }
+        static ITK_INLINE int32x2_t vmvnq_v2(const int32x2_t &a) noexcept
+        {
+            return vmvn_s32(a);
         }
     };
 
@@ -186,11 +241,17 @@ namespace MathCore
     struct iNeonOps<uint32_t>
     {
         using type = uint32x4_t;
+        using type_v2 = int32x2_t;
 
         // iNeonOps<store_type>::vset1
         static ITK_INLINE uint32x4_t vset1(const uint32_t &a) noexcept
         {
             return vdupq_n_u32(a);
+        }
+
+        static ITK_INLINE uint32x2_t vset1_v2(const uint32_t &a) noexcept
+        {
+            return vdup_n_u32(a);
         }
 
         // iNeonOps<store_type>::vsubq
@@ -199,16 +260,31 @@ namespace MathCore
             return vsubq_u32(a, b);
         }
 
+        static ITK_INLINE uint32x2_t vsubq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
+        {
+            return vsub_u32(a, b);
+        }
+
         // iNeonOps<store_type>::vaddq
         static ITK_INLINE uint32x4_t vaddq(const uint32x4_t &a, const uint32x4_t &b) noexcept
         {
             return vaddq_u32(a, b);
         }
 
+        static ITK_INLINE uint32x2_t vaddq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
+        {
+            return vadd_u32(a, b);
+        }
+
         // iNeonOps<store_type>::vneg
         static ITK_INLINE uint32x4_t vneg(const uint32x4_t &a) noexcept
         {
             return vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(a)));
+        }
+
+        static ITK_INLINE uint32x2_t vneg_v2(const uint32x2_t &a) noexcept
+        {
+            return vreinterpret_u32_s32(vneg_s32(vreinterpret_s32_u32(a)));
         }
 
         // iNeonOps<store_type>::eq
@@ -226,12 +302,25 @@ namespace MathCore
             return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
+        static ITK_INLINE bool eq_v2(const uint32x4_t &a, const uint32x4_t &b) noexcept
+        {
+            uint32x2_t cmp = vceq_u32(a, b);
+            uint64x1_t cmp64 = vreinterpret_u64_u32(cmp);
+            return vget_lane_u64(cmp64, 0) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+        }
+
         // iNeonOps<store_type>::vshlq_n <<
         static ITK_INLINE uint32x4_t vshlq_n(const uint32x4_t &a, int shift) noexcept
         {
             return vshlq_n_u32(a, shift);
             // return vshlq_u32(a, vdupq_n_s32(shift));
         }
+        static ITK_INLINE uint32x2_t vshlq_n_v2(const uint32x2_t &a, int shift) noexcept
+        {
+            return vshl_n_u32(a, shift);
+            // return vshlq_u32(a, vdupq_n_s32(shift));
+        }
+
         // iNeonOps<store_type>::vshrq_n >>
         static ITK_INLINE uint32x4_t vshrq_n(const uint32x4_t &a, int shift) noexcept
         {
@@ -239,25 +328,49 @@ namespace MathCore
             // return vshrq_u32(a, vdupq_n_s32(shift));
             // return uint32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
         }
+        static ITK_INLINE uint32x2_t vshrq_n_v2(const uint32x2_t &a, int shift) noexcept
+        {
+            return vshr_n_u32(a, shift);
+            // return vshrq_u32(a, vdupq_n_s32(shift));
+            // return uint32x4_t{a[0] >> shift, a[1] >> shift, a[2] >> shift, a[3] >> shift};
+        }
+
         // iNeonOps<store_type>::vandq &
         static ITK_INLINE uint32x4_t vandq(const uint32x4_t &a, const uint32x4_t &b) noexcept
         {
             return vandq_u32(a, b);
+        }
+
+        static ITK_INLINE uint32x2_t vandq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
+        {
+            return vand_u32(a, b);
         }
         // iNeonOps<store_type>::vorrq |
         static ITK_INLINE uint32x4_t vorrq(const uint32x4_t &a, const uint32x4_t &b) noexcept
         {
             return vorrq_u32(a, b);
         }
+        static ITK_INLINE uint32x2_t vorrq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
+        {
+            return vorr_u32(a, b);
+        }
         // iNeonOps<store_type>::veorq ^
         static ITK_INLINE uint32x4_t veorq(const uint32x4_t &a, const uint32x4_t &b) noexcept
         {
             return veorq_u32(a, b);
         }
+        static ITK_INLINE uint32x2_t veorq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept
+        {
+            return veor_u32(a, b);
+        }
         // iNeonOps<store_type>::vmvnq ~
         static ITK_INLINE uint32x4_t vmvnq(const uint32x4_t &a) noexcept
         {
             return vmvnq_u32(a);
+        }
+        static ITK_INLINE uint32x2_t vmvnq_v2(const uint32x2_t &a) noexcept
+        {
+            return vmvn_u32(a);
         }
     };
 

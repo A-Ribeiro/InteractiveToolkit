@@ -49,7 +49,7 @@ namespace MathCore
         using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
         using self_type = vec4<_BaseType, _SimdType>;
         using vec3_compatible_type = vec3<_BaseType, _SimdType>;
-        using vec2_compatible_type = vec2<_BaseType, SIMD_TYPE::NONE>;
+        using vec2_compatible_type = vec2<_BaseType, _SimdType>;
 
 #if defined(ITK_NEON)
         using neon_type = typename iNeonOps<store_type>::type;
@@ -627,8 +627,8 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128i ac = _mm_mul_epi32(array_sse, v.array_sse);
             __m128i bd = _mm_mul_epi32(_mm_srli_si128(array_sse, 4), _mm_srli_si128(v.array_sse, 4));
-            ac = _mm_srli_epi64(ac, frac_bits);
-            bd = _mm_srli_epi64(bd, frac_bits);
+            ac = _mm_srai_epi64(ac, frac_bits);
+            bd = _mm_srai_epi64(bd, frac_bits);
             bd = _mm_slli_si128(bd, 4);
 #if defined(ITK_SSE_SKIP_SSE41)
             ac = _mm_and_si128(_vec4i_x0x0_sse, ac);
