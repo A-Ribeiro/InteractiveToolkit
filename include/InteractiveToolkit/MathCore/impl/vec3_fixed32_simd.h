@@ -389,13 +389,8 @@ namespace MathCore
         ITK_INLINE bool operator==(const self_type &v) const
         {
 #if defined(ITK_SSE2)
-            printf("a: %i %i %i %i\n", _mm_i32_(array_sse, 0), _mm_i32_(array_sse, 1), _mm_i32_(array_sse, 2), _mm_i32_(array_sse, 3));
-            printf("b: %i %i %i %i\n", _mm_i32_(v.array_sse, 0), _mm_i32_(v.array_sse, 1), _mm_i32_(v.array_sse, 2), _mm_i32_(v.array_sse, 3));
-
             __m128i eq = _mm_cmpeq_epi32(array_sse, v.array_sse);
-            printf("1 eq: %i %i %i %i\n", _mm_i32_(eq, 0), _mm_i32_(eq, 1), _mm_i32_(eq, 2), _mm_i32_(eq, 3));
             eq = _mm_or_si128(eq, _vec4i_000x_sse);
-            printf("2 eq: %i %i %i %i\n", _mm_i32_(eq, 0), _mm_i32_(eq, 1), _mm_i32_(eq, 2), _mm_i32_(eq, 3));
 #if defined(ITK_SSE_SKIP_SSE41)
             int mask = _mm_movemask_epi8(eq);
             return mask == 0xFFFF;
