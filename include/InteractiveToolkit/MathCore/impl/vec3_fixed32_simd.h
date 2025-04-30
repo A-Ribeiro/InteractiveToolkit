@@ -174,9 +174,9 @@ namespace MathCore
         ITK_INLINE vec3(const _BaseType &x, const _BaseType &y, const _BaseType &z)
         {
 #if defined(ITK_SSE2)
-            array_sse = _mm_setr_ps(x, y, z, 0);
+            array_sse = _mm_setr_epi32(x.value, y.value, z.value, 0);
 #elif defined(ITK_NEON)
-            array_neon = (neon_type){x, y, z, 0};
+            array_neon = (neon_type){x.value, y.value, z.value, 0};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
