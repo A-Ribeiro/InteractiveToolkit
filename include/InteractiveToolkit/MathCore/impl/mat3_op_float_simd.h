@@ -307,10 +307,20 @@ namespace MathCore
 
         static ITK_INLINE typeMat3 smoothstep(const typeMat3 &edge0, const typeMat3 &edge1, const typeMat3 &x) noexcept
         {
-            return typeMat4(
-                OP<type3>::smoothstep(edge0[0], edge1[0], x[0]),
-                OP<type3>::smoothstep(edge0[1], edge1[1], x[1]),
-                OP<type3>::smoothstep(edge0[2], edge1[2], x[2]));
+            using type_info = FloatTypeInfo<_type>;
+            typeMat3 dir = edge1 - edge0;
+
+            _type length_dir = OP<_type>::maximum(self_type::length(dir), type_info::min);
+
+            typeMat3 value = x - edge0;
+            value *= (_type)1 / length_dir;
+
+            typeMat3 t = self_type::clamp(value, typeMat3((_type)0), typeMat3((_type)1));
+            return t * t * ((_type)3 - (_type)2 * t);
+            // return typeMat4(
+            //     OP<type3>::smoothstep(edge0[0], edge1[0], x[0]),
+            //     OP<type3>::smoothstep(edge0[1], edge1[1], x[1]),
+            //     OP<type3>::smoothstep(edge0[2], edge1[2], x[2]));
         }
     };
 

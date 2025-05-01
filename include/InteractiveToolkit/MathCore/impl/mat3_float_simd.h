@@ -826,9 +826,9 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            self_type(_mm_xor_ps(_vec3_sign_mask_sse, array_sse[0]),
-                      _mm_xor_ps(_vec3_sign_mask_sse, array_sse[1]),
-                      _mm_xor_ps(_vec3_sign_mask_sse, array_sse[2]));
+            return self_type(_mm_xor_ps(_vec3_sign_mask_sse, array_sse[0]),
+                             _mm_xor_ps(_vec3_sign_mask_sse, array_sse[1]),
+                             _mm_xor_ps(_vec3_sign_mask_sse, array_sse[2]));
 
 #elif defined(ITK_NEON)
 

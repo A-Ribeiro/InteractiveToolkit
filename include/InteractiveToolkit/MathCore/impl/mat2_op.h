@@ -80,7 +80,7 @@ namespace MathCore
         static ITK_INLINE _type minimum(const typeMat2 &a) noexcept
         {
             type2 max_a = OP<type2>::minimum(a[0], a[1]);
-            return OP<typeMat2>::minimum(max_a);
+            return OP<type2>::minimum(max_a);
         }
 
         static ITK_INLINE typeMat2 minimum(const typeMat2 &a, const typeMat2 &b) noexcept
@@ -91,7 +91,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat2 abs(const typeMat2 &a) noexcept
         {
-            return typeMat3(OP<type2>::abs(a[0]),
+            return typeMat2(OP<type2>::abs(a[0]),
                             OP<type2>::abs(a[1]));
         }
 
@@ -195,9 +195,19 @@ namespace MathCore
 
         static ITK_INLINE typeMat2 smoothstep(const typeMat2 &edge0, const typeMat2 &edge1, const typeMat2 &x) noexcept
         {
-            return typeMat2(
-                OP<type2>::smoothstep(edge0[0], edge1[0], x[0]),
-                OP<type2>::smoothstep(edge0[1], edge1[1], x[1]));
+            using type_info = FloatTypeInfo<_type>;
+            typeMat2 dir = edge1 - edge0;
+
+            _type length_dir = OP<_type>::maximum(self_type::length(dir), type_info::min);
+
+            typeMat2 value = x - edge0;
+            value *= (_type)1 / length_dir;
+
+            typeMat2 t = self_type::clamp(value, typeMat2((_type)0), typeMat2((_type)1));
+            return t * t * ((_type)3 - (_type)2 * t);
+            // return typeMat2(
+            //     OP<type2>::smoothstep(edge0[0], edge1[0], x[0]),
+            //     OP<type2>::smoothstep(edge0[1], edge1[1], x[1]));
         }
 
     };

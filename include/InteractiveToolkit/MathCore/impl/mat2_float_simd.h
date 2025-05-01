@@ -249,7 +249,7 @@ namespace MathCore
         {
             *this = m;
         }
-        ITK_INLINE self_type& operator=(const self_type &m)
+        ITK_INLINE self_type &operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
             array_sse = m.array_sse;
@@ -396,7 +396,7 @@ namespace MathCore
         ///
         ITK_INLINE const vec2_extract_type &operator[](const int _col) const
         {
-            return *((vec2_extract_type *)&array[_col * 4]);
+            return *((vec2_extract_type *)&array[_col * 2]);
         }
         //---------------------------------------------------------------------------
         /// \brief Compare two matrix using the #EPSILON constant
@@ -444,7 +444,7 @@ namespace MathCore
             float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
             acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
 
-            return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
+            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -457,7 +457,7 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE self_type& operator=(const mat2<_InputType, _InputSimdTypeAux> &m)
+        ITK_INLINE self_type &operator=(const mat2<_InputType, _InputSimdTypeAux> &m)
         {
             *this = self_type(
                 (_BaseType)m.a1, (_BaseType)m.b1,
@@ -588,13 +588,13 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            self_type(_mm_xor_ps(_vec4_sign_mask_sse, array_sse));
+            return _mm_xor_ps(_vec4_sign_mask_sse, array_sse);
 
 #elif defined(ITK_NEON)
 
             // return self_type(
             // 	vmulq_f32(array_neon, _vec4_minus_one));
-            return self_type(vnegq_f32(array_neon));
+            return vnegq_f32(array_neon);
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

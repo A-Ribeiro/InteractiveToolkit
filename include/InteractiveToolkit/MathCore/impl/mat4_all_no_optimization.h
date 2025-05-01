@@ -252,7 +252,7 @@ namespace MathCore
         {
             *this = m;
         }
-        ITK_INLINE self_type& operator=(const self_type &m)
+        ITK_INLINE self_type &operator=(const self_type &m)
         {
             a1 = m.a1;
             a2 = m.a2;
@@ -268,6 +268,11 @@ namespace MathCore
             c2 = m.c2;
             c3 = m.c3;
             c4 = m.c4;
+
+            d1 = m.d1;
+            d2 = m.d2;
+            d3 = m.d3;
+            d4 = m.d4;
 
             return *this;
         }
@@ -509,7 +514,7 @@ namespace MathCore
                           (!std::is_same<_InputSimdTypeAux, _SimdType>::value ||
                            !std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE self_type& operator=(const mat4<_InputType, _InputSimdTypeAux> &m)
+        ITK_INLINE self_type &operator=(const mat4<_InputType, _InputSimdTypeAux> &m)
         {
             *this = self_type(
                 (_BaseType)m.a1, (_BaseType)m.b1, (_BaseType)m.c1, (_BaseType)m.d1,
@@ -778,6 +783,22 @@ namespace MathCore
                 det * aux2, det * (c3 * a1 - a3 * c1), det * (a3 * b1 - b3 * a1), 0,
                 det * aux3, det * (a2 * c1 - c2 * a1), det * (b2 * a1 - a2 * b1), 0,
                 0, 0, 0, 1);
+        }
+
+        ITK_INLINE mat4 inverse_transpose_2x2() const
+        {
+            _BaseType det = (a1 * b2 - b1 * a2);
+
+            // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
+            det = sign_det / det;
+
+            return self_type(+b2 * det, -a2 * det, 0, 0,
+                             -b1 * det, +a1 * det, 0, 0,
+                             0, 0, 1, 0,
+                             0, 0, 0, 1);
         }
 
         /// \brief Add (sum) matrix with a scalar

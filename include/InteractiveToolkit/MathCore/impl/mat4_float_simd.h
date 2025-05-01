@@ -870,7 +870,7 @@ namespace MathCore
         ITK_INLINE self_type operator-() const
         {
 #if defined(ITK_SSE2)
-            self_type(_mm_xor_ps(_vec4_sign_mask_sse, array_sse[0]),
+            return self_type(_mm_xor_ps(_vec4_sign_mask_sse, array_sse[0]),
                       _mm_xor_ps(_vec4_sign_mask_sse, array_sse[1]),
                       _mm_xor_ps(_vec4_sign_mask_sse, array_sse[2]),
                       _mm_xor_ps(_vec4_sign_mask_sse, array_sse[3]));
@@ -1282,15 +1282,12 @@ namespace MathCore
 
             // const float32x4_t SignA = (float32x4_t){1.0f, -1.0f, 1.0f, -1.0f};
             // const float32x4_t SignB = (float32x4_t){-1.0f, 1.0f, -1.0f, 1.0f};
-            //const float32x4_t SignA = (float32x4_t){-0.0f, 0.0f, -0.0f, 0.0f};
+            // const float32x4_t SignA = (float32x4_t){-0.0f, 0.0f, -0.0f, 0.0f};
             const uint32x4_t SignA = vreinterpretq_u32_f32(
-                (float32x4_t){-0.0f, 0.0f, -0.0f, 0.0f}
-            );
-            //const float32x4_t SignB = (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f};
+                (float32x4_t){-0.0f, 0.0f, -0.0f, 0.0f});
+            // const float32x4_t SignB = (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f};
             const uint32x4_t SignB = vreinterpretq_u32_f32(
-                (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f}
-            );
-
+                (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f});
 
             // m[1][0]
             // m[0][0]
@@ -1330,10 +1327,9 @@ namespace MathCore
             float32x4_t Mul02 = vmulq_f32(Vec3, Fac2);
             float32x4_t Sub00 = vsubq_f32(Mul00, Mul01);
             float32x4_t Add00 = vaddq_f32(Sub00, Mul02);
-            //float32x4_t Inv0 = vmulq_f32(SignB, Add00);
+            // float32x4_t Inv0 = vmulq_f32(SignB, Add00);
             float32x4_t Inv0 = vreinterpretq_f32_u32(
-                veorq_u32(vreinterpretq_u32_f32(Add00), SignB)
-            );
+                veorq_u32(vreinterpretq_u32_f32(Add00), SignB));
 
             // col1
             // - (Vec0[0] * Fac0[0] - Vec2[0] * Fac3[0] + Vec3[0] * Fac4[0]),
@@ -1345,10 +1341,9 @@ namespace MathCore
             float32x4_t Mul05 = vmulq_f32(Vec3, Fac4);
             float32x4_t Sub01 = vsubq_f32(Mul03, Mul04);
             float32x4_t Add01 = vaddq_f32(Sub01, Mul05);
-            //float32x4_t Inv1 = vmulq_f32(SignA, Add01);
+            // float32x4_t Inv1 = vmulq_f32(SignA, Add01);
             float32x4_t Inv1 = vreinterpretq_f32_u32(
-                veorq_u32(vreinterpretq_u32_f32(Add01), SignA)
-            );
+                veorq_u32(vreinterpretq_u32_f32(Add01), SignA));
 
             // col2
             // + (Vec0[0] * Fac1[0] - Vec1[0] * Fac3[0] + Vec3[0] * Fac5[0]),
@@ -1360,10 +1355,9 @@ namespace MathCore
             float32x4_t Mul08 = vmulq_f32(Vec3, Fac5);
             float32x4_t Sub02 = vsubq_f32(Mul06, Mul07);
             float32x4_t Add02 = vaddq_f32(Sub02, Mul08);
-            //float32x4_t Inv2 = vmulq_f32(SignB, Add02);
+            // float32x4_t Inv2 = vmulq_f32(SignB, Add02);
             float32x4_t Inv2 = vreinterpretq_f32_u32(
-                veorq_u32(vreinterpretq_u32_f32(Add02), SignB)
-            );
+                veorq_u32(vreinterpretq_u32_f32(Add02), SignB));
 
             // col3
             // - (Vec1[0] * Fac2[0] - Vec1[0] * Fac4[0] + Vec2[0] * Fac5[0]),
@@ -1375,10 +1369,9 @@ namespace MathCore
             float32x4_t Mul11 = vmulq_f32(Vec2, Fac5);
             float32x4_t Sub03 = vsubq_f32(Mul09, Mul10);
             float32x4_t Add03 = vaddq_f32(Sub03, Mul11);
-            //float32x4_t Inv3 = vmulq_f32(SignA, Add03);
+            // float32x4_t Inv3 = vmulq_f32(SignA, Add03);
             float32x4_t Inv3 = vreinterpretq_f32_u32(
-                veorq_u32(vreinterpretq_u32_f32(Add03), SignA)
-            );
+                veorq_u32(vreinterpretq_u32_f32(Add03), SignA));
 
             float32x4_t Row0 = vshuffle_0000(Inv0, Inv1);
             float32x4_t Row1 = vshuffle_0000(Inv2, Inv3);
@@ -1500,6 +1493,22 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
+        }
+
+        ITK_INLINE mat4 inverse_transpose_2x2() const
+        {
+            _BaseType det = (a1 * b2 - b1 * a2);
+
+            // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
+
+            _BaseType sign_det = OP<_BaseType>::sign(det);
+            det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
+            det = sign_det / det;
+
+            return self_type(+b2 * det, -a2 * det, 0, 0,
+                             -b1 * det, +a1 * det, 0, 0,
+                             0, 0, 1, 0,
+                             0, 0, 0, 1);
         }
 
         /// \brief Add (sum) matrix with a scalar

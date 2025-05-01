@@ -171,6 +171,40 @@ namespace MathCore
 #endif
         }
 
+        static ITK_INLINE typeMat4 extractRotation_2x2(const typeMat4 &m) noexcept
+        {
+            #if defined(ITK_SSE2)
+            __m128 a = _mm_and_ps(m.array_sse[0], _vec2_valid_bits_sse);
+            __m128 b = _mm_and_ps(m.array_sse[1], _vec2_valid_bits_sse);
+
+            // a = _mm_and_ps(m.array_sse[0], _vec3_valid_bits_sse);
+            // b = _mm_and_ps(m.array_sse[1], _vec3_valid_bits_sse);
+            // c = _mm_and_ps(m.array_sse[2], _vec3_valid_bits_sse);
+
+            return typeMat4(a, b, _vec4_0010_sse, _vec4_0001_sse);
+#elif defined(ITK_NEON)
+            const float32x2_t _zero_v2 = vdup_n_f32(0.0f);
+            typeMat4 r(
+                vcombine_f32(vget_low_f32(m.array_neon[0]),_zero_v2),
+                vcombine_f32(vget_low_f32(m.array_neon[1]),_zero_v2),
+                _neon_0010,
+                _neon_0001);
+
+            // r.array_neon[0][3] = 0;
+            // r.array_neon[1][3] = 0;
+            // r.array_neon[2][3] = 0;
+
+            // r.array_neon[0] = vsetq_lane_f32(0.0f, r.array_neon[0], 3);
+            // r.array_neon[1] = vsetq_lane_f32(0.0f, r.array_neon[1], 3);
+            // r.array_neon[2] = vsetq_lane_f32(0.0f, r.array_neon[2], 3);
+
+
+            return r;
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         static ITK_INLINE type4 extractXaxis(const typeMat4 &m) noexcept
         {
             return m[0];
@@ -463,11 +497,21 @@ namespace MathCore
 
         static ITK_INLINE typeMat4 smoothstep(const typeMat4 &edge0, const typeMat4 &edge1, const typeMat4 &x) noexcept
         {
-            return typeMat4(
-                OP<type4>::smoothstep(edge0[0], edge1[0], x[0]),
-                OP<type4>::smoothstep(edge0[1], edge1[1], x[1]),
-                OP<type4>::smoothstep(edge0[2], edge1[2], x[2]),
-                OP<type4>::smoothstep(edge0[3], edge1[3], x[3]));
+            using type_info = FloatTypeInfo<_type>;
+            typeMat4 dir = edge1 - edge0;
+
+            _type length_dir = OP<_type>::maximum(self_type::length(dir), type_info::min);
+
+            typeMat4 value = x - edge0;
+            value *= (_type)1 / length_dir;
+
+            typeMat4 t = self_type::clamp(value, typeMat4((_type)0), typeMat4((_type)1));
+            return t * t * ((_type)3 - (_type)2 * t);
+            // return typeMat4(
+            //     OP<type4>::smoothstep(edge0[0], edge1[0], x[0]),
+            //     OP<type4>::smoothstep(edge0[1], edge1[1], x[1]),
+            //     OP<type4>::smoothstep(edge0[2], edge1[2], x[2]),
+            //     OP<type4>::smoothstep(edge0[3], edge1[3], x[3]));
         }
     };
 

@@ -14,12 +14,12 @@ namespace MathCore
                   std::is_same<_simd, SIMD_TYPE::NONE>::value>::type,
               _algorithm>
     {
-        private:
+    private:
         using typeMat4 = mat4<_type, _simd>;
         using type4 = vec4<_type, _simd>;
         using self_type = OP<typeMat4>;
-        public:
 
+    public:
         static ITK_INLINE typeMat4 clamp(const typeMat4 &value, const typeMat4 &min, const typeMat4 &max) noexcept
         {
             return typeMat4(
@@ -120,7 +120,7 @@ namespace MathCore
         }
 
         static ITK_INLINE typeMat4 blerp(const typeMat4 &A, const typeMat4 &B, const typeMat4 &C, const typeMat4 &D,
-                                          const _type &dx, const _type &dy) noexcept
+                                         const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -132,6 +132,14 @@ namespace MathCore
             return typeMat4(m.a1, m.b1, m.c1, 0,
                             m.a2, m.b2, m.c2, 0,
                             m.a3, m.b3, m.c3, 0,
+                            0, 0, 0, 1);
+        }
+
+        static ITK_INLINE typeMat4 extractRotation_2x2(const typeMat4 &m) noexcept
+        {
+            return typeMat4(m.a1, m.b1, 0, 0,
+                            m.a2, m.b2, 0, 0,
+                            0, 0, 1, 0,
                             0, 0, 0, 1);
         }
 
@@ -280,14 +288,22 @@ namespace MathCore
 
         static ITK_INLINE typeMat4 smoothstep(const typeMat4 &edge0, const typeMat4 &edge1, const typeMat4 &x) noexcept
         {
-            return typeMat4(
-                OP<type4>::smoothstep(edge0[0], edge1[0], x[0]),
-                OP<type4>::smoothstep(edge0[1], edge1[1], x[1]),
-                OP<type4>::smoothstep(edge0[2], edge1[2], x[2]),
-                OP<type4>::smoothstep(edge0[3], edge1[3], x[3]));
+            using type_info = FloatTypeInfo<_type>;
+            typeMat4 dir = edge1 - edge0;
+
+            _type length_dir = OP<_type>::maximum(self_type::length(dir), type_info::min);
+
+            typeMat4 value = x - edge0;
+            value *= (_type)1 / length_dir;
+
+            typeMat4 t = self_type::clamp(value, typeMat4((_type)0), typeMat4((_type)1));
+            return t * t * ((_type)3 - (_type)2 * t);
+            // return typeMat4(
+            //     OP<type4>::smoothstep(edge0[0], edge1[0], x[0]),
+            //     OP<type4>::smoothstep(edge0[1], edge1[1], x[1]),
+            //     OP<type4>::smoothstep(edge0[2], edge1[2], x[2]),
+            //     OP<type4>::smoothstep(edge0[3], edge1[3], x[3]));
         }
-
-
     };
 
 }
