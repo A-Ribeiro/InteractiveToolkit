@@ -143,7 +143,7 @@ namespace MathCore
 
             return typeMat3(a, b, _vec4_0010_sse);
 #elif defined(ITK_NEON)
-            const float32x2_t _zero_v2 = vdup_n_f32(a);
+            const float32x2_t _zero_v2 = vdup_n_f32(0.0f);
             return typeMat3(
                 vcombine_f32(vget_low_f32(m.array_neon[0]), _zero_v2),
                 vcombine_f32(vget_low_f32(m.array_neon[1]), _zero_v2),

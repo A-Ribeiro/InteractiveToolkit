@@ -268,9 +268,9 @@ namespace MathCore
 
             float32x2_t rc = dot_neon_2(a.array_neon, N.array_neon);
             rc = vmul_f32(rc, vset1_v2((_type)2));
-            rc = vmul_f32(rc, N);
+            rc = vmul_f32(rc, N.array_neon);
 
-            return vsub_f32(a, rc);
+            return vsub_f32(a.array_neon, rc);
             // return (a - N * ((_type)2 * self_type::dot(a, N)));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

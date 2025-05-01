@@ -403,7 +403,7 @@ namespace MathCore
             // return self_type::maximum(_sign, _vec4_zero_sse).array_sse;
 #elif defined(ITK_NEON)
             uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshould.array_neon);
-            uint32x4_t _rc = _mm_and_ps(_cmp, _vec4_one_u);
+            uint32x4_t _rc = vandq_u32(_cmp, _vec4_one_u);
             return vreinterpretq_f32_u32(_rc);
 
             // typeMat2 _sub = v - threshould;

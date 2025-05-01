@@ -1436,7 +1436,7 @@ namespace MathCore
             // return a - r * b;
             float32x4_t result = vmulq_f32(vreinterpretq_f32_u32(r), b.array_neon);
 
-            result = _mm_sub_ps(a.array_neon, result);
+            result = vsubq_f32(a.array_neon, result);
             return result;
 
 
@@ -1459,7 +1459,7 @@ namespace MathCore
             // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
             uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshould.array_neon);
-            uint32x4_t _rc = _mm_and_ps(_cmp, _vec4_one_u);
+            uint32x4_t _rc = vandq_u32(_cmp, _vec4_one_u);
             return vreinterpretq_f32_u32(_rc);
             // type4 _sub = v - threshould;
             // type4 _sign = self_type::sign(_sub);
