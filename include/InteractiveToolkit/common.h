@@ -304,7 +304,7 @@ static inline float32x4_t _neon_mm_floor_ps(const float32x4_t &f)
     uint32x4_t f_u = vreinterpretq_u32_f32(f);
     r_u = veorq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
 
-    return vreinterpretq_f32_u32(r);
+    return vreinterpretq_f32_u32(r_u);
 }
 
 // floor(-fp) = -ceiling(fp)
