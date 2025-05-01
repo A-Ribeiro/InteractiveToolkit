@@ -341,16 +341,25 @@ namespace MathCore
         float32x4_t a3 = vshuffle_2102(a.array_neon);
         float32x4_t b3 = vshuffle_2021(b.array_neon);
 
-        const float32x4_t signMask0 = (float32x4_t){1.0f, 1.0f, 1.0f, -1.0f};
+        // const float32x4_t signMask0 = (float32x4_t){1.0f, 1.0f, 1.0f, -1.0f};
+        const uint32x4_t signMask0 = vreinterpretq_u32_f32(
+            (float32x4_t){0.0f, 0.0f, 0.0f, -0.0f}
+        );
 
         //__m128 mul0 = _mm_mul_ps(a0, b0);
         float32x4_t mul0 = vmulq_f32(a0, b.array_neon);
 
         float32x4_t mul1 = vmulq_f32(a1, b1);
-        mul1 = vmulq_f32(mul1, signMask0);
+        //mul1 = vmulq_f32(mul1, signMask0);
+        mul1 = vreinterpretq_f32_u32(
+            veorq_u32(vreinterpretq_u32_f32(mul1), signMask0)
+        );
 
         float32x4_t mul2 = vmulq_f32(a2, b2);
-        mul2 = vmulq_f32(mul2, signMask0);
+        //mul2 = vmulq_f32(mul2, signMask0);
+        mul2 = vreinterpretq_f32_u32(
+            veorq_u32(vreinterpretq_u32_f32(mul2), signMask0)
+        );
 
         float32x4_t mul3 = vmulq_f32(a3, b3);
 

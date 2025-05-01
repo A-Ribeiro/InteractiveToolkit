@@ -339,10 +339,16 @@ namespace MathCore
             float32x4_t AddRes = vaddq_f32(SubRes, MulFacC);
             //__m128 DetCof = _mm_mul_ps(AddRes, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
 
-            const float32x4_t SignMask = (float32x4_t){1.0f, -1.0f, 1.0f, -1.0f};
+            //const float32x4_t SignMask = (float32x4_t){1.0f, -1.0f, 1.0f, -1.0f};
+            const uint32x4_t SignMask = vreinterpretq_u32_f32(
+                (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f}
+            );
 
             //__m128 DetCof = _mm_mul_ps(AddRes, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
-            float32x4_t DetCof = vmulq_f32(AddRes, SignMask);
+            //float32x4_t DetCof = vmulq_f32(AddRes, SignMask);
+            float32x4_t DetCof = vreinterpretq_f32_u32(
+                veorq_u32(vreinterpretq_u32_f32(AddRes), SignMask)
+            );
 
             // return m[0][0] * DetCof[0]
             //	 + m[0][1] * DetCof[1]

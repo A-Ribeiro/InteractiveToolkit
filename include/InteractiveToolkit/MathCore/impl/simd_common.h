@@ -106,7 +106,7 @@ namespace MathCore
 
     const float32x4_t _vec3_two = (float32x4_t){2.0f, 2.0f, 2.0f, 0};
 
-    const float32x4_t _quat_conjugate_sign = (float32x4_t){-1, -1, -1, 1};
+    const uint32x4_t _quat_conjugate_sign = vreinterpretq_u32_f32((float32x4_t){-.0f, -.0f, -.0f, .0f});
 
     template <typename type>
     struct iNeonOps

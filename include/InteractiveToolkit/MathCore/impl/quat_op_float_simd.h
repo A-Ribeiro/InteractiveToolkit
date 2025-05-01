@@ -63,7 +63,10 @@ namespace MathCore
 #if defined(ITK_SSE2)
             return _mm_xor_ps(_quat_conjugate_mask_sse, a.array_sse);
 #elif defined(ITK_NEON)
-            return vmulq_f32(a.array_neon, _quat_conjugate_sign);
+            //return vmulq_f32(a.array_neon, _quat_conjugate_sign);
+            return vreinterpretq_f32_u32(
+                veorq_u32(vreinterpretq_u32_f32(a.array_neon), _quat_conjugate_sign)
+            );
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
