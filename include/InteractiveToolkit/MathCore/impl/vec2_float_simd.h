@@ -216,7 +216,7 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-        ITK_INLINE self_type& operator=(const self_type &v)
+        ITK_INLINE self_type &operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
             array_sse = v.array_sse;
@@ -303,7 +303,7 @@ namespace MathCore
 
             float32x2_t acc_2_elements = vpadd_f32(diff_abs, diff_abs);
 
-            return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
+            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -316,7 +316,7 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE self_type& operator=(const vec2<_InputType, _InputSimdTypeAux> &vec)
+        ITK_INLINE self_type &operator=(const vec2<_InputType, _InputSimdTypeAux> &vec)
         {
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y);
             return *this;
@@ -516,7 +516,12 @@ namespace MathCore
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)
+#if defined(__aarch64__)
             array_neon = vdiv_f32(array_neon, v.array_neon);
+#else
+            const float32x2_t _one_v2 = vdup_n_f32(1.0f);
+            array_neon = vget_low_f32(vdivq_f32(vcombine_f32(vget_low_f32(array_neon), _one_v2), vcombine_f32(vget_low_f32(v.array_neon), _one_v2)));
+#endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
