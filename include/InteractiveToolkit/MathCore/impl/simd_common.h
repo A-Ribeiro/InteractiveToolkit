@@ -175,7 +175,7 @@ namespace MathCore
         {
             uint32x4_t cmp = vceqq_s32(a, b);
             uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
-            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0xFFFFFFFF00000000))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
         static ITK_INLINE bool eq_v2(const int32x2_t &a, const int32x2_t &b) noexcept
@@ -309,7 +309,7 @@ namespace MathCore
         {
             uint32x4_t cmp = vceqq_u32(a, b);
             uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
-            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0xFFFFFFFF00000000))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
         }
 
         static ITK_INLINE bool eq_v2(const uint32x2_t &a, const uint32x2_t &b) noexcept

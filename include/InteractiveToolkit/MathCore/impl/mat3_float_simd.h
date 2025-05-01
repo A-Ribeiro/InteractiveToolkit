@@ -668,7 +668,7 @@ namespace MathCore
             uint32x4_t array_012 = vandq_u32(array_01, array_2);
 
             uint64x2_t cmp64 = vreinterpretq_u64_u32(array_012);
-            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0xFFFFFFFF00000000))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
             // float32x4_t diff_abs[3];
             // diff_abs[0] = vsubq_f32(array_neon[0], v.array_neon[0]);

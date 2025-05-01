@@ -410,7 +410,7 @@ namespace MathCore
             uint32x4_t result_int = compare_almost_eq_ps(array_neon, v.array_neon);
             
             uint64x2_t cmp64 = vreinterpretq_u64_u32(result_int);
-            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0xFFFFFFFF00000000))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
             // float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
             // // abs
