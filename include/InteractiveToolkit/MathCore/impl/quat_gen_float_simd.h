@@ -37,79 +37,6 @@ namespace MathCore
         using self_type = GEN<quatT>;
 
     public:
-        /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
-        ///
-        /// Example:
-        ///
-        /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        ///
-        /// vec3 axis = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
-        ///
-        /// quat result = fromAxis( axis );
-        /// \endcode
-        ///
-        /// \author Alessandro Ribeiro
-        /// \param v A 3 component vector
-        /// \return The quaternion
-        ///
-        static ITK_INLINE quatT fromAxis(const type3 &vp) noexcept
-        {
-            // quatT rc;
-            // type3 &v = *(type3 *)&rc;
-            // v = OP<type3>::normalize(vp);
-            // _type t = (_type)1 - OP<type3>::dot(v, v);
-            // t = OP<_type>::maximum(t, (_type)0); // avoid negative numbers
-            // rc.w = OP<_type>::sqrt(t);
-            // return rc;
-            return quatT::fromAxisAngle(vp, 0);
-        }
-
-        /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
-        ///
-        /// Example:
-        ///
-        /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        ///
-        /// vec4 axis = normalize( vec4( 1.0f, 1.0f, 0.0f, 0.0f ) );
-        ///
-        /// quat result = fromAxis( axis );
-        /// \endcode
-        ///
-        /// \author Alessandro Ribeiro
-        /// \param v A 4 component vector
-        /// \return The quaternion
-        ///
-        static ITK_INLINE quatT fromAxis(const type4 &vp) noexcept
-        {
-            return self_type::fromAxis(*(const type3 *)&vp);
-        }
-
-        /// \brief Convert a vec2 to a unity quaternion pointing to the vec2 axis.
-        ///
-        /// Example:
-        ///
-        /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        ///
-        /// vec2 axis = normalize( vec2( 1.0f, 1.0f ) );
-        ///
-        /// quat result = fromAxis( axis );
-        /// \endcode
-        ///
-        /// \author Alessandro Ribeiro
-        /// \param v A 2 component vector
-        /// \return The quaternion
-        ///
-        static ITK_INLINE quatT fromAxis(const type2 &vp) noexcept
-        {
-            return self_type::fromAxis(type3(vp, 0));
-        }
-
         /// \brief Constructs a quaternion from an axis and an angle in radians.
         ///
         /// Example:
@@ -147,6 +74,79 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+
+        /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// vec3 axis = normalize( vec3( 1.0f, 1.0f, 0.0f ) );
+        ///
+        /// quat result = fromAxis( axis );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v A 3 component vector
+        /// \return The quaternion
+        ///
+        // static ITK_INLINE quatT fromAxis(const type3 &vp) noexcept
+        // {
+        //     // quatT rc;
+        //     // type3 &v = *(type3 *)&rc;
+        //     // v = OP<type3>::normalize(vp);
+        //     // _type t = (_type)1 - OP<type3>::dot(v, v);
+        //     // t = OP<_type>::maximum(t, (_type)0); // avoid negative numbers
+        //     // rc.w = OP<_type>::sqrt(t);
+        //     // return rc;
+        //     return quatT::fromAxisAngle(vp, (_type)0);
+        // }
+
+        /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// vec4 axis = normalize( vec4( 1.0f, 1.0f, 0.0f, 0.0f ) );
+        ///
+        /// quat result = fromAxis( axis );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v A 4 component vector
+        /// \return The quaternion
+        ///
+        // static ITK_INLINE quatT fromAxis(const type4 &vp) noexcept
+        // {
+        //     return self_type::fromAxis(*(const type3 *)&vp);
+        // }
+
+        /// \brief Convert a vec2 to a unity quaternion pointing to the vec2 axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// #include <aRibeiroCore/aRibeiroCore.h>
+        /// using namespace aRibeiro;
+        ///
+        /// vec2 axis = normalize( vec2( 1.0f, 1.0f ) );
+        ///
+        /// quat result = fromAxis( axis );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v A 2 component vector
+        /// \return The quaternion
+        ///
+        // static ITK_INLINE quatT fromAxis(const type2 &vp) noexcept
+        // {
+        //     return self_type::fromAxis(type3(vp, 0));
+        // }
 
         /// \brief Constructs a quaternion from an axis and an angle in radians.
         ///
