@@ -516,7 +516,7 @@ namespace MathCore
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)
-            array_neon = vdivq_f32(array_neon, v.array_neon);
+            array_neon = vdiv_f32(array_neon, v.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
