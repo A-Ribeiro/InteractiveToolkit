@@ -88,8 +88,13 @@ namespace MathCore
         return vdup_n_f32(a);
     }
 
+    const int32x4_t v4_sign_mask_i = vdupq_n_s32(0x80000000);
+    const uint32x4_t v4_sign_mask_u = vdupq_n_u32(0x80000000);
+
     const float32x4_t _vec4_minus_one = vset1(-1.0f);
     const float32x4_t _vec4_one = vset1(1.0f);
+    const uint32x4_t _vec4_one_u = vreinterpretq_u32_f32(vset1(1.0f));
+    const int32x4_t _vec4_one_i = vreinterpretq_s32_f32(vset1(1.0f));
     const float32x4_t _vec4_two = vset1(2.0f);
 
     const float32x4_t _vec4_zero = vset1(0.0f);

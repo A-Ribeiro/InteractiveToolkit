@@ -13,7 +13,7 @@
 #include "../cvt.h"
 #include "../operator_overload.h"
 
-//#include "quat_op.h" -- do not use any quat for mat3 OP
+// #include "quat_op.h" -- do not use any quat for mat3 OP
 
 namespace MathCore
 {
@@ -21,17 +21,17 @@ namespace MathCore
     template <typename _type, typename _simd, typename _algorithm>
     struct OP<mat3<_type, _simd>,
               typename std::enable_if<
-                   std::is_same<_type, float>::value &&
-                   (std::is_same<_simd, SIMD_TYPE::SSE>::value ||
-                    std::is_same<_simd, SIMD_TYPE::NEON>::value)>::type,
+                  std::is_same<_type, float>::value &&
+                  (std::is_same<_simd, SIMD_TYPE::SSE>::value ||
+                   std::is_same<_simd, SIMD_TYPE::NEON>::value)>::type,
               _algorithm>
     {
-        private:
+    private:
         using typeMat3 = mat3<_type, _simd>;
         using type3 = vec3<_type, _simd>;
         using self_type = OP<typeMat3>;
-        public:
 
+    public:
         static ITK_INLINE typeMat3 clamp(const typeMat3 &value, const typeMat3 &min, const typeMat3 &max) noexcept
         {
             return typeMat3(
@@ -125,7 +125,7 @@ namespace MathCore
         }
 
         static ITK_INLINE typeMat3 blerp(const typeMat3 &A, const typeMat3 &B, const typeMat3 &C, const typeMat3 &D,
-                                          const _type &dx, const _type &dy) noexcept
+                                         const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -143,30 +143,35 @@ namespace MathCore
 
             return typeMat3(a, b, _vec4_0010_sse);
 #elif defined(ITK_NEON)
-            return typeMat3(m.a1, m.b1, 0,
-                            m.a2, m.b2, 0,
-                            0, 0, 1);
+            const float32x2_t _zero_v2 = vdup_n_f32(a);
+            return typeMat3(
+                vcombine_f32(vget_low_f32(m.array_neon[0]), _zero_v2),
+                vcombine_f32(vget_low_f32(m.array_neon[1]), _zero_v2),
+                _neon_0010);
+            // return typeMat3(m.a1, m.b1, 0,
+            //                 m.a2, m.b2, 0,
+            //                 0, 0, 1);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
 
-        static ITK_INLINE type3 extractXaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractXaxis(const typeMat3 &m) noexcept
         {
             return m[0];
         }
 
-        static ITK_INLINE type3 extractYaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractYaxis(const typeMat3 &m) noexcept
         {
             return m[1];
         }
 
-        static ITK_INLINE type3 extractZaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractZaxis(const typeMat3 &m) noexcept
         {
             return m[2];
         }
 
-        static ITK_INLINE type3 extractTranslation(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractTranslation(const typeMat3 &m) noexcept
         {
             return m[2];
         }
@@ -199,11 +204,11 @@ namespace MathCore
         static ITK_INLINE _type determinant(const typeMat3 &m) noexcept
         {
             type3 aux = type3(m.c3, m.b3, m.c2) * type3(m.b2, m.c1, m.b1) - type3(m.b3, m.c3, m.b2) * type3(m.c2, m.b1, m.c1);
-            //return OP<type3>::dot(m[0], aux);
+            // return OP<type3>::dot(m[0], aux);
 #if defined(ITK_SSE2)
             return _mm_f32_(dot_sse_3(m.array_sse[0], aux.array_sse), 0);
 #elif defined(ITK_NEON)
-            return dot_neon_3(m.array_neon[0], aux.array_neon)[0];
+            return vgetq_lane_f32(dot_neon_3(m.array_neon[0], aux.array_neon), 0);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -216,7 +221,7 @@ namespace MathCore
             //
             _type sy = OP<_type>::sqrt(m.a1 * m.a1 + m.a2 * m.a2);
 
-            bool singular = sy < EPSILON<_type>::high_precision;// 1e-6f; // If
+            bool singular = sy < EPSILON<_type>::high_precision; // 1e-6f; // If
 
             float x, y, z;
             if (!singular)
@@ -307,7 +312,6 @@ namespace MathCore
                 OP<type3>::smoothstep(edge0[1], edge1[1], x[1]),
                 OP<type3>::smoothstep(edge0[2], edge1[2], x[2]));
         }
-
     };
 
 }

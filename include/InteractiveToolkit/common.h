@@ -24,9 +24,9 @@
 #include <type_traits>
 #include <memory>
 #include <stdexcept>
-#include <stdarg.h> //va_start
-#include <wchar.h>  // wprintf
-#include <cctype>   // tolower
+#include <stdarg.h>   //va_start
+#include <wchar.h>    // wprintf
+#include <cctype>     // tolower
 #include <inttypes.h> // PRIu64
 
 #include <list>
@@ -81,22 +81,22 @@
 
 #if defined(__APPLE__)
 
-static void* ITK_SYS_ALIGNED_ALLOC(size_t alignment, size_t size)
+static void *ITK_SYS_ALIGNED_ALLOC(size_t alignment, size_t size)
 {
     size_t prt_plus_size = size + sizeof(intptr_t) + alignment;
     intptr_t real_alloc = (intptr_t)malloc(prt_plus_size);
-    //starts after 1 ptr_t size
+    // starts after 1 ptr_t size
     intptr_t alligned_block = real_alloc + sizeof(intptr_t);
     intptr_t complete_16bytes = (alignment - alligned_block % alignment) % alignment;
     alligned_block += complete_16bytes;
-    intptr_t* allocated_block_ref = (intptr_t*)alligned_block - 1;
+    intptr_t *allocated_block_ref = (intptr_t *)alligned_block - 1;
     allocated_block_ref[0] = real_alloc;
-    return (void*)alligned_block;
+    return (void *)alligned_block;
 }
-static void ITK_SYS_ALIGNED_FREE(void* data)
+static void ITK_SYS_ALIGNED_FREE(void *data)
 {
-    intptr_t* real_alloc = (intptr_t*)data - 1;
-    free((void*)real_alloc[0]);
+    intptr_t *real_alloc = (intptr_t *)data - 1;
+    free((void *)real_alloc[0]);
 }
 
 #else
@@ -127,7 +127,7 @@ static void ITK_SYS_ALIGNED_FREE(void* data)
 #define _mm_i32_(v, i) (v).m128i_i32[i]
 #define _mm_u32_(v, i) (v).m128i_u32[i]
 #if defined(ITK_AVX2)
-    #define _mm256_u32_(v, i) (v).m256i_u32[i]
+#define _mm256_u32_(v, i) (v).m256i_u32[i]
 #endif
 #else
 //  GCC Intrinsics
@@ -212,7 +212,7 @@ static inline __m128 _sse2_mm_floor_ps(const __m128 &f)
     // two possible values:
     // - 8388608.f (23bits)
     // - 2147483648.f (31bits)
-    // Any value greater than this, will have integral mantissa... 
+    // Any value greater than this, will have integral mantissa...
     // and no decimal part
     //
     // if ((abs(f) > 2**31 )) r = f;
@@ -228,9 +228,9 @@ static inline __m128 _sse2_mm_floor_ps(const __m128 &f)
 // ceiling(fp) = -floor(-fp)
 static inline __m128 _sse2_mm_ceil_ps(const __m128 &f)
 {
-    //const __m128 _sign_bit = _mm_set1_ps(-0.f);
+    // const __m128 _sign_bit = _mm_set1_ps(-0.f);
     //__m128 r = _mm_xor_ps(_sse2_mm_floor_ps(_mm_xor_ps(f, _sign_bit)), _sign_bit);
-    //return r;
+    // return r;
 
     // r = (float)(int)f;
     __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
@@ -242,7 +242,7 @@ static inline __m128 _sse2_mm_ceil_ps(const __m128 &f)
     // two possible values:
     // - 8388608.f (23bits)
     // - 2147483648.f (31bits)
-    // Any value greater than this, will have integral mantissa... 
+    // Any value greater than this, will have integral mantissa...
     // and no decimal part
     //
     // if ((abs(f) > 2**31 )) r = f;
@@ -256,16 +256,16 @@ static inline __m128 _sse2_mm_ceil_ps(const __m128 &f)
 
 static inline __m128 _sse2_mm_round_ps(const __m128 &input)
 {
-    __m128 _half_signed = _mm_or_ps( _mm_and_ps(_mm_set1_ps(-0.f), input), _mm_set1_ps(.5f) );
+    __m128 _half_signed = _mm_or_ps(_mm_and_ps(_mm_set1_ps(-0.f), input), _mm_set1_ps(.5f));
     __m128 f = _mm_add_ps(input, _half_signed);
-    
-    //r = (float)(int)f;
+
+    // r = (float)(int)f;
     __m128 r = _mm_cvtepi32_ps(_mm_cvttps_epi32(f));
 
     // two possible values:
     // - 8388608.f (23bits)
     // - 2147483648.f (31bits)
-    // Any value greater than this, will have integral mantissa... 
+    // Any value greater than this, will have integral mantissa...
     // and no decimal part
     //
     // if ((abs(f) > 2**31 )) r = f;
@@ -281,17 +281,106 @@ static inline __m128 _sse2_mm_round_ps(const __m128 &input)
 
 #include <arm_neon.h>
 
+static inline float32x4_t _neon_mm_floor_ps(const float32x4_t &f)
+{
+    // r = (float)(int)f;
+    float32x4_t r = vcvtq_f32_s32(vcvtq_s32_f32(f));
+
+    // if (f < r) r -= 1;
+    const uint32x4_t _one = vreinterpretq_u32_f32(vdupq_n_f32(1.f));
+    r = vsubq_f32(r, vreinterpretq_f32_u32(vandq_u32(vcltq_f32(f, r), _one)));
+
+    // two possible values:
+    // - 8388608.f (23bits)
+    // - 2147483648.f (31bits)
+    // Any value greater than this, will have integral mantissa...
+    // and no decimal part
+    //
+    // if ((abs(f) > 2**31 )) r = f;
+    //const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
+    const float32x4_t _max_f = vdupq_n_f32(8388608.f);
+    uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
+    uint32x4_t r_u = vreinterpretq_u32_f32(r);
+    uint32x4_t f_u = vreinterpretq_u32_f32(f);
+    r_u = veorq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
+
+    return vreinterpretq_f32_u32(r);
+}
+
+// floor(-fp) = -ceiling(fp)
+// ceiling(fp) = -floor(-fp)
+static inline float32x4_t _neon_mm_ceil_ps(const float32x4_t &f)
+{
+    // const __m128 _sign_bit = _mm_set1_ps(-0.f);
+    //__m128 r = _mm_xor_ps(_sse2_mm_floor_ps(_mm_xor_ps(f, _sign_bit)), _sign_bit);
+    // return r;
+
+    // r = (float)(int)f;
+    float32x4_t r = vcvtq_f32_s32(vcvtq_s32_f32(f));
+
+    // if (f < r) r -= 1;
+    const uint32x4_t _one = vreinterpretq_u32_f32(vdupq_n_f32(-1.f));
+    r = vsubq_f32(r, vreinterpretq_f32_u32(vandq_u32(vcgtq_f32(f, r), _one)));
+
+    // two possible values:
+    // - 8388608.f (23bits)
+    // - 2147483648.f (31bits)
+    // Any value greater than this, will have integral mantissa...
+    // and no decimal part
+    //
+    // if ((abs(f) > 2**31 )) r = f;
+    //const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
+    const float32x4_t _max_f = vdupq_n_f32(8388608.f);
+    uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
+    uint32x4_t r_u = vreinterpretq_u32_f32(r);
+    uint32x4_t f_u = vreinterpretq_u32_f32(f);
+    r_u = veorq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
+
+    return vreinterpretq_f32_u32(r_u);
+}
+
+static inline float32x4_t _neon_mm_round_ps(const float32x4_t &input)
+{
+    const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
+    uint32x4_t input_sign = vandq_u32(_sign_bit, vreinterpretq_u32_f32(input));
+
+    const uint32x4_t _half_positive = vreinterpretq_u32_f32(vdupq_n_f32(.5f));
+    float32x4_t _half_signed = vreinterpretq_f32_u32(vorrq_u32(input_sign, _half_positive));
+
+    float32x4_t f = vaddq_f32(input, _half_signed);
+
+    // r = (float)(int)f;
+    //float32x4_t r = vcvtq_f32_s32(vcvtq_s32_f32(f));
+    uint32x4_t r = vreinterpretq_u32_f32(vcvtq_f32_s32(vcvtq_s32_f32(f)));
+
+    // two possible values:
+    // - 8388608.f (23bits)
+    // - 2147483648.f (31bits)
+    // Any value greater than this, will have integral mantissa...
+    // and no decimal part
+    //
+    // if ((abs(f) > 2**31 )) r = f;
+    // const __m128 _sign_bit = _mm_set1_ps(-0.f);
+    const float32x4_t _max_f = vdupq_n_f32(8388608.f);
+    uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(input));
+    uint32x4_t input_u = vreinterpretq_u32_f32(input);
+    r = veorq_u32(vandq_u32(m, r), vandq_u32(vmvnq_u32(m), input_u));
+
+    return vreinterpretq_f32_u32(r);
+}
+
 #else
 
 #endif
 
+namespace ITKCommon
+{
 
-namespace ITKCommon {
+    static inline std::string PrintfToStdString(const char *format, ...)
+    {
 
-    static inline std::string PrintfToStdString(const char *format, ...){
-        
         std::vector<char> char_buffer;
-        
+
         va_list args;
 
         va_start(args, format);

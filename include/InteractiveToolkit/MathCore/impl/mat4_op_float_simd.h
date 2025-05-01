@@ -140,25 +140,30 @@ namespace MathCore
         static ITK_INLINE typeMat4 extractRotation(const typeMat4 &m) noexcept
         {
 #if defined(ITK_SSE2)
-            __m128 a = m.array_sse[0];
-            __m128 b = m.array_sse[1];
-            __m128 c = m.array_sse[2];
+            __m128 a = _mm_and_ps(m.array_sse[0], _vec3_valid_bits_sse);
+            __m128 b = _mm_and_ps(m.array_sse[1], _vec3_valid_bits_sse);
+            __m128 c = _mm_and_ps(m.array_sse[2], _vec3_valid_bits_sse);
 
-            a = _mm_and_ps(a, _vec3_valid_bits_sse);
-            b = _mm_and_ps(b, _vec3_valid_bits_sse);
-            c = _mm_and_ps(c, _vec3_valid_bits_sse);
+            // a = _mm_and_ps(m.array_sse[0], _vec3_valid_bits_sse);
+            // b = _mm_and_ps(m.array_sse[1], _vec3_valid_bits_sse);
+            // c = _mm_and_ps(m.array_sse[2], _vec3_valid_bits_sse);
 
             return typeMat4(a, b, c, _vec4_0001_sse);
 #elif defined(ITK_NEON)
             typeMat4 r(
-                m.array_neon[0],
-                m.array_neon[1],
-                m.array_neon[2],
+                vsetq_lane_f32(0.0f, m.array_neon[0], 3),
+                vsetq_lane_f32(0.0f, m.array_neon[1], 3),
+                vsetq_lane_f32(0.0f, m.array_neon[2], 3),
                 _neon_0001);
 
-            r.array_neon[0][3] = 0;
-            r.array_neon[1][3] = 0;
-            r.array_neon[2][3] = 0;
+            // r.array_neon[0][3] = 0;
+            // r.array_neon[1][3] = 0;
+            // r.array_neon[2][3] = 0;
+
+            // r.array_neon[0] = vsetq_lane_f32(0.0f, r.array_neon[0], 3);
+            // r.array_neon[1] = vsetq_lane_f32(0.0f, r.array_neon[1], 3);
+            // r.array_neon[2] = vsetq_lane_f32(0.0f, r.array_neon[2], 3);
+
 
             return r;
 #else
@@ -346,7 +351,7 @@ namespace MathCore
 
             float32x4_t Det0 = dot_neon_4(m.array_neon[0], DetCof);
 
-            return Det0[0];
+            return vgetq_lane_f32(Det0,0);
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

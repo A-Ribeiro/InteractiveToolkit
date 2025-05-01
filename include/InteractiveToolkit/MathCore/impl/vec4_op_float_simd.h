@@ -757,7 +757,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
             float32x4_t max_neon = vmaxq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             max_neon = vmaxq_f32(max_neon, vshuffle_1111(max_neon));
-            return vgetq_lane_f32(max_neon,0);
+            return vgetq_lane_f32(max_neon, 0);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -820,7 +820,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
             float32x4_t min_neon = vminq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             min_neon = vminq_f32(min_neon, vshuffle_1111(min_neon));
-            return vgetq_lane_f32(min_neon,0);
+            return vgetq_lane_f32(min_neon, 0);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -1305,11 +1305,12 @@ namespace MathCore
 #if defined(__aarch64__)
             return vrndmq_f32(v.array_neon);
 #else
-            return type4(
-                OP<_type>::floor(v.x),
-                OP<_type>::floor(v.y),
-                OP<_type>::floor(v.z),
-                OP<_type>::floor(v.w));
+            return _neon_mm_floor_ps(v.array_neon);
+            // return type4(
+            //     OP<_type>::floor(v.x),
+            //     OP<_type>::floor(v.y),
+            //     OP<_type>::floor(v.z),
+            //     OP<_type>::floor(v.w));
 #endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
@@ -1330,11 +1331,12 @@ namespace MathCore
 #if defined(__aarch64__)
             return vrndpq_f32(v.array_neon);
 #else
-            return type4(
-                OP<_type>::ceil(v.x),
-                OP<_type>::ceil(v.y),
-                OP<_type>::ceil(v.z),
-                OP<_type>::ceil(v.w));
+            return _neon_mm_ceil_ps(v.array_neon);
+            // return type4(
+            //     OP<_type>::ceil(v.x),
+            //     OP<_type>::ceil(v.y),
+            //     OP<_type>::ceil(v.z),
+            //     OP<_type>::ceil(v.w));
 #endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
@@ -1355,11 +1357,12 @@ namespace MathCore
 #if defined(__aarch64__)
             return vrndnq_f32(v.array_neon);
 #else
-            return type4(
-                OP<_type>::round(v.x),
-                OP<_type>::round(v.y),
-                OP<_type>::round(v.z),
-                OP<_type>::round(v.w));
+            return _neon_mm_round_ps(v.array_neon);
+            // return type4(
+            //     OP<_type>::round(v.x),
+            //     OP<_type>::round(v.y),
+            //     OP<_type>::round(v.z),
+            //     OP<_type>::round(v.w));
 #endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
@@ -1401,11 +1404,42 @@ namespace MathCore
             return result;
 
 #elif defined(ITK_NEON)
-            return type4(
-                OP<_type>::fmod(a.x, b.x),
-                OP<_type>::fmod(a.y, b.y),
-                OP<_type>::fmod(a.z, b.z),
-                OP<_type>::fmod(a.w, b.w));
+            // return type4(
+            //     OP<_type>::fmod(a.x, b.x),
+            //     OP<_type>::fmod(a.y, b.y),
+            //     OP<_type>::fmod(a.z, b.z),
+            //     OP<_type>::fmod(a.w, b.w));
+
+            // float f = (a / b);
+            float32x4_t f = vdivq_f32(a.array_neon, b.array_neon);
+
+            // float r = (float)(int)f;
+            uint32x4_t r = vreinterpretq_u32_f32(vcvtq_f32_s32(vcvtq_s32_f32(f)));
+
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            // uint32_t &r_uint = *(uint32_t *)&r;
+            // uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
+            // r_uint = r_uint & mask;
+
+            // if ((abs(f) > 2**31 )) r = f;
+            //const __m128 _sign_bit = _mm_set1_ps(-0.f);
+            const float32x4_t _max_f = vdupq_n_f32(8388608.f);
+            uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
+            r = vandq_u32(m, r);
+
+            // return a - r * b;
+            float32x4_t result = vmulq_f32(vreinterpretq_f32_u32(r), b.array_neon);
+
+            result = _mm_sub_ps(a.array_neon, result);
+            return result;
+
+
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -1424,9 +1458,12 @@ namespace MathCore
             // type4 _sign = self_type::sign(_sub);
             // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
-            type4 _sub = v - threshould;
-            type4 _sign = self_type::sign(_sub);
-            return self_type::maximum(_sign, _vec4_zero);
+            uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshould.array_neon);
+            uint32x4_t _rc = _mm_and_ps(_cmp, _vec4_one_u);
+            return vreinterpretq_f32_u32(_rc);
+            // type4 _sub = v - threshould;
+            // type4 _sign = self_type::sign(_sub);
+            // return self_type::maximum(_sign, _vec4_zero);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

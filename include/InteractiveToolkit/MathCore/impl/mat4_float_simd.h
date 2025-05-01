@@ -323,7 +323,7 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-        ITK_INLINE self_type& operator=(const self_type &m)
+        ITK_INLINE self_type &operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
             array_sse[0] = m.array_sse[0];
@@ -723,7 +723,7 @@ namespace MathCore
                           !(std::is_same<_InputSimdTypeAux, _SimdType>::value &&
                             std::is_same<_InputType, _BaseType>::value),
                       bool>::type = true>
-        ITK_INLINE self_type& operator=(const mat4<_InputType, _InputSimdTypeAux> &m)
+        ITK_INLINE self_type &operator=(const mat4<_InputType, _InputSimdTypeAux> &m)
         {
             *this = self_type(
                 (_BaseType)m.a1, (_BaseType)m.b1, (_BaseType)m.c1, (_BaseType)m.d1,
@@ -1375,7 +1375,7 @@ namespace MathCore
             //      exit(-1);
             //  }
 
-            _BaseType det = Det0[0];
+            _BaseType det = vgetq_lane_f32(Det0, 0);
             _BaseType sign_det = OP<_BaseType>::sign(det);
             det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
 
@@ -1456,7 +1456,7 @@ namespace MathCore
             float32x4_t c_ = vcombine_f32(vget_high_f32(ab.val[0]), vget_high_f32(cd.val[0]));
             float32x4_t d_ = vcombine_f32(vget_high_f32(ab.val[1]), vget_high_f32(cd.val[1]));
 
-            _BaseType det = dot_neon_3(array_neon[0], a_)[0];
+            _BaseType det = vgetq_lane_f32(dot_neon_3(array_neon[0], a_), 0);
 
             // check det
             // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");
