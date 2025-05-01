@@ -56,13 +56,14 @@ namespace MathCore
         ///
         static ITK_INLINE quatT fromAxis(const type3 &vp) noexcept
         {
-            quatT rc;
-            type3 &v = *(type3 *)&rc;
-            v = OP<type3>::normalize(vp);
-            _type t = (_type)1 - OP<type3>::dot(v, v);
-            t = OP<_type>::maximum(t, (_type)0); // avoid negative numbers
-            rc.w = OP<_type>::sqrt(t);
-            return rc;
+            // quatT rc;
+            // type3 &v = *(type3 *)&rc;
+            // v = OP<type3>::normalize(vp);
+            // _type t = (_type)1 - OP<type3>::dot(v, v);
+            // t = OP<_type>::maximum(t, (_type)0); // avoid negative numbers
+            // rc.w = OP<_type>::sqrt(t);
+            // return rc;
+            return quatT::fromAxisAngle(vp, 0);
         }
 
         /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
