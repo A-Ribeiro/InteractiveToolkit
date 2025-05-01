@@ -379,7 +379,7 @@ namespace MathCore
             // return a - r * b;
             float32x4_t result = vmulq_f32(vreinterpretq_f32_u32(r), b.array_neon);
 
-            result = _mm_sub_ps(a.array_neon, result);
+            result = vsubq_f32(a.array_neon, result);
             return result;
             // return (float32x4_t){
             //     OP<_type>::fmod(a.a1, b.a1),
