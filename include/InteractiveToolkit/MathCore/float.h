@@ -702,6 +702,13 @@ namespace MathCore
         }
 
 
+        static ITK_INLINE bool compare_almost_equal(const _type& af, const _type& bf) noexcept
+        {
+            float tolerance_scaled = self_type::maximum(self_type::abs(af), self_type::abs(bf)) * EPSILON<_type>::low_precision;
+            tolerance_scaled = self_type::maximum(tolerance_scaled, EPSILON<_type>::high_precision);
+            return (self_type::abs(af - bf) <= tolerance_scaled);
+        }
+
     };
 
     template <typename _type, typename _Algorithm>
@@ -1132,6 +1139,13 @@ namespace MathCore
         static ITK_INLINE double pow(const double& a, const double& b) noexcept
         {
             return ::pow(a, b);
+        }
+
+        static ITK_INLINE bool compare_almost_equal(const _type& af, const _type& bf) noexcept
+        {
+            float tolerance_scaled = self_type::maximum(self_type::abs(af), self_type::abs(bf)) * EPSILON<_type>::low_precision;
+            tolerance_scaled = self_type::maximum(tolerance_scaled, EPSILON<_type>::high_precision);
+            return (self_type::abs(af - bf) <= tolerance_scaled);
         }
 
     };

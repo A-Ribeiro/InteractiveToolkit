@@ -202,25 +202,34 @@ namespace MathCore
 
 #if defined(ITK_SSE2)
 
-            __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
-            // abs
-            // const __m128 _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
-            diff_abs = _mm_andnot_ps(_vec4_sign_mask_sse, diff_abs);
+            __m128i result_int = compare_almost_eq_ps(array_sse, v.array_sse);
+            int test_all_zero = _mm_test_all_ones(result_int);
+            return (bool)test_all_zero;
 
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            // __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
+            // // abs
+            // // const __m128 _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
+            // diff_abs = _mm_andnot_ps(_vec4_sign_mask_sse, diff_abs);
 
-            return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+
+            // return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
 #elif defined(ITK_NEON)
 
-            float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
-            // abs
-            diff_abs = vabsq_f32(diff_abs);
+            uint32x4_t result_int = compare_almost_eq_ps(array_neon, v.array_neon);
+            
+            uint64x2_t cmp64 = vreinterpretq_u64_u32(result_int);
+            return (vgetq_lane_u64(cmp64, 0) & vgetq_lane_u64(cmp64, 1)) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
-            float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
-            acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+            // float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
+            // // abs
+            // diff_abs = vabsq_f32(diff_abs);
 
-            return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
+            // float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
+            // acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+
+            // return vget_lane_f32(acc_2_elements,0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

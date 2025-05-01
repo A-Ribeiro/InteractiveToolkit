@@ -382,31 +382,46 @@ namespace MathCore
         ITK_INLINE bool operator==(const self_type &v) const
         {
 #if defined(ITK_SSE2)
-            __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
-            // abs
-            // const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
-            diff_abs = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs);
 
-            //_mm_f32_(diff_abs, 3) = 0.0f;
-            // const __m128 _vec3_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff));
-            diff_abs = _mm_and_ps(diff_abs, _vec3_valid_bits_sse);
+            const __m128i mask_to_complete_ones = _mm_setr_epi32(0, 0, 0, -1);
 
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            __m128i result_int = compare_almost_eq_ps(array_sse, v.array_sse);
+            result_int = _mm_or_si128(result_int, mask_to_complete_ones);
 
-            return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
+            int test_all_zero = _mm_test_all_ones(result_int);
+
+            return (bool)test_all_zero;
+
+            // __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
+            // // abs
+            // // const __m128 _vec3_sign_mask = _mm_setr_ps(-0.f, -0.f, -0.f, 0.0f);
+            // diff_abs = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs);
+
+            // //_mm_f32_(diff_abs, 3) = 0.0f;
+            // // const __m128 _vec3_valid_bits = _mm_castsi128_ps(_mm_set_epi32(0, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff));
+            // diff_abs = _mm_and_ps(diff_abs, _vec3_valid_bits_sse);
+
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+
+            // return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
 #elif defined(ITK_NEON)
 
-            float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
-            // abs
-            diff_abs = vabsq_f32(diff_abs);
+            uint32x4_t result_int = compare_almost_eq_ps(array_neon, v.array_neon);
+            
+            uint64x2_t cmp64 = vreinterpretq_u64_u32(result_int);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
-            diff_abs = vsetq_lane_f32(0.0f, diff_abs, 3);
+            // float32x4_t diff_abs = vsubq_f32(array_neon, v.array_neon);
+            // // abs
+            // diff_abs = vabsq_f32(diff_abs);
 
-            float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
-            acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+            // diff_abs = vsetq_lane_f32(0.0f, diff_abs, 3);
 
-            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
+            // float32x2_t acc_2_elements = vadd_f32(vget_high_f32(diff_abs), vget_low_f32(diff_abs));
+            // acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+
+            // return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

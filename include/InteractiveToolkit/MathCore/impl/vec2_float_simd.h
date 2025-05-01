@@ -284,26 +284,41 @@ namespace MathCore
         ITK_INLINE bool operator==(const self_type &v) const
         {
 #if defined(ITK_SSE2)
-            __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
-            // abs
 
-            diff_abs = _mm_andnot_ps(_vec2_sign_mask_sse, diff_abs);
+            const __m128i mask_to_complete_ones = _mm_setr_epi32(0, 0, -1, -1);
 
-            diff_abs = _mm_and_ps(diff_abs, _vec2_valid_bits_sse);
+            __m128i result_int = compare_almost_eq_ps(array_sse, v.array_sse);
+            result_int = _mm_or_si128(result_int, mask_to_complete_ones);
 
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
-            diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            int test_all_zero = _mm_test_all_ones(result_int);
 
-            return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
+            return (bool)test_all_zero;
+
+            // __m128 diff_abs = _mm_sub_ps(array_sse, v.array_sse);
+            // // abs
+
+            // diff_abs = _mm_andnot_ps(_vec2_sign_mask_sse, diff_abs);
+
+            // diff_abs = _mm_and_ps(diff_abs, _vec2_valid_bits_sse);
+
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+            // diff_abs = _mm_hadd_ps(diff_abs, diff_abs);
+
+            // return _mm_f32_(diff_abs, 0) <= EPSILON<_BaseType>::high_precision;
 #elif defined(ITK_NEON)
 
-            float32x2_t diff_abs = vsub_f32(array_neon, v.array_neon);
-            // abs
-            diff_abs = vabs_f32(diff_abs);
+            uint32x2_t result_int = compare_almost_eq_ps_v2(array_neon, v.array_neon);
+            
+            uint64x1_t cmp64 = vreinterpret_u64_u32(result_int);
+            return vget_lane_u64(cmp64, 0) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
-            float32x2_t acc_2_elements = vpadd_f32(diff_abs, diff_abs);
+            // float32x2_t diff_abs = vsub_f32(array_neon, v.array_neon);
+            // // abs
+            // diff_abs = vabs_f32(diff_abs);
 
-            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
+            // float32x2_t acc_2_elements = vpadd_f32(diff_abs, diff_abs);
+
+            // return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -516,12 +531,7 @@ namespace MathCore
 
             array_sse = _mm_div_ps(array_sse, param);
 #elif defined(ITK_NEON)
-#if defined(__aarch64__)
             array_neon = vdiv_f32(array_neon, v.array_neon);
-#else
-            const float32x2_t _one_v2 = vdup_n_f32(1.0f);
-            array_neon = vget_low_f32(vdivq_f32(vcombine_f32(array_neon, _one_v2), vcombine_f32(v.array_neon, _one_v2)));
-#endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

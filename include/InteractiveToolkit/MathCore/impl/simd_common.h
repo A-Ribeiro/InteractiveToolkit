@@ -519,14 +519,47 @@ namespace MathCore
         return minStep;
     }
 
+    ITK_INLINE __m128i compare_almost_eq_ps(const __m128 &a, const __m128 &b) noexcept
+    {
+        const __m128 high_precision = _mm_set1_ps(EPSILON<float>::high_precision);
+        const __m128 low_precision = _mm_set1_ps(EPSILON<float>::low_precision);
+
+        __m128 self_abs = _mm_andnot_ps(_vec4_sign_mask_sse, a);
+        __m128 v_abs = _mm_andnot_ps(_vec4_sign_mask_sse, b);
+
+        __m128 tolerance_scaled = _mm_max_ps(self_abs, v_abs);
+
+        // relative precision comparison
+        tolerance_scaled = _mm_mul_ps(tolerance_scaled, low_precision);
+        // fixed precision comparison
+        tolerance_scaled = _mm_max_ps(tolerance_scaled, high_precision);
+
+        __m128 sub_abs = _mm_sub_ps(a, b);
+        sub_abs = _mm_andnot_ps(_vec4_sign_mask_sse, sub_abs);
+
+        __m128 result = _mm_cmple_ps(sub_abs, tolerance_scaled);
+        __m128i result_int = _mm_castps_si128(result);
+
+        return result_int;
+    }
+
 #elif defined(ITK_NEON)
 
+#if !defined(__aarch64__)
     ITK_INLINE float32x4_t vdivq_f32(const float32x4_t &a, const float32x4_t &b)
     {
         float32x4_t recip0 = vrecpeq_f32(b);
         float32x4_t recip1 = vmulq_f32(recip0, vrecpsq_f32(recip0, b));
         return vmulq_f32(a, recip1);
     }
+
+    ITK_INLINE float32x2_t vdiv_f32(const float32x2_t &a, const float32x2_t &b)
+    {
+        float32x2_t recip0 = vrecpe_f32(b);
+        float32x2_t recip1 = vmul_f32(recip0, vrecps_f32(recip0, b));
+        return vmul_f32(a, recip1);
+    }
+#endif
 
     ITK_INLINE float32x4_t vshuffle_2301(const float32x4_t &a)
     {
@@ -842,7 +875,7 @@ namespace MathCore
     ITK_INLINE float32x4_t dot_neon_3(const float32x4_t &a, const float32x4_t &b)
     {
         float32x4_t aux = vsetq_lane_f32(0.0f, a, 3); // 2x faster
-        //aux[3] = 0;
+        // aux[3] = 0;
         return dot_neon_4(aux, b);
         // const float32x4_t _const_n = (float32x4_t){ 1,1,1,0 };
         // return dot_neon_4(vmulq_f32(a,_const_n),b);
@@ -866,6 +899,53 @@ namespace MathCore
         float32x2_t maxStep = vmax_f32(value, min);
         float32x2_t minStep = vmin_f32(maxStep, max);
         return minStep;
+    }
+
+
+    ITK_INLINE uint32x4_t compare_almost_eq_ps(const float32x4_t &a, const float32x4_t &b) noexcept
+    {
+        const float32x4_t high_precision = vdupq_n_f32(EPSILON<float>::high_precision);
+        const float32x4_t low_precision = vdupq_n_f32(EPSILON<float>::low_precision);
+
+        float32x4_t self_abs = vabsq_f32(a);
+        float32x4_t v_abs = vabsq_f32(b);
+
+        float32x4_t tolerance_scaled = vmaxq_f32(self_abs, v_abs);
+
+        // relative precision comparison
+        tolerance_scaled = vmulq_f32(tolerance_scaled, low_precision);
+        // fixed precision comparison
+        tolerance_scaled = vmaxq_f32(tolerance_scaled, high_precision);
+
+        float32x4_t sub_abs = vsubq_f32(a, b);
+        sub_abs = vabsq_f32(sub_abs);
+
+        uint32x4_t result_int = vcleq_f32(sub_abs, tolerance_scaled);
+
+        return result_int;
+    }
+
+    ITK_INLINE uint32x2_t compare_almost_eq_ps_v2(const float32x2_t &a, const float32x2_t &b) noexcept
+    {
+        const float32x2_t high_precision = vdup_n_f32(EPSILON<float>::high_precision);
+        const float32x2_t low_precision = vdup_n_f32(EPSILON<float>::low_precision);
+
+        float32x2_t self_abs = vabs_f32(a);
+        float32x2_t v_abs = vabs_f32(b);
+
+        float32x2_t tolerance_scaled = vmax_f32(self_abs, v_abs);
+
+        // relative precision comparison
+        tolerance_scaled = vmul_f32(tolerance_scaled, low_precision);
+        // fixed precision comparison
+        tolerance_scaled = vmax_f32(tolerance_scaled, high_precision);
+
+        float32x2_t sub_abs = vsub_f32(a, b);
+        sub_abs = vabs_f32(sub_abs);
+
+        uint32x2_t result_int = vcle_f32(sub_abs, tolerance_scaled);
+
+        return result_int;
     }
 
 #endif

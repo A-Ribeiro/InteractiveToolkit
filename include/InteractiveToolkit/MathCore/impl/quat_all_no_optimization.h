@@ -146,11 +146,15 @@ namespace MathCore
                       std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE bool operator==(const self_type &v) const
         {
-            _BaseType accumulator = _BaseType();
+            // _BaseType accumulator = _BaseType();
+            // for (int i = 0; i < 4; i++)
+            //     accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
+            // // accumulator += (std::abs)(array[i] - v.array[i]);
+            // return accumulator <= EPSILON<_BaseType>::high_precision;
+            bool equal = true;
             for (int i = 0; i < 4; i++)
-                accumulator += OP<_BaseType>::abs(array[i] - v.array[i]);
-            // accumulator += (std::abs)(array[i] - v.array[i]);
-            return accumulator <= EPSILON<_BaseType>::high_precision;
+                equal = equal && OP<float>::compare_almost_equal(array[i], v.array[i]);
+            return equal;
         }
 
         template <class _Type = _BaseType,
@@ -159,10 +163,10 @@ namespace MathCore
                   // std::is_integral<_Type>::value, bool>::type = true>
         ITK_INLINE bool operator==(const self_type &v) const
         {
+            bool equal = true;
             for (int i = 0; i < 4; i++)
-                if (array[i] != v.array[i])
-                    return false;
-            return true;
+                equal = equal && (array[i] == v.array[i]);
+            return equal;
         }
 
         // inter SIMD types converting...

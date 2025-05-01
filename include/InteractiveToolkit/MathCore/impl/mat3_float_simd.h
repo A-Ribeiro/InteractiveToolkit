@@ -620,59 +620,83 @@ namespace MathCore
 
 #if defined(ITK_SSE2)
 
-            // const __m128 _vec3_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
+            const __m128i mask_to_complete_ones = _mm_setr_epi32(0, 0, 0, -1);
 
-            __m128 diff_abs[3];
-            diff_abs[0] = _mm_sub_ps(array_sse[0], v.array_sse[0]);
-            diff_abs[0] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[0]); // abs
+            __m128i array_0 = compare_almost_eq_ps(array_sse[0], v.array_sse[0]);
+            __m128i array_1 = compare_almost_eq_ps(array_sse[1], v.array_sse[1]);
+            __m128i array_2 = compare_almost_eq_ps(array_sse[2], v.array_sse[2]);
 
-            diff_abs[1] = _mm_sub_ps(array_sse[1], v.array_sse[1]);
-            diff_abs[1] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[1]); // abs
+            __m128i array_01 = _mm_and_si128(array_0, array_1);
+            __m128i array_012 = _mm_and_si128(array_01, array_2);
 
-            diff_abs[2] = _mm_sub_ps(array_sse[2], v.array_sse[2]);
-            diff_abs[2] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[2]); // abs
+            array_012 = _mm_or_si128(array_012, mask_to_complete_ones);
 
-            __m128 accumulator_a = _mm_add_ps(diff_abs[0], diff_abs[1]);
-            //__m128 accumulator_b = _mm_add_ps(diff_abs[2], diff_abs[3]);
+            int test_all_zero = _mm_test_all_ones(array_012);
+            return (bool)test_all_zero;
 
-            __m128 accumulator = _mm_add_ps(accumulator_a, diff_abs[2]);
+            // // const __m128 _vec3_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
 
-            accumulator = _mm_and_ps(_vec3_valid_bits_sse, accumulator);
+            // __m128 diff_abs[3];
+            // diff_abs[0] = _mm_sub_ps(array_sse[0], v.array_sse[0]);
+            // diff_abs[0] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[0]); // abs
 
-            accumulator = _mm_hadd_ps(accumulator, accumulator);
-            accumulator = _mm_hadd_ps(accumulator, accumulator);
+            // diff_abs[1] = _mm_sub_ps(array_sse[1], v.array_sse[1]);
+            // diff_abs[1] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[1]); // abs
 
-            return _mm_f32_(accumulator, 0) <= EPSILON<_BaseType>::high_precision;
+            // diff_abs[2] = _mm_sub_ps(array_sse[2], v.array_sse[2]);
+            // diff_abs[2] = _mm_andnot_ps(_vec3_sign_mask_sse, diff_abs[2]); // abs
+
+            // __m128 accumulator_a = _mm_add_ps(diff_abs[0], diff_abs[1]);
+            // //__m128 accumulator_b = _mm_add_ps(diff_abs[2], diff_abs[3]);
+
+            // __m128 accumulator = _mm_add_ps(accumulator_a, diff_abs[2]);
+
+            // accumulator = _mm_and_ps(_vec3_valid_bits_sse, accumulator);
+
+            // accumulator = _mm_hadd_ps(accumulator, accumulator);
+            // accumulator = _mm_hadd_ps(accumulator, accumulator);
+
+            // return _mm_f32_(accumulator, 0) <= EPSILON<_BaseType>::high_precision;
 
 #elif defined(ITK_NEON)
 
-            float32x4_t diff_abs[3];
-            diff_abs[0] = vsubq_f32(array_neon[0], v.array_neon[0]);
-            diff_abs[0] = vabsq_f32(diff_abs[0]); // abs
+            uint32x4_t array_0 = compare_almost_eq_ps(array_neon[0], v.array_neon[0]);
+            uint32x4_t array_1 = compare_almost_eq_ps(array_neon[1], v.array_neon[1]);
+            uint32x4_t array_2 = compare_almost_eq_ps(array_neon[2], v.array_neon[2]);
 
-            diff_abs[1] = vsubq_f32(array_neon[1], v.array_neon[1]);
-            diff_abs[1] = vabsq_f32(diff_abs[1]); // abs
+            uint32x4_t array_01 = vandq_u32(array_0, array_1);
+            uint32x4_t array_012 = vandq_u32(array_01, array_2);
 
-            diff_abs[2] = vsubq_f32(array_neon[2], v.array_neon[2]);
-            diff_abs[2] = vabsq_f32(diff_abs[2]); // abs
+            uint64x2_t cmp64 = vreinterpretq_u64_u32(array_012);
+            return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0x00000000FFFFFFFF))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
-            // diff_abs[3] = vsubq_f32(array_neon[3], v.array_neon[3]);
-            // diff_abs[3] = vabsq_f32(diff_abs[3]); // abs
+            // float32x4_t diff_abs[3];
+            // diff_abs[0] = vsubq_f32(array_neon[0], v.array_neon[0]);
+            // diff_abs[0] = vabsq_f32(diff_abs[0]); // abs
 
-            float32x4_t accumulator_a = vaddq_f32(diff_abs[0], diff_abs[1]);
-            // float32x4_t accumulator_b = vaddq_f32(diff_abs[2], diff_abs[3]);
+            // diff_abs[1] = vsubq_f32(array_neon[1], v.array_neon[1]);
+            // diff_abs[1] = vabsq_f32(diff_abs[1]); // abs
 
-            float32x4_t acc_4_elements = vaddq_f32(accumulator_a, diff_abs[2]);
+            // diff_abs[2] = vsubq_f32(array_neon[2], v.array_neon[2]);
+            // diff_abs[2] = vabsq_f32(diff_abs[2]); // abs
 
-            // const float32x4_t mask = (float32x4_t){1.0,1.0,1.0,0.0};
-            // acc_4_elements = vmulq_f32(acc_4_elements, mask);
-            // acc_4_elements[3] = 0;
-            acc_4_elements = vsetq_lane_f32(0.0f, acc_4_elements, 3);
+            // // diff_abs[3] = vsubq_f32(array_neon[3], v.array_neon[3]);
+            // // diff_abs[3] = vabsq_f32(diff_abs[3]); // abs
 
-            float32x2_t acc_2_elements = vadd_f32(vget_high_f32(acc_4_elements), vget_low_f32(acc_4_elements));
-            acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+            // float32x4_t accumulator_a = vaddq_f32(diff_abs[0], diff_abs[1]);
+            // // float32x4_t accumulator_b = vaddq_f32(diff_abs[2], diff_abs[3]);
 
-            return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
+            // float32x4_t acc_4_elements = vaddq_f32(accumulator_a, diff_abs[2]);
+
+            // // const float32x4_t mask = (float32x4_t){1.0,1.0,1.0,0.0};
+            // // acc_4_elements = vmulq_f32(acc_4_elements, mask);
+            // // acc_4_elements[3] = 0;
+            // acc_4_elements = vsetq_lane_f32(0.0f, acc_4_elements, 3);
+
+            // float32x2_t acc_2_elements = vadd_f32(vget_high_f32(acc_4_elements), vget_low_f32(acc_4_elements));
+            // acc_2_elements = vpadd_f32(acc_2_elements, acc_2_elements);
+
+            // return vget_lane_f32(acc_2_elements, 0) <= EPSILON<_BaseType>::high_precision;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
