@@ -1168,7 +1168,7 @@ namespace MathCore
             using type_info = FloatTypeInfo<_type>;
             type2 dir = edge1 - edge0;
 
-            _type length_dir = self_type::maximum(self_type::length(dir), type_info::min);
+            _type length_dir = OP<_type>::maximum(self_type::length(dir), type_info::min);
 
             type2 value = x - edge0;
             value *= (_type)1 / length_dir;

@@ -49,7 +49,8 @@ namespace MathCore
             quatT rc;
             type3 &v = *(type3 *)&rc;
             v = OP<type3>::normalize(vp);
-            _type t = (_type)1 - OP<type3>::dot(v);
+            _type t = (_type)1 - OP<type3>::dot(v, v);
+            t = OP<_type>::maximum(t, (_type)0); // avoid negative numbers
             rc.w = OP<_type>::sqrt(t);
             return rc;
         }
