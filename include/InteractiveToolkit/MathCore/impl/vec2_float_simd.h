@@ -520,7 +520,7 @@ namespace MathCore
             array_neon = vdiv_f32(array_neon, v.array_neon);
 #else
             const float32x2_t _one_v2 = vdup_n_f32(1.0f);
-            array_neon = vget_low_f32(vdivq_f32(vcombine_f32(vget_low_f32(array_neon), _one_v2), vcombine_f32(vget_low_f32(v.array_neon), _one_v2)));
+            array_neon = vget_low_f32(vdivq_f32(vcombine_f32(array_neon, _one_v2), vcombine_f32(v.array_neon, _one_v2)));
 #endif
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
