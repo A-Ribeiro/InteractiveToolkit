@@ -448,9 +448,13 @@ namespace MathCore
             const __m128 _invb = _mm_setr_ps(.0f, -.0f, .0f, -.0f);
             const __m128 _invc = _mm_setr_ps(.0f, -.0f, -.0f, .0f);
 
-            __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
-            __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
-            __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
+            __m128 _1st = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[0], m.array_sse[0], _MM_SHUFFLE(0, 0, 0, 0)), _inva);
+            __m128 _2nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[1], m.array_sse[1], _MM_SHUFFLE(1, 1, 1, 1)), _invb);
+            __m128 _3nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
+
+            // __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
+            // __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
+            // __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
 
             __m128 sum_a = _mm_add_ps(_vec4_one_sse, _1st);
             __m128 sum_b = _mm_add_ps(_2nd, _3nd);
@@ -524,11 +528,23 @@ namespace MathCore
             }
 
 #elif defined(ITK_NEON)
-            type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
-            type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
-            type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
 
-            type4 sum_a = type4(1.0f) + _1st;
+            const uint32x4_t _inva = vreinterpretq_u32_f32((float32x4_t){.0f, .0f, -.0f, -.0f});
+            const uint32x4_t _invb = vreinterpretq_u32_f32((float32x4_t){.0f, -.0f, .0f, -.0f});
+            const uint32x4_t _invc = vreinterpretq_u32_f32((float32x4_t){.0f, -.0f, -.0f, .0f});
+
+            type4 _1st(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_0000(m.array_neon[0])), _inva)));
+            type4 _2nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_1111(m.array_neon[1])), _invb)));
+            type4 _3nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
+
+            // type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
+            // type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
+            // type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
+
+            const type4 t4_all_one(1.0f);
+
+            //type4 sum_a = type4(1.0f) + _1st;
+            type4 sum_a = t4_all_one + _1st;
             type4 sum_b = _2nd + _3nd;
 
             type4 sum = sum_a + sum_b;
@@ -636,9 +652,13 @@ namespace MathCore
             const __m128 _invb = _mm_setr_ps(.0f, -.0f, .0f, -.0f);
             const __m128 _invc = _mm_setr_ps(.0f, -.0f, -.0f, .0f);
 
-            __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
-            __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
-            __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
+            __m128 _1st = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[0], m.array_sse[0], _MM_SHUFFLE(0, 0, 0, 0)), _inva);
+            __m128 _2nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[1], m.array_sse[1], _MM_SHUFFLE(1, 1, 1, 1)), _invb);
+            __m128 _3nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
+
+            // __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
+            // __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
+            // __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
 
             __m128 sum_a = _mm_add_ps(_vec4_one_sse, _1st);
             __m128 sum_b = _mm_add_ps(_2nd, _3nd);
@@ -712,11 +732,22 @@ namespace MathCore
             }
 
 #elif defined(ITK_NEON)
-            type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
-            type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
-            type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
 
-            type4 sum_a = type4(1.0f) + _1st;
+            const uint32x4_t _inva = vreinterpretq_u32_f32((float32x4_t){.0f, .0f, -.0f, -.0f});
+            const uint32x4_t _invb = vreinterpretq_u32_f32((float32x4_t){.0f, -.0f, .0f, -.0f});
+            const uint32x4_t _invc = vreinterpretq_u32_f32((float32x4_t){.0f, -.0f, -.0f, .0f});
+
+            type4 _1st(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_0000(m.array_neon[0])), _inva)));
+            type4 _2nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_1111(m.array_neon[1])), _invb)));
+            type4 _3nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
+
+            // type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
+            // type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
+            // type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
+
+            const type4 t4_all_one(1.0f);
+
+            type4 sum_a = t4_all_one + _1st;
             type4 sum_b = _2nd + _3nd;
 
             type4 sum = sum_a + sum_b;

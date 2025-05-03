@@ -546,14 +546,14 @@ namespace MathCore
 #elif defined(ITK_NEON)
 
 #if !defined(__aarch64__)
-    ITK_INLINE float32x4_t vdivq_f32(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vdivq_f32(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x4_t recip0 = vrecpeq_f32(b);
         float32x4_t recip1 = vmulq_f32(recip0, vrecpsq_f32(recip0, b));
         return vmulq_f32(a, recip1);
     }
 
-    ITK_INLINE float32x2_t vdiv_f32(const float32x2_t &a, const float32x2_t &b)
+    ITK_INLINE float32x2_t vdiv_f32(const float32x2_t &a, const float32x2_t &b) noexcept
     {
         float32x2_t recip0 = vrecpe_f32(b);
         float32x2_t recip1 = vmul_f32(recip0, vrecps_f32(recip0, b));
@@ -561,49 +561,53 @@ namespace MathCore
     }
 #endif
 
-    ITK_INLINE float32x4_t vshuffle_2301(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2301(const float32x4_t &a) noexcept
     {
         return vrev64q_f32(a);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1032(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1032(const float32x4_t &a) noexcept
     {
         return vcombine_f32(vget_high_f32(a), vget_low_f32(a));
     }
 
-    ITK_INLINE float32x4_t vshuffle_0123(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0123(const float32x4_t &a) noexcept
     {
         return vshuffle_2301(vshuffle_1032(a));
     }
 
-    ITK_INLINE float32x4_t vshuffle_0000(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0000(const float32x4_t &a) noexcept
     {
-        return vdupq_lane_f32(vget_low_f32(a), 0); // a[0]
+        // return vdupq_lane_f32(vget_low_f32(a), 0); // a[0]
+        return vdupq_n_f32(vgetq_lane_f32(a, 0));
     }
 
-    ITK_INLINE float32x4_t vshuffle_1111(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1111(const float32x4_t &a) noexcept
     {
-        return vdupq_lane_f32(vget_low_f32(a), 1); // a[1]
+        // return vdupq_lane_f32(vget_low_f32(a), 1); // a[1]
+        return vdupq_n_f32(vgetq_lane_f32(a, 1));
     }
 
-    ITK_INLINE float32x4_t vshuffle_2222(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2222(const float32x4_t &a) noexcept
     {
-        return vdupq_lane_f32(vget_high_f32(a), 0); // a[2]
+        // return vdupq_lane_f32(vget_high_f32(a), 0); // a[2]
+        return vdupq_n_f32(vgetq_lane_f32(a, 2));
     }
 
-    ITK_INLINE float32x4_t vshuffle_3333(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3333(const float32x4_t &a) noexcept
     {
-        return vdupq_lane_f32(vget_high_f32(a), 1); // a[3]
+        // return vdupq_lane_f32(vget_high_f32(a), 1); // a[3]
+        return vdupq_n_f32(vgetq_lane_f32(a, 3));
     }
 
-    ITK_INLINE float32x4_t vshuffle_0210(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0210(const float32x4_t &a) noexcept
     {
         float32x2_t l0 = vget_low_f32(a);
         float32x2x2_t r = vtrn_f32(vget_high_f32(a), l0);
         return vcombine_f32(l0, r.val[0]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0333(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0333(const float32x4_t &a) noexcept
     {
         float32x4_t r = vshuffle_3333(a);
         // const float32x4_t _zero = vset1(0);
@@ -611,149 +615,149 @@ namespace MathCore
         return vextq_f32(r, _zero, 1);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1021(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1021(const float32x4_t &a) noexcept
     {
         return vcombine_f32(vget_low_f32(vextq_f32(a, a, 1)), vget_low_f32(a));
     }
 
-    ITK_INLINE float32x4_t vshuffle_1102(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1102(const float32x4_t &a) noexcept
     {
         float32x2_t l0 = vget_low_f32(a);
         float32x2x2_t r = vtrn_f32(vget_high_f32(a), l0);
         return vcombine_f32(r.val[0], vdup_lane_f32(l0, 1));
     }
 
-    ITK_INLINE float32x4_t vshuffle_2102(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2102(const float32x4_t &a) noexcept
     {
         float32x4_t r = vshuffle_2222(a);
         return vextq_f32(r, a, 3);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2021(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2021(const float32x4_t &a) noexcept
     {
         float32x4_t _21 = vextq_f32(a, a, 1);
         float32x2x2_t _trn = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(vget_low_f32(_21), _trn.val[0]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_3021(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3021(const float32x4_t &a) noexcept
     {
         float32x2x2_t r = vtrn_f32(vrev64_f32(vget_low_f32(a)), vget_high_f32(a));
         return vcombine_f32(r.val[0], r.val[1]);
     }
 
     // TODO: need test this shuffle...
-    ITK_INLINE float32x4_t vshuffle_3120(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3120(const float32x4_t &a) noexcept
     {
         float32x2x2_t r = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(r.val[0], r.val[1]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_3102(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3102(const float32x4_t &a) noexcept
     {
         float32x2x2_t r = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(vrev64_f32(r.val[0]), r.val[1]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2000(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2000(const float32x4_t &a) noexcept
     {
-        float32x4_t _zero = vdupq_lane_f32(vget_low_f32(a), 0);
-        float32x4_t _two = vdupq_lane_f32(vget_high_f32(a), 0);
+        float32x4_t _zero = vshuffle_0000(a);
+        float32x4_t _two = vshuffle_2222(a);
         return vextq_f32(_zero, _two, 1);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2220(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2220(const float32x4_t &a) noexcept
     {
-        float32x4_t _zero = vdupq_lane_f32(vget_low_f32(a), 0);
-        float32x4_t _two = vdupq_lane_f32(vget_high_f32(a), 0);
+        float32x4_t _zero = vshuffle_0000(a);
+        float32x4_t _two = vshuffle_2222(a);
         return vextq_f32(_zero, _two, 3);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1110_test(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1110_test(const float32x4_t &a) noexcept
     {
-        float32x4_t _a = vdupq_lane_f32(vget_low_f32(a), 0);
-        float32x4_t _b = vdupq_lane_f32(vget_high_f32(a), 1);
+        float32x4_t _a = vshuffle_0000(a);
+        float32x4_t _b = vshuffle_1111(a);
         return vextq_f32(_a, _b, 3);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1110(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1110(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 1);
         return vcombine_f32(_a_low, _b);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0001(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0001(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 0);
         return vcombine_f32(vrev64_f32(_a_low), _b);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1101(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1101(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 1);
         return vcombine_f32(vrev64_f32(_a_low), _b);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0010(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0010(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 0);
         return vcombine_f32(_a_low, _b);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1011(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1011(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 1);
         return vcombine_f32(_b, _a_low);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0100(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0100(const float32x4_t &a) noexcept
     {
         float32x2_t _a_low = vget_low_f32(a);
         float32x2_t _b = vdup_lane_f32(_a_low, 0);
         return vcombine_f32(_b, vrev64_f32(_a_low));
     }
 
-    ITK_INLINE float32x4_t vshuffle_0221(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0221(const float32x4_t &a) noexcept
     {
         float32x2_t l0 = vget_low_f32(a);
         float32x2x2_t r = vtrn_f32(vget_high_f32(a), l0);
         return vcombine_f32(vget_low_f32(vextq_f32(a, a, 1)), r.val[0]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0000(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_0000(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2_t a_ = vdup_lane_f32(vget_low_f32(a), 0);
         float32x2_t b_ = vdup_lane_f32(vget_low_f32(b), 0);
         return vcombine_f32(a_, b_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1111(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_1111(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2_t a_ = vdup_lane_f32(vget_low_f32(a), 1);
         float32x2_t b_ = vdup_lane_f32(vget_low_f32(b), 1);
         return vcombine_f32(a_, b_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2222(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_2222(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2_t a_ = vdup_lane_f32(vget_high_f32(a), 0);
         float32x2_t b_ = vdup_lane_f32(vget_high_f32(b), 0);
         return vcombine_f32(a_, b_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_3333(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_3333(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2_t a_ = vdup_lane_f32(vget_high_f32(a), 1);
         float32x2_t b_ = vdup_lane_f32(vget_high_f32(b), 1);
         return vcombine_f32(a_, b_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2020(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_2020(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2x2_t a_ = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         float32x2x2_t b_ = vtrn_f32(vget_low_f32(b), vget_high_f32(b));
@@ -768,100 +772,100 @@ namespace MathCore
     //5 4 2 1
 
     */
-    ITK_INLINE float32x4_t vmovehl(const float32x4_t &__A, const float32x4_t &__B)
+    ITK_INLINE float32x4_t vmovehl(const float32x4_t &__A, const float32x4_t &__B) noexcept
     {
         return vcombine_f32(vget_high_f32(__B), vget_high_f32(__A));
     }
 
-    ITK_INLINE float32x4_t vshuffle_0112(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0112(const float32x4_t &a) noexcept
     {
         float32x2_t _01_ = vrev64_f32(vget_low_f32(a));
         float32x2_t _12_ = vrev64_f32(vget_low_f32(vextq_f32(a, a, 1)));
         return vcombine_f32(_12_, _01_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_3233(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3233(const float32x4_t &a) noexcept
     {
         float32x2_t _32_ = vget_high_f32(a);
         float32x2_t _33_ = vdup_lane_f32(vget_high_f32(a), 1);
         return vcombine_f32(_33_, _32_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0012(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0012(const float32x4_t &a) noexcept
     {
         float32x2_t _12_ = vrev64_f32(vget_low_f32(vextq_f32(a, a, 1)));
         float32x2_t _00_ = vdup_lane_f32(vget_low_f32(a), 0);
         return vcombine_f32(_12_, _00_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1200(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1200(const float32x4_t &a) noexcept
     {
         float32x2_t _12_ = vrev64_f32(vget_low_f32(vextq_f32(a, a, 1)));
         float32x2_t _00_ = vdup_lane_f32(vget_low_f32(a), 0);
         return vcombine_f32(_00_, _12_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2100(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2100(const float32x4_t &a) noexcept
     {
         float32x2_t _21_ = vget_low_f32(vextq_f32(a, a, 1));
         float32x2_t _00_ = vdup_lane_f32(vget_low_f32(a), 0);
         return vcombine_f32(_00_, _21_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a) noexcept
     {
         float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(_31_a.val[1], vdup_lane_f32(vget_low_f32(a), 0));
     }
 
-    ITK_INLINE float32x4_t vshuffle_3110(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3110(const float32x4_t &a) noexcept
     {
         float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(vget_low_f32(a), _31_a.val[1]);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1122(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1122(const float32x4_t &a) noexcept
     {
         float32x4_t _two = vshuffle_2222(a);
         float32x4_t _one = vshuffle_1111(a);
         return vextq_f32(_two, _one, 2);
     }
 
-    ITK_INLINE float32x4_t vshuffle_1022(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_1022(const float32x4_t &a) noexcept
     {
         float32x2_t _10_ = vget_low_f32(a);
         float32x2_t _22_ = vdup_lane_f32(vget_high_f32(a), 0);
         return vcombine_f32(_22_, _10_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_3320(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_3320(const float32x4_t &a) noexcept
     {
         float32x2x2_t _20_ = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         float32x2_t _33_ = vdup_lane_f32(vget_high_f32(a), 1);
         return vcombine_f32(_20_.val[0], _33_);
     }
 
-    ITK_INLINE float32x4_t vshuffle_2333(const float32x4_t &a)
+    ITK_INLINE float32x4_t vshuffle_2333(const float32x4_t &a) noexcept
     {
         float32x4_t r = vshuffle_3333(a);
         float32x4_t _two = vshuffle_2222(a);
         return vextq_f32(r, _two, 1);
     }
 
-    ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_0031(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2x2_t _31_a = vtrn_f32(vget_low_f32(a), vget_high_f32(a));
         return vcombine_f32(_31_a.val[1], vdup_lane_f32(vget_low_f32(b), 0));
     }
 
-    ITK_INLINE float32x4_t vshuffle_1022(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t vshuffle_1022(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x2_t _22_ = vdup_lane_f32(vget_high_f32(a), 0);
         float32x2_t _10_ = vget_low_f32(b);
         return vcombine_f32(_22_, _10_);
     }
 
-    ITK_INLINE float32x4_t dot_neon_4(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t dot_neon_4(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x4_t prod = vmulq_f32(a, b);
         // sum1 = [ 0+2, 1+3, 2+0, 3+1 ]
@@ -872,7 +876,7 @@ namespace MathCore
         return sum2;
     }
 
-    ITK_INLINE float32x4_t dot_neon_3(const float32x4_t &a, const float32x4_t &b)
+    ITK_INLINE float32x4_t dot_neon_3(const float32x4_t &a, const float32x4_t &b) noexcept
     {
         float32x4_t aux = vsetq_lane_f32(0.0f, a, 3); // 2x faster
         // aux[3] = 0;
@@ -881,26 +885,25 @@ namespace MathCore
         // return dot_neon_4(vmulq_f32(a,_const_n),b);
     }
 
-    ITK_INLINE float32x2_t dot_neon_2(const float32x2_t &a, const float32x2_t &b)
+    ITK_INLINE float32x2_t dot_neon_2(const float32x2_t &a, const float32x2_t &b) noexcept
     {
         float32x2_t mul0 = vmul_f32(a, b);
         return vpadd_f32(mul0, mul0);
     }
 
-    ITK_INLINE float32x4_t clamp_neon_4(const float32x4_t &value, const float32x4_t &min, const float32x4_t &max)
+    ITK_INLINE float32x4_t clamp_neon_4(const float32x4_t &value, const float32x4_t &min, const float32x4_t &max) noexcept
     {
         float32x4_t maxStep = vmaxq_f32(value, min);
         float32x4_t minStep = vminq_f32(maxStep, max);
         return minStep;
     }
 
-    ITK_INLINE float32x2_t clamp_neon_4_v2(const float32x2_t &value, const float32x2_t &min, const float32x2_t &max)
+    ITK_INLINE float32x2_t clamp_neon_4_v2(const float32x2_t &value, const float32x2_t &min, const float32x2_t &max) noexcept
     {
         float32x2_t maxStep = vmax_f32(value, min);
         float32x2_t minStep = vmin_f32(maxStep, max);
         return minStep;
     }
-
 
     ITK_INLINE uint32x4_t compare_almost_eq_ps(const float32x4_t &a, const float32x4_t &b) noexcept
     {
