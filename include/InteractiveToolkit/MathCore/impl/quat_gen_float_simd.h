@@ -266,7 +266,16 @@ namespace MathCore
 
             float32x4_t mul1 = vmulq_f32(row1, pitch1);
             mul1 = vmulq_f32(mul1, yaw1);
-            mul1 = vmulq_f32(mul1, (float32x4_t){-1.0f, 1.0f, -1.0f, 1.0f});
+            
+            //mul1 = vmulq_f32(mul1, (float32x4_t){-1.0f, 1.0f, -1.0f, 1.0f});
+
+            const uint32x4_t _mask_xor = vreinterpretq_u32_f32(
+                (float32x4_t){-0.0f, 0.0f, -0.0f, 0.0f}
+            );
+    
+            mul1 = vreinterpretq_f32_u32(
+                veorq_u32(vreinterpretq_u32_f32(mul1), _mask_xor)
+            );
 
             return vaddq_f32(mul0, mul1);
 #else
