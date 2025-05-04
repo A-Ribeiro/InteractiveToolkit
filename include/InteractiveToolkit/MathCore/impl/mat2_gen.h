@@ -46,7 +46,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat2 scale(const typeVec4 &_v_) noexcept
         {
-            return typeMat4(
+            return typeMat2(
                 _v_.x, 0,
                 0, _v_.y);
         }

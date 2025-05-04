@@ -1376,9 +1376,37 @@ namespace MathCore
             return result;
 
 #elif defined(ITK_NEON)
-            return type2(
-                OP<_type>::fmod(a.x, b.x),
-                OP<_type>::fmod(a.y, b.y));
+
+            // float f = (a / b);
+            float32x2_t f = vdiv_f32(a.array_neon, b.array_neon);
+
+            // float r = (float)(int)f;
+            uint32x2_t r = vreinterpret_u32_f32(vcvt_f32_s32(vcvt_s32_f32(f)));
+
+            // two possible values:
+            // - 8388608.f (23bits)
+            // - 2147483648.f (31bits)
+            // Any value greater than this, will have integral mantissa...
+            // and no decimal part
+            //
+            // uint32_t &r_uint = *(uint32_t *)&r;
+            // uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
+            // r_uint = r_uint & mask;
+
+            // if ((abs(f) > 2**31 )) r = f;
+            // const __m128 _sign_bit = _mm_set1_ps(-0.f);
+            const float32x2_t _max_f = vdup_n_f32(8388608.f);
+            uint32x2_t m = vcgt_f32(_max_f, vabs_f32(f));
+            r = vand_u32(m, r);
+
+            // return a - r * b;
+            float32x2_t result = vmul_f32(vreinterpret_f32_u32(r), b.array_neon);
+
+            result = vsub_f32(a.array_neon, result);
+            return result;
+            // return type2(
+            //     OP<_type>::fmod(a.x, b.x),
+            //     OP<_type>::fmod(a.y, b.y));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -1396,12 +1424,13 @@ namespace MathCore
             // type2 _sign = self_type::sign(_sub);
             // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
-            type2 _sub = v - threshould;
-            type2 _sign = self_type::sign(_sub);
-
-            const float32x2_t _vec2_zero = vset1_v2(0.0f);
-
-            return self_type::maximum(_sign, _vec2_zero);
+            uint32x2_t _cmp = vcge_f32(v.array_neon, threshould.array_neon);
+            uint32x2_t _rc = vand_u32(_cmp, _vec4_one_u);
+            return vreinterpret_f32_u32(_rc);
+            // type2 _sub = v - threshould;
+            // type2 _sign = self_type::sign(_sub);
+            // const float32x2_t _vec2_zero = vset1_v2(0.0f);
+            // return self_type::maximum(_sign, _vec2_zero);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

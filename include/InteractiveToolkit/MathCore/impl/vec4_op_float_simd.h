@@ -1273,14 +1273,14 @@ namespace MathCore
             __m128 sign = _mm_or_ps(sign_aux, _vec4_one_sse);
             return sign;
 #elif defined(ITK_NEON)
-            const int32x4_t v4_mask = vdupq_n_s32(0x80000000);
-            const int32x4_t v4_one = vreinterpretq_s32_f32(vdupq_n_f32(1.0f));
+            const uint32x4_t v4_mask = vdupq_n_u32(0x80000000);
+            const uint32x4_t v4_one = vreinterpretq_u32_f32(vdupq_n_f32(1.0f));
 
-            int32x4_t sign_aux = vreinterpretq_s32_f32(v.array_neon);
-            sign_aux = vandq_s32(sign_aux, v4_mask);
-            int32x4_t sign = vorrq_s32(sign_aux, v4_one);
+            uint32x4_t sign_aux = vreinterpretq_u32_f32(v.array_neon);
+            sign_aux = vandq_u32(sign_aux, v4_mask);
+            uint32x4_t sign = vorrq_u32(sign_aux, v4_one);
 
-            return vreinterpretq_f32_s32(sign);
+            return vreinterpretq_f32_u32(sign);
             // return type4(
             //     OP<_type>::sign(v.x),
             //     OP<_type>::sign(v.y),

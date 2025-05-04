@@ -624,7 +624,7 @@ namespace MathCore
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
 
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
 
@@ -655,7 +655,7 @@ namespace MathCore
         {
             typeVec4 lookTo = front;
             typeVec4 x, y, z;
-            z = OP<typeVec4>::normalize(lookTo) * -1;
+            z = -OP<typeVec4>::normalize(lookTo);
             x = OP<typeVec4>::normalize(OP<typeVec4>::cross(up, z));
             y = OP<typeVec4>::cross(z, x);
 
@@ -685,7 +685,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
             return // scale(0.002f,0.002f,0.002f)*
@@ -713,7 +713,7 @@ namespace MathCore
         {
             typeVec4 lookTo = front;
             typeVec4 x, y, z;
-            z = OP<typeVec4>::normalize(lookTo) * -1;
+            z = -OP<typeVec4>::normalize(lookTo);
             x = OP<typeVec4>::normalize(OP<typeVec4>::cross(up, z));
             y = OP<typeVec4>::cross(z, x);
             return // scale(0.002f,0.002f,0.002f)*
@@ -740,18 +740,18 @@ namespace MathCore
         static ITK_INLINE typeMat4 lookAtRotationRH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
-            typeVec2 side = OP<typeVec2>::cross_z_up(front);
+            typeVec2 side = OP<typeVec2>::cross_z_down(front);
 
             typeVec4 x, y, z, w;
             w = typeVec4(position.x, position.y, 0, 1);
             z = typeVec4(0, 0, 1, 0);
-            x = typeVec4(front.x, front.y, 0, 0) * -1;
+            x = typeVec4(front.x, front.y, 0, 0);
             y = typeVec4(side.x, side.y, 0, 0);
 
             return typeMat4(x, y, z, w);
         }
 
-        static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec3 &_front, const typeVec2 &position) noexcept
+        static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
             typeVec2 side = OP<typeVec2>::cross_z_up(front);

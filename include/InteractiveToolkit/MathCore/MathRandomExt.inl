@@ -34,9 +34,23 @@ namespace MathCore
             return random->getDouble01();
         }
 
+        template <typename _math_type_f,
+                  typename std::enable_if<
+                      !MathTypeInfo<_math_type_f>::_is_valid::value &&                               //
+                          std::is_floating_point<_math_type_f>::value //
+                      ,
+                      bool>::type = true>
+        ITK_INLINE _math_type_f nextRange(const _math_type_f &min, const _math_type_f &max)
+        {
+            _math_type_f delta = max - min;
+            delta *= next01<_math_type_f>();
+            return min + delta;
+        }
+
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                               //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextRange(const _math_type &min, const _math_type &max)
@@ -48,8 +62,9 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_integral<typename MathTypeInfo<_math_type>::_type>::value && //
-                          MathTypeInfo<_math_type>::_is_vec::value                         //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                            //
+                          std::is_integral<typename MathTypeInfo<_math_type>::_type>::value && //
+                          MathTypeInfo<_math_type>::_is_vec::value                             //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextRange(const _math_type &min, const _math_type &max)
@@ -62,8 +77,9 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_integral<typename MathTypeInfo<_math_type>::_type>::value && //
-                          !MathTypeInfo<_math_type>::_is_vec::value                        //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                            //
+                          std::is_integral<typename MathTypeInfo<_math_type>::_type>::value && //
+                          !MathTypeInfo<_math_type>::_is_vec::value                            //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextRange(const _math_type &min, const _math_type &max)
@@ -78,8 +94,9 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
-                          MathTypeInfo<_math_type>::_is_vec::value                               //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                                  //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
+                          MathTypeInfo<_math_type>::_is_vec::value                                   //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type next()
@@ -94,8 +111,9 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
-                          !MathTypeInfo<_math_type>::_is_vec::value                              //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                                  //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
+                          !MathTypeInfo<_math_type>::_is_vec::value                                  //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type next()
@@ -111,8 +129,9 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
-                          MathTypeInfo<_math_type>::_is_vec::value                               //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                                  //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value && //
+                          MathTypeInfo<_math_type>::_is_vec::value                                   //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextDirection(bool homogeneous = false)
@@ -133,9 +152,10 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      (std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec3>::value ||  //
-                       std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec4>::value) && //
-                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value                     //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                                                       //
+                          (std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec3>::value ||  //
+                           std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec4>::value) && //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value                         //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextUVW()
@@ -160,9 +180,10 @@ namespace MathCore
 
         template <typename _math_type,
                   typename std::enable_if<
-                      (std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec3>::value ||  //
-                       std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec4>::value) && //
-                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value                     //
+                      MathTypeInfo<_math_type>::_is_valid::value &&                                                       //
+                          (std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec3>::value ||  //
+                           std::is_same<typename MathTypeInfo<_math_type>::_class, MathTypeClass::_class_vec4>::value) && //
+                          std::is_floating_point<typename MathTypeInfo<_math_type>::_type>::value                         //
                       ,
                       bool>::type = true>
         ITK_INLINE _math_type nextPointInsideTriangle(const _math_type &a, const _math_type &b, const _math_type &c)
@@ -183,7 +204,6 @@ namespace MathCore
                 result[3] = (_f_type)1;
             return result;
         }
-
     };
 
 }

@@ -1283,14 +1283,14 @@ namespace MathCore
             __m128 sign = _mm_or_ps(sign_aux, _vec3_one_sse);
             return sign;
 #elif defined(ITK_NEON)
-            const int32x4_t v4_mask = vdupq_n_s32(0x80000000);
-            const int32x4_t v4_one = vreinterpretq_s32_f32(vdupq_n_f32(1.0f));
+            const uint32x4_t v4_mask = vdupq_n_u32(0x80000000);
+            const uint32x4_t v4_one = vreinterpretq_u32_f32(vdupq_n_f32(1.0f));
 
-            int32x4_t sign_aux = vreinterpretq_s32_f32(v.array_neon);
-            sign_aux = vandq_s32(sign_aux, v4_mask);
-            int32x4_t sign = vorrq_s32(sign_aux, v4_one);
+            uint32x4_t sign_aux = vreinterpretq_u32_f32(v.array_neon);
+            sign_aux = vandq_u32(sign_aux, v4_mask);
+            uint32x4_t sign = vorrq_u32(sign_aux, v4_one);
 
-            return vreinterpretq_f32_s32(sign);
+            return vreinterpretq_f32_u32(sign);
 
             // return type3(
             //     OP<_type>::sign(v.x),
@@ -1411,11 +1411,6 @@ namespace MathCore
             return result;
 
 #elif defined(ITK_NEON)
-            // return type4(
-            //     OP<_type>::fmod(a.x, b.x),
-            //     OP<_type>::fmod(a.y, b.y),
-            //     OP<_type>::fmod(a.z, b.z),
-            //     OP<_type>::fmod(a.w, b.w));
 
             // float f = (a / b);
             float32x4_t f = vdivq_f32(a.array_neon, b.array_neon);
@@ -1466,9 +1461,12 @@ namespace MathCore
             // type3 _sign = self_type::sign(_sub);
             // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
-            type3 _sub = v - threshould;
-            type3 _sign = self_type::sign(_sub);
-            return self_type::maximum(_sign, _vec4_zero);
+            uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshould.array_neon);
+            uint32x4_t _rc = vandq_u32(_cmp, _vec4_one_u);
+            return vreinterpretq_f32_u32(_rc);
+            // type3 _sub = v - threshould;
+            // type3 _sign = self_type::sign(_sub);
+            // return self_type::maximum(_sign, _vec4_zero);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

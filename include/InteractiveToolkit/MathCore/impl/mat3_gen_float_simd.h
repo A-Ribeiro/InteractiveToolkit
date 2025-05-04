@@ -376,13 +376,13 @@ namespace MathCore
 
             typeVec3 x, y, z;
             z = typeVec3(position, 1);
-            x = typeVec3(front, 0) * -1;
+            x = -typeVec3(front, 0);
             y = typeVec3(side, 0);
 
             return typeMat3(x, y, z);
         }
 
-        static ITK_INLINE typeMat3 lookAtRotationLH(const typeVec3 &_front, const typeVec2 &position) noexcept
+        static ITK_INLINE typeMat3 lookAtRotationLH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
             typeVec2 side = OP<typeVec2>::cross_z_up(front);
@@ -399,7 +399,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
             return typeMat3(x, y, z);
@@ -419,7 +419,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(*(const typeVec3 *)&lookTo) * -1;
+            z = -OP<typeVec3>::normalize(*(const typeVec3 *)&lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(*(const typeVec3 *)&up, z));
             y = OP<typeVec3>::cross(z, x);
             return typeMat3(x, y, z);
@@ -495,33 +495,39 @@ namespace MathCore
             float32x4_t xy_xz_yz = vmulq_f32(op0, op1);
             float32x4_t wx_wy_wz = vmulq_f32(vshuffle_3333(q.array_neon), q.array_neon);
 
-            const float32x4_t _2 = vset1(2.0f);
+            //const float32x4_t _2 = vset1(2.0f);
+            const float32x4_t mask_a = (float32x4_t){-2.0f, 2.0f, 2.0f, 0.0f};
+            const float32x4_t mask_b = (float32x4_t){2.0f, -2.0f, 2.0f, 0.0f};
+            const float32x4_t mask_c = (float32x4_t){2.0f, 2.0f, -2.0f, 0.0f};
 
             float32x4_t m0 =
-                vmulq_f32(_2, (float32x4_t){
+                vmulq_f32(mask_a, (float32x4_t){
                                   (x2y2z2[1] + x2y2z2[2]),
                                   (xy_xz_yz[0] + wx_wy_wz[2]),
                                   (xy_xz_yz[1] - wx_wy_wz[1]),
                                   0});
 
-            m0[0] = 1.0f - m0[0];
+            //m0[0] = 1.0f - m0[0];
+            m0 = vaddq_f32(m0, _neon_1000);
 
             float32x4_t m1 =
-                vmulq_f32(_2, (float32x4_t){
+                vmulq_f32(mask_b, (float32x4_t){
                                   (xy_xz_yz[0] - wx_wy_wz[2]),
                                   (x2y2z2[0] + x2y2z2[2]),
                                   (xy_xz_yz[2] + wx_wy_wz[0]),
                                   0});
-            m1[1] = 1.0f - m1[1];
+            //m1[1] = 1.0f - m1[1];
+            m1 = vaddq_f32(m1, _neon_0100);
 
             float32x4_t m2 =
-                vmulq_f32(_2, (float32x4_t){
+                vmulq_f32(mask_c, (float32x4_t){
                                   (xy_xz_yz[1] + wx_wy_wz[1]),
                                   (xy_xz_yz[2] - wx_wy_wz[0]),
                                   (x2y2z2[0] + x2y2z2[1]),
                                   0});
 
-            m2[2] = 1.0f - m2[2];
+            //m2[2] = 1.0f - m2[2];
+            m2 = vaddq_f32(m2, _neon_0010);
 
             // const float32x4_t m3 = (float32x4_t){0,0,0,1.0f};
 

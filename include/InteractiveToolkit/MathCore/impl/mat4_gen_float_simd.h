@@ -81,7 +81,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
             __m128 _t = _v_.array_sse;
-            _mm_f32_(_t,3) = 1.0f;
+            _mm_f32_(_t, 3) = 1.0f;
             return typeMat4(_vec4_1000_sse,
                             _vec4_0100_sse,
                             _vec4_0010_sse,
@@ -107,7 +107,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
             __m128 _t = _v_.array_sse;
-            _mm_f32_(_t,3) = 1.0f;
+            _mm_f32_(_t, 3) = 1.0f;
             return typeMat4(_vec4_1000_sse,
                             _vec4_0100_sse,
                             _vec4_0010_sse,
@@ -755,7 +755,7 @@ namespace MathCore
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
 
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
 
@@ -786,7 +786,7 @@ namespace MathCore
         {
             typeVec4 lookTo = front;
             typeVec4 x, y, z;
-            z = OP<typeVec4>::normalize(lookTo) * -1;
+            z = -OP<typeVec4>::normalize(lookTo);
             x = OP<typeVec4>::normalize(OP<typeVec4>::cross(up, z));
             y = OP<typeVec4>::cross(z, x);
 
@@ -816,7 +816,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
             return typeMat4(typeVec4(x, 0),
@@ -842,7 +842,7 @@ namespace MathCore
         {
             typeVec4 lookTo = front;
             typeVec4 x, y, z;
-            z = OP<typeVec4>::normalize(lookTo) * -1;
+            z = -OP<typeVec4>::normalize(lookTo);
             x = OP<typeVec4>::normalize(OP<typeVec4>::cross(up, z));
             y = OP<typeVec4>::cross(z, x);
             return typeMat4(x, y, z,
@@ -863,41 +863,69 @@ namespace MathCore
         static ITK_INLINE typeMat4 lookAtRotationRH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
-            typeVec2 side = OP<typeVec2>::cross_z_up(front);
+            typeVec2 side = OP<typeVec2>::cross_z_down(front);
 
-            typeVec4 x, y, w; // z,
-            x = typeVec4(front.x, front.y, 0, 0) * -1;
-            y = typeVec4(side.x, side.y, 0, 0);
-            // z = typeVec4(0, 0, 1, 0);
-            w = typeVec4(position.x, position.y, 0, 1);
+            // typeVec4
 #if defined(ITK_SSE2)
+
+            __m128 x, y, w; // z,
+
+            x = _mm_and_ps(front.array_sse, _vec2_valid_bits_sse);
+            y = _mm_and_ps(side.array_sse, _vec2_valid_bits_sse);
+            // z = typeVec4(0, 0, 1, 0);
+            w = _mm_or_ps( _mm_and_ps(position.array_sse, _vec2_valid_bits_sse), _vec4_0001_sse );
+
             return typeMat4(x, y, _vec4_0010_sse, w);
 #elif defined(ITK_NEON)
+
+            float4x2_t x, y, w; // z,
+
+            const float2x2_t _zero_v2 = (float2x2_t){0.0f, 0.0f};
+            const float2x2_t _zero_one_v2 = (float2x2_t){0.0f, 1.0f};
+
+            x = vcombine_f32(front.array_neon, _zero_v2);
+            y = vcombine_f32(side.array_neon, _zero_v2);
+            // z = typeVec4(0, 0, 1, 0);
+            w = vcombine_f32(position.array_neon, _zero_one_v2);
+
             return typeMat4(x, y, _neon_0010, w);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
 
-        static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec3 &_front, const typeVec2 &position) noexcept
+        static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
             typeVec2 side = OP<typeVec2>::cross_z_up(front);
 
-            typeVec4 x, y, w; // z,
-            x = typeVec4(front.x, front.y, 0, 0);
-            y = typeVec4(side.x, side.y, 0, 0);
-            // z = typeVec4(0, 0, 1, 0);
-            w = typeVec4(position.x, position.y, 0, 1);
-
+            // typeVec4
 #if defined(ITK_SSE2)
+
+            __m128 x, y, w; // z,
+
+            x = _mm_and_ps(front.array_sse, _vec2_valid_bits_sse);
+            y = _mm_and_ps(side.array_sse, _vec2_valid_bits_sse);
+            // z = typeVec4(0, 0, 1, 0);
+            w = _mm_or_ps( _mm_and_ps(position.array_sse, _vec2_valid_bits_sse), _vec4_0001_sse );
+
             return typeMat4(x, y, _vec4_0010_sse, w);
 #elif defined(ITK_NEON)
+
+            float4x2_t x, y, w; // z,
+
+            const float2x2_t _zero_v2 = (float2x2_t){0.0f, 0.0f};
+            const float2x2_t _zero_one_v2 = (float2x2_t){0.0f, 1.0f};
+
+            x = vcombine_f32(front.array_neon, _zero_v2);
+            y = vcombine_f32(side.array_neon, _zero_v2);
+            // z = typeVec4(0, 0, 1, 0);
+            w = vcombine_f32(position.array_neon, _zero_one_v2);
+
             return typeMat4(x, y, _neon_0010, w);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
-            
         }
 
         /// \brief Construct a 4x4 transformation matrix from a quaternion
@@ -977,33 +1005,40 @@ namespace MathCore
             float32x4_t xy_xz_yz = vmulq_f32(op0, op1);
             float32x4_t wx_wy_wz = vmulq_f32(vshuffle_3333(q.array_neon), q.array_neon);
 
-            const float32x4_t _2 = vset1(2.0f);
+            // const float32x4_t _2 = vset1(2.0f);
+
+            const float32x4_t mask_a = (float32x4_t){-2.0f, 2.0f, 2.0f, 0.0f};
+            const float32x4_t mask_b = (float32x4_t){2.0f, -2.0f, 2.0f, 0.0f};
+            const float32x4_t mask_c = (float32x4_t){2.0f, 2.0f, -2.0f, 0.0f};
 
             float32x4_t m0 =
-                vmulq_f32(_2, (float32x4_t){
-                                  (x2y2z2[1] + x2y2z2[2]),
-                                  (xy_xz_yz[0] + wx_wy_wz[2]),
-                                  (xy_xz_yz[1] - wx_wy_wz[1]),
-                                  0});
+                vmulq_f32(mask_a, (float32x4_t){
+                                      (x2y2z2[1] + x2y2z2[2]),
+                                      (xy_xz_yz[0] + wx_wy_wz[2]),
+                                      (xy_xz_yz[1] - wx_wy_wz[1]),
+                                      0});
 
-            m0[0] = 1.0f - m0[0];
+            // m0[0] = 1.0f - m0[0];
+            m0 = vaddq_f32(m0, _neon_1000);
 
             float32x4_t m1 =
-                vmulq_f32(_2, (float32x4_t){
-                                  (xy_xz_yz[0] - wx_wy_wz[2]),
-                                  (x2y2z2[0] + x2y2z2[2]),
-                                  (xy_xz_yz[2] + wx_wy_wz[0]),
-                                  0});
-            m1[1] = 1.0f - m1[1];
+                vmulq_f32(mask_b, (float32x4_t){
+                                      (xy_xz_yz[0] - wx_wy_wz[2]),
+                                      (x2y2z2[0] + x2y2z2[2]),
+                                      (xy_xz_yz[2] + wx_wy_wz[0]),
+                                      0});
+            // m1[1] = 1.0f - m1[1];
+            m1 = vaddq_f32(m1, _neon_0100);
 
             float32x4_t m2 =
-                vmulq_f32(_2, (float32x4_t){
-                                  (xy_xz_yz[1] + wx_wy_wz[1]),
-                                  (xy_xz_yz[2] - wx_wy_wz[0]),
-                                  (x2y2z2[0] + x2y2z2[1]),
-                                  0});
+                vmulq_f32(mask_c, (float32x4_t){
+                                      (xy_xz_yz[1] + wx_wy_wz[1]),
+                                      (xy_xz_yz[2] - wx_wy_wz[0]),
+                                      (x2y2z2[0] + x2y2z2[1]),
+                                      0});
 
-            m2[2] = 1.0f - m2[2];
+            // m2[2] = 1.0f - m2[2];
+            m2 = vaddq_f32(m2, _neon_0010);
 
             // const float32x4_t m3 = (float32x4_t){0,0,0,1.0f};
 
@@ -1053,11 +1088,19 @@ namespace MathCore
                 _mm_and_ps(m.array_sse[2], _vec3_valid_bits_sse),
                 _vec4_0001_sse);
 #elif defined(ITK_NEON)
+
+            const uint32x4_t vec3_valid_bits = (uint32x4_t){0xffffffff, 0xffffffff, 0xffffffff, 0};
+
             return typeMat4(
-                typeVec4(m[0], 0).array_neon,
-                typeVec4(m[1], 0).array_neon,
-                typeVec4(m[2], 0).array_neon,
+                vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(m[0].array_neon), vec3_valid_bits)),
+                vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(m[1].array_neon), vec3_valid_bits)),
+                vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(m[2].array_neon), vec3_valid_bits)),
                 _neon_0001);
+            // return typeMat4(
+            //     typeVec4(m[0], 0).array_neon,
+            //     typeVec4(m[1], 0).array_neon,
+            //     typeVec4(m[2], 0).array_neon,
+            //     _neon_0001);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

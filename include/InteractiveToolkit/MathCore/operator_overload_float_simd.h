@@ -343,23 +343,20 @@ namespace MathCore
 
         // const float32x4_t signMask0 = (float32x4_t){1.0f, 1.0f, 1.0f, -1.0f};
         const uint32x4_t signMask0 = vreinterpretq_u32_f32(
-            (float32x4_t){0.0f, 0.0f, 0.0f, -0.0f}
-        );
+            (float32x4_t){0.0f, 0.0f, 0.0f, -0.0f});
 
         //__m128 mul0 = _mm_mul_ps(a0, b0);
         float32x4_t mul0 = vmulq_f32(a0, b.array_neon);
 
         float32x4_t mul1 = vmulq_f32(a1, b1);
-        //mul1 = vmulq_f32(mul1, signMask0);
+        // mul1 = vmulq_f32(mul1, signMask0);
         mul1 = vreinterpretq_f32_u32(
-            veorq_u32(vreinterpretq_u32_f32(mul1), signMask0)
-        );
+            veorq_u32(vreinterpretq_u32_f32(mul1), signMask0));
 
         float32x4_t mul2 = vmulq_f32(a2, b2);
-        //mul2 = vmulq_f32(mul2, signMask0);
+        // mul2 = vmulq_f32(mul2, signMask0);
         mul2 = vreinterpretq_f32_u32(
-            veorq_u32(vreinterpretq_u32_f32(mul2), signMask0)
-        );
+            veorq_u32(vreinterpretq_u32_f32(mul2), signMask0));
 
         float32x4_t mul3 = vmulq_f32(a3, b3);
 
@@ -402,11 +399,11 @@ namespace MathCore
         result.array_sse = _mm_and_ps(result.array_sse, _vec3_valid_bits_sse);
         return result.array_sse;
 #elif defined(ITK_NEON)
-        quat<_type, _simd> result(v.array_neon);
-        result.w = (_type)0;
+        quat<_type, _simd> result(vsetq_lane_f32(0.0f, v.array_neon, 3));
+        // result.w = (_type)0;
         result = a ^ result ^ OP<quat<_type, _simd>>::conjugate(a);
-        result.w = (_type)0;
-        return result.array_neon;
+        // result.w = (_type)0;
+        return vsetq_lane_f32(0.0f, result.array_neon, 3);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -434,17 +431,15 @@ namespace MathCore
 #endif
         return result.array_sse;
 #elif defined(ITK_NEON)
-        quat<_type, _simd> result(v.array_neon);
-        result.w = (_type)0;
+        quat<_type, _simd> result(vsetq_lane_f32(0.0f, v.array_neon, 3));
+        // result.w = (_type)0;
         result = a ^ result ^ OP<quat<_type, _simd>>::conjugate(a);
-        result.w = v.w;
-        return result.array_neon;
+        // result.w = v.w;
+        return vsetq_lane_f32(0.0f, result.array_neon, 3);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
     }
-
-
 
     template <typename _type, typename _simd,
               typename std::enable_if<
@@ -464,11 +459,11 @@ namespace MathCore
         result.array_sse = _mm_and_ps(result.array_sse, _vec3_valid_bits_sse);
         return result.array_sse;
 #elif defined(ITK_NEON)
-        quat<_type, _simd> result(v.array_neon);
-        result.w = (_type)0;
+        quat<_type, _simd> result(vsetq_lane_f32(0.0f, v.array_neon, 3));
+        // result.w = (_type)0;
         result = OP<quat<_type, _simd>>::conjugate(a) ^ result ^ a;
-        result.w = (_type)0;
-        return result.array_neon;
+        // result.w = (_type)0;
+        return vsetq_lane_f32(0.0f, result.array_neon, 3);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -496,15 +491,14 @@ namespace MathCore
 #endif
         return result.array_sse;
 #elif defined(ITK_NEON)
-        quat<_type, _simd> result(v.array_neon);
-        result.w = (_type)0;
+        quat<_type, _simd> result(vsetq_lane_f32(0.0f, v.array_neon, 3));
+        // result.w = (_type)0;
         result = OP<quat<_type, _simd>>::conjugate(a) ^ result ^ a;
-        result.w = v.w;
-        return result.array_neon;
+        // result.w = v.w;
+        return vsetq_lane_f32(vgetq_lane_f32(v.array_neon, 3), result.array_neon, 3);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
     }
-
 
 }

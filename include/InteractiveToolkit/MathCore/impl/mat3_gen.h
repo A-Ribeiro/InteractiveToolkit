@@ -100,7 +100,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat3 scale(const _type &_x_, const _type &_y_, const _type &_z_ = (_type)1) noexcept
         {
-            return typeMat4(
+            return typeMat3(
                 _x_, 0, 0,
                 0, _y_, 0,
                 0, 0, _z_);
@@ -108,7 +108,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat3 scale(const typeVec2 &_v_) noexcept
         {
-            return typeMat4(
+            return typeMat3(
                 _v_.x, 0, 0,
                 0, _v_.y, 0,
                 0, 0, 1);
@@ -116,7 +116,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat3 scale(const typeVec3 &_v_) noexcept
         {
-            return typeMat4(
+            return typeMat3(
                 _v_.x, 0, 0,
                 0, _v_.y, 0,
                 0, 0, _v_.z);
@@ -124,7 +124,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat3 scale(const typeVec4 &_v_) noexcept
         {
-            return typeMat4(
+            return typeMat3(
                 _v_.x, 0, 0,
                 0, _v_.y, 0,
                 0, 0, _v_.z);
@@ -221,13 +221,13 @@ namespace MathCore
 
             typeVec3 x, y, z;
             z = typeVec3(position, 1);
-            x = typeVec3(front, 0) * -1;
+            x = -typeVec3(front, 0);
             y = typeVec3(side, 0);
 
             return typeMat3(x, y, z);
         }
 
-        static ITK_INLINE typeMat3 lookAtRotationLH(const typeVec3 &_front, const typeVec2 &position) noexcept
+        static ITK_INLINE typeMat3 lookAtRotationLH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
             typeVec2 side = OP<typeVec2>::cross_z_up(front);
@@ -244,7 +244,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(lookTo) * -1;
+            z = -OP<typeVec3>::normalize(lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(up, z));
             y = OP<typeVec3>::cross(z, x);
             return typeMat3(x, y, z);
@@ -264,7 +264,7 @@ namespace MathCore
         {
             typeVec3 lookTo = front;
             typeVec3 x, y, z;
-            z = OP<typeVec3>::normalize(*(const typeVec3 *)&lookTo) * -1;
+            z = -OP<typeVec3>::normalize(*(const typeVec3 *)&lookTo);
             x = OP<typeVec3>::normalize(OP<typeVec3>::cross(*(const typeVec3 *)&up, z));
             y = OP<typeVec3>::cross(z, x);
             return typeMat3(x, y, z);

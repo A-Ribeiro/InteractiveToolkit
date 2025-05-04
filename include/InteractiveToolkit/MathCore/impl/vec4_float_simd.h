@@ -232,7 +232,8 @@ namespace MathCore
             array_sse = xyz.array_sse;
             _mm_f32_(array_sse, 3) = w;
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){xyz.x, xyz.y, xyz.z, w};
+            //array_neon = (float32x4_t){xyz.x, xyz.y, xyz.z, w};
+            array_neon = vsetq_lane_f32(w, xyz.array_neon, 3);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -304,7 +305,8 @@ namespace MathCore
 #if defined(ITK_SSE2)
             array_sse = _mm_shuffle_ps(a.array_sse, b.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
 #elif defined(ITK_NEON)
-            array_neon = (float32x4_t){a.x, a.y, b.x, b.y};
+            //array_neon = (float32x4_t){a.x, a.y, b.x, b.y};
+            array_neon =  vcombine_f32(a.array_neon, b.array_neon);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
