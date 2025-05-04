@@ -302,7 +302,7 @@ namespace MathCore
         ///
         ITK_INLINE self_type &operator*=(const self_type &M)
         {
-            _BaseType a, b, c;
+            _BaseType a, b;
             a = a1;
             b = b1;
 
