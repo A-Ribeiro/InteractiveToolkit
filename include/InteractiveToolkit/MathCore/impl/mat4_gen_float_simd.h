@@ -878,7 +878,7 @@ namespace MathCore
             return typeMat4(x, y, _vec4_0010_sse, w);
 #elif defined(ITK_NEON)
 
-            float32x2_t x, y, w; // z,
+            float32x4_t x, y, w; // z,
 
             const float32x2_t _zero_v2 = (float32x2_t){0.0f, 0.0f};
             const float32x2_t _zero_one_v2 = (float32x2_t){0.0f, 1.0f};
@@ -912,7 +912,7 @@ namespace MathCore
             return typeMat4(x, y, _vec4_0010_sse, w);
 #elif defined(ITK_NEON)
 
-            float32x2_t x, y, w; // z,
+            float32x4_t x, y, w; // z,
 
             const float32x2_t _zero_v2 = (float32x2_t){0.0f, 0.0f};
             const float32x2_t _zero_one_v2 = (float32x2_t){0.0f, 1.0f};

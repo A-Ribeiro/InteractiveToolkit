@@ -50,9 +50,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-                return _mm_setr_ps( 
-                        _v_.x, 0, 
-                        0, _v_.y);
+            return _mm_setr_ps(
+                _v_.x, 0,
+                0, _v_.y);
 #else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
@@ -64,7 +64,7 @@ namespace MathCore
             //                             0, _v_.y));
 #elif defined(ITK_NEON)
             return (float32x4_t){_v_.x, 0,
-                                          0, _v_.y};
+                                 0, _v_.y};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -74,9 +74,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-                return _mm_setr_ps( 
-                        _v_.x, 0, 
-                        0, _v_.y);
+            return _mm_setr_ps(
+                _v_.x, 0,
+                0, _v_.y);
 #else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
@@ -88,7 +88,7 @@ namespace MathCore
             //                             0, _v_.y));
 #elif defined(ITK_NEON)
             return (float32x4_t){_v_.x, 0,
-                                          0, _v_.y};
+                                 0, _v_.y};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -98,9 +98,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-                return _mm_setr_ps( 
-                        _v_.x, 0, 
-                        0, _v_.y);
+            return _mm_setr_ps(
+                _v_.x, 0,
+                0, _v_.y);
 #else
             __m128 _tmp0 = _mm_shuffle_ps(_v_.array_sse, _v_.array_sse, _MM_SHUFFLE(1, 0, 1, 0));
             _tmp0 = _mm_blend_ps(_tmp0, _vec4_zero_sse, 0x6);
@@ -112,7 +112,7 @@ namespace MathCore
             //                             0, _v_.y));
 #elif defined(ITK_NEON)
             return (float32x4_t){_v_.x, 0,
-                                          0, _v_.y};
+                                 0, _v_.y};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -124,10 +124,10 @@ namespace MathCore
             _type s = OP<_type>::sin(_psi_);
 #if defined(ITK_SSE2)
             return _mm_setr_ps(c, s,
-                                        -s, c);
+                               -s, c);
 #elif defined(ITK_NEON)
             return (float32x4_t){c, s,
-                                          -s, c};
+                                 -s, c};
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -139,8 +139,8 @@ namespace MathCore
             return typeMat2(v.array_sse[0],
                             v.array_sse[1]);
 #elif defined(ITK_NEON)
-            return typeMat2(v.array_neon[0],
-                            v.array_neon[1]);
+            return typeMat2(vcombine_f32(vget_low_f32(v.array_neon[0]),
+                                         vget_low_f32(v.array_neon[1])));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -152,8 +152,8 @@ namespace MathCore
             return typeMat2(v.array_sse[0],
                             v.array_sse[1]);
 #elif defined(ITK_NEON)
-            return typeMat2(v.array_neon[0],
-                            v.array_neon[1]);
+            return typeMat2(vcombine_f32(vget_low_f32(v.array_neon[0]),
+                                         vget_low_f32(v.array_neon[1])));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
