@@ -78,12 +78,12 @@ namespace MathCore
 
 #elif defined(ITK_NEON)
 
-    ITK_INLINE float32x4_t vset1(const float32_t &a) noexcept
+    ITK_INLINE constexpr float32x4_t vset1(const float32_t &a) noexcept
     {
         return vdupq_n_f32(a);
     }
 
-    ITK_INLINE float32x2_t vset1_v2(const float32_t &a) noexcept
+    ITK_INLINE constexpr float32x2_t vset1_v2(const float32_t &a) noexcept
     {
         return vdup_n_f32(a);
     }
@@ -94,6 +94,9 @@ namespace MathCore
     const float32x4_t _vec4_minus_one = vset1(-1.0f);
     const float32x4_t _vec4_one = vset1(1.0f);
     const uint32x4_t _vec4_one_u = vreinterpretq_u32_f32(vset1(1.0f));
+    
+    const uint32x2_t _vec2_one_u = vreinterpret_u32_f32(vset1_v2(1.0f));
+
     const int32x4_t _vec4_one_i = vreinterpretq_s32_f32(vset1(1.0f));
     const float32x4_t _vec4_two = vset1(2.0f);
 
