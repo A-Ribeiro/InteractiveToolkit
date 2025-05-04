@@ -216,8 +216,9 @@ namespace MathCore
             array_sse = xy.array_sse;
             _mm_f32_(array_sse, 2) = z;
 #elif defined(ITK_NEON)
-            //array_neon = (float32x4_t){xy.x, xy.y, z, 0};
-            array_neon = vsetq_lane_f32(z, xy.array_neon, 2);
+            // array_neon = (float32x4_t){xy.x, xy.y, z, 0};
+            array_neon = vcombine_f32(xy.array_neon, (float32x2_t){z, 0});
+            //array_neon = vcombine_f32(xy.array_neon, vdup_n_f32(z));
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -409,7 +410,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
 
             uint32x4_t result_int = compare_almost_eq_ps(array_neon, v.array_neon);
-            
+
             uint64x2_t cmp64 = vreinterpretq_u64_u32(result_int);
             return (vgetq_lane_u64(cmp64, 0) & (vgetq_lane_u64(cmp64, 1) | UINT64_C(0xFFFFFFFF00000000))) == UINT64_C(0xFFFFFFFFFFFFFFFF);
 
