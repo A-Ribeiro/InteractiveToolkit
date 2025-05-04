@@ -880,8 +880,8 @@ namespace MathCore
 
             float32x2_t x, y, w; // z,
 
-            const float2x2_t _zero_v2 = (float2x2_t){0.0f, 0.0f};
-            const float2x2_t _zero_one_v2 = (float2x2_t){0.0f, 1.0f};
+            const float32x2_t _zero_v2 = (float32x2_t){0.0f, 0.0f};
+            const float32x2_t _zero_one_v2 = (float32x2_t){0.0f, 1.0f};
 
             x = vcombine_f32(front.array_neon, _zero_v2);
             y = vcombine_f32(side.array_neon, _zero_v2);
@@ -914,8 +914,8 @@ namespace MathCore
 
             float32x2_t x, y, w; // z,
 
-            const float2x2_t _zero_v2 = (float2x2_t){0.0f, 0.0f};
-            const float2x2_t _zero_one_v2 = (float2x2_t){0.0f, 1.0f};
+            const float32x2_t _zero_v2 = (float32x2_t){0.0f, 0.0f};
+            const float32x2_t _zero_one_v2 = (float32x2_t){0.0f, 1.0f};
 
             x = vcombine_f32(front.array_neon, _zero_v2);
             y = vcombine_f32(side.array_neon, _zero_v2);
