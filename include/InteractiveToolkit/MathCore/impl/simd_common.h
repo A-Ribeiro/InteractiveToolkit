@@ -78,12 +78,12 @@ namespace MathCore
 
 #elif defined(ITK_NEON)
 
-    ITK_INLINE constexpr float32x4_t vset1(const float32_t &a) noexcept
+    ITK_INLINE float32x4_t vset1(const float32_t &a) noexcept
     {
         return vdupq_n_f32(a);
     }
 
-    ITK_INLINE constexpr float32x2_t vset1_v2(const float32_t &a) noexcept
+    ITK_INLINE float32x2_t vset1_v2(const float32_t &a) noexcept
     {
         return vdup_n_f32(a);
     }
