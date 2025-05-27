@@ -20,7 +20,7 @@ namespace MathCore
 #if defined(__APPLE__) || defined(__linux__)
     typedef __uint128_t uint128;
 #define INT128_MSVC_CHOOSE INT128_GNU_IMPLEMENTATION
-    // #define ___need_to_define_uint128_type
+// #define ___need_to_define_uint128_type
 #elif defined(_MSC_VER)
 #define ___need_to_define_uint128_type
 #define INT128_MSVC_CHOOSE INT128_MSVC_IMPLEMENTATION
@@ -146,7 +146,7 @@ namespace MathCore
 #endif
         }
 
-        inline uint128& operator=(const uint128 &v)
+        inline uint128 &operator=(const uint128 &v)
         {
 #if defined(ITK_SSE2)
             _sse = v._sse;
@@ -169,7 +169,7 @@ namespace MathCore
             high = 0;
         }
 
-        inline uint128& operator=(const uint64_t &v)
+        inline uint128 &operator=(const uint64_t &v)
         {
             low = v;
             high = 0;
@@ -688,27 +688,77 @@ namespace MathCore
 
     static inline void multiply_uint64_to_uint128(uint64_t a, uint64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {
-        uint128 result = uint128(a) * uint128(b);
-        *r_low = result.low;
-        *r_high = result.high;
+        // uint128 result = uint128(a) * uint128(b);
+        // *r_low = result.low;
+        // *r_high = result.high;
+
+        // Karatsuba multiplication algorithm for 64-bit integers
+        // This algorithm is more efficient than the naive approach for large numbers.
+
+        uint64_t a_lo = (uint32_t)a;
+        uint64_t a_hi = a >> 32;
+        uint64_t b_lo = (uint32_t)b;
+        uint64_t b_hi = b >> 32;
+
+        uint64_t p0 = a_lo * b_lo;
+        uint64_t p1 = a_lo * b_hi;
+        uint64_t p2 = a_hi * b_lo;
+        uint64_t p3 = a_hi * b_hi;
+
+        uint64_t mid1 = p1 + (p0 >> 32);
+        uint64_t mid2 = p2;
+
+        uint64_t mid1_lo = (uint32_t)mid1;
+        uint64_t mid1_hi = mid1 >> 32;
+
+        uint64_t sum = mid2 + mid1_lo;
+        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
+
+        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
+        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
     }
     static inline void multiply_int64_to_int128(int64_t a, int64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {
-        uint128 result =
-            uint128(static_cast<uint64_t>(a), static_cast<uint64_t>(a >> 63)) *
-            uint128(static_cast<uint64_t>(b), static_cast<uint64_t>(b >> 63));
+        // uint128 result =
+        //     uint128(static_cast<uint64_t>(a), static_cast<uint64_t>(a >> 63)) *
+        //     uint128(static_cast<uint64_t>(b), static_cast<uint64_t>(b >> 63));
 
-        // bool s_a = a < 0;
-        // bool s_b = b < 0;
+        // // bool s_a = a < 0;
+        // // bool s_b = b < 0;
 
-        // bool s_r = s_a ^ s_b;
+        // // bool s_r = s_a ^ s_b;
 
-        // uint128 result = (s_r)
-        // 					 ? uint128(0) - (uint128((s_a) ? -a : a) * uint128((s_b) ? -b : b))
-        // 					 : uint128((s_a) ? -a : a) * uint128((s_b) ? -b : b);
+        // // uint128 result = (s_r)
+        // // 					 ? uint128(0) - (uint128((s_a) ? -a : a) * uint128((s_b) ? -b : b))
+        // // 					 : uint128((s_a) ? -a : a) * uint128((s_b) ? -b : b);
 
-        *r_low = result.low;
-        *r_high = result.high;
+        // *r_low = result.low;
+        // *r_high = result.high;
+
+        // Handle sign
+        bool neg = (a < 0) ^ (b < 0);
+
+        // Absolute values, careful with INT64_MIN
+        uint64_t ua = (a < 0) ? static_cast<uint64_t>(-(a + 1)) + 1 : static_cast<uint64_t>(a);
+        uint64_t ub = (b < 0) ? static_cast<uint64_t>(-(b + 1)) + 1 : static_cast<uint64_t>(b);
+
+        // Unsigned multiplication (reuse Karatsuba)
+        uint64_t hi, lo;
+        multiply_uint64_to_uint128(ua, ub, &hi, &lo);
+
+        // If result should be negative, negate the 128-bit value
+        if (neg)
+        {
+            // Two's complement negation of 128-bit value
+            lo = ~lo;
+            hi = ~hi;
+            lo += 1;
+            if (lo == 0)
+                hi += 1;
+        }
+
+        *r_low = lo;
+        *r_high = hi;
     }
     static inline uint64_t divide_uint128_by_uint64(uint64_t high, uint64_t low, uint64_t divisor) noexcept
     {
