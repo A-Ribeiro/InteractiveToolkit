@@ -695,6 +695,80 @@ namespace MathCore
         // Karatsuba multiplication algorithm for 64-bit integers
         // This algorithm is more efficient than the naive approach for large numbers.
 
+#if defined(ITK_SSE2)
+
+        uint32_t a_lo = (uint32_t)a;
+        uint32_t a_hi = a >> 32;
+        uint32_t b_lo = (uint32_t)b;
+        uint32_t b_hi = b >> 32;
+
+#if defined(ITK_AVX2)
+        __m256i a_simd = _mm256_setr_epi32(a_lo, 0, a_hi, 0, a_lo, 0, a_hi, 0);
+        __m256i b_simd = _mm256_setr_epi32(b_lo, 0, b_hi, 0, b_hi, 0, b_lo, 0);
+
+        __m256i p0_p3_p1_p2 = _mm256_mul_epu32(a_simd, b_simd);
+
+        uint64_t p0 = _mm256_u64_(p0_p3_p1_p2, 0);
+        uint64_t p3 = _mm256_u64_(p0_p3_p1_p2, 1);
+        uint64_t p1 = _mm256_u64_(p0_p3_p1_p2, 2);
+        uint64_t p2 = _mm256_u64_(p0_p3_p1_p2, 3);
+#else
+        __m128i a_simd = _mm_setr_epi32(a_lo, 0, a_hi, 0);
+        __m128i b_simd = _mm_setr_epi32(b_lo, 0, b_hi, 0);
+        __m128i b_hi_lo_simd = _mm_shuffle_epi32(b_simd, _MM_SHUFFLE(3, 0, 1, 2)); // (b_hi, 0, b_lo, 0)
+
+        __m128i p0_p3 = _mm_mul_epu32(a_simd, b_simd);       // p0 = a_lo * b_lo, p3 = a_hi * b_hi
+        __m128i p1_p2 = _mm_mul_epu32(a_simd, b_hi_lo_simd); // p1 = a_lo * b_hi, p2 = a_hi * b_lo
+
+        uint64_t p0 = _mm_u64_(p0_p3, 0); // Extract p0 (lower 64 bits)
+        uint64_t p3 = _mm_u64_(p0_p3, 1); // Extract p3 (upper 64 bits)
+        uint64_t p1 = _mm_u64_(p1_p2, 0); // Extract p1 (lower 64 bits)
+        uint64_t p2 = _mm_u64_(p1_p2, 1); // Extract p2 (upper 64 bits)
+#endif
+        uint64_t mid1 = p1 + (p0 >> 32);
+        uint64_t mid2 = p2;
+
+        uint64_t mid1_lo = (uint32_t)mid1;
+        uint64_t mid1_hi = mid1 >> 32;
+
+        uint64_t sum = mid2 + mid1_lo;
+        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
+
+        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
+        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
+
+#elif defined(ITK_NEON)
+
+        uint32_t a_lo = (uint32_t)a;
+        uint32_t a_hi = a >> 32;
+        uint32_t b_lo = (uint32_t)b;
+        uint32_t b_hi = b >> 32;
+
+        uint32x2_t a_simd = (uint32x2_t){a_lo, a_hi};
+        uint32x2_t b_simd = (uint32x2_t){b_lo, b_hi};
+        uint32x2_t b_hi_lo_simd = vrev64_u32(b_simd); // (b_hi, 0, b_lo, 0)
+
+        uint64x2_t p0_p3 = vmull_u32(a_simd, b_simd);       // p0 = a_lo * b_lo, p3 = a_hi * b_hi
+        uint64x2_t p1_p2 = vmull_u32(a_simd, b_hi_lo_simd); // p1 = a_lo * b_hi, p2 = a_hi * b_lo
+
+        uint64_t p0 = vgetq_lane_u64(p0_p3, 0); // Extract p0 (lower 64 bits)
+        uint64_t p3 = vgetq_lane_u64(p0_p3, 1); // Extract p3 (upper 64 bits)
+        uint64_t p1 = vgetq_lane_u64(p1_p2, 0); // Extract p1 (lower 64 bits)
+        uint64_t p2 = vgetq_lane_u64(p1_p2, 1); // Extract p2 (upper 64 bits)
+
+        uint64_t mid1 = p1 + (p0 >> 32);
+        uint64_t mid2 = p2;
+
+        uint64_t mid1_lo = (uint32_t)mid1;
+        uint64_t mid1_hi = mid1 >> 32;
+
+        uint64_t sum = mid2 + mid1_lo;
+        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
+
+        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
+        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
+
+#else
         uint64_t a_lo = (uint32_t)a;
         uint64_t a_hi = a >> 32;
         uint64_t b_lo = (uint32_t)b;
@@ -716,6 +790,7 @@ namespace MathCore
 
         *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
         *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
+#endif
     }
     static inline void multiply_int64_to_int128(int64_t a, int64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {

@@ -126,8 +126,11 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_f32_(v, i) (v).m128_f32[i]
 #define _mm_i32_(v, i) (v).m128i_i32[i]
 #define _mm_u32_(v, i) (v).m128i_u32[i]
+#define _mm_i64_(v, i) (v).m128i_i64[i]
+#define _mm_u64_(v, i) (v).m128i_u64[i]
 #if defined(ITK_AVX2)
 #define _mm256_u32_(v, i) (v).m256i_u32[i]
+#define _mm256_u64_(v, i) (v).m256i_u64[i]
 #endif
 #else
 //  GCC Intrinsics
@@ -144,10 +147,23 @@ static ITK_INLINE uint32_t &_mm_u32_(const __m128i &v, int i) noexcept
     return ((uint32_t *)&v)[i];
 }
 
+static ITK_INLINE int64_t &_mm_i64_(const __m128i &v, int i) noexcept
+{
+    return ((int64_t *)&v)[i];
+}
+static ITK_INLINE uint64_t &_mm_u64_(const __m128i &v, int i) noexcept
+{
+    return ((uint64_t *)&v)[i];
+}
+
 #if defined(ITK_AVX2)
 static ITK_INLINE uint32_t &_mm256_u32_(const __m256i &v, int i) noexcept
 {
     return ((uint32_t *)&v)[i];
+}
+static ITK_INLINE uint64_t &_mm256_u64_(const __m256i &v, int i) noexcept
+{
+    return ((uint64_t *)&v)[i];
 }
 #endif
 
