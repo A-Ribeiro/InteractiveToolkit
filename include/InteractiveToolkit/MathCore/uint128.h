@@ -708,10 +708,10 @@ namespace MathCore
 
         __m256i p0_p3_p1_p2 = _mm256_mul_epu32(a_simd, b_simd);
 
-        uint64_t p0 = _mm256_u64_(p0_p3_p1_p2, 0);
-        uint64_t p3 = _mm256_u64_(p0_p3_p1_p2, 1);
-        uint64_t p1 = _mm256_u64_(p0_p3_p1_p2, 2);
-        uint64_t p2 = _mm256_u64_(p0_p3_p1_p2, 3);
+        uint64_t &p0 = _mm256_u64_(p0_p3_p1_p2, 0);
+        uint64_t &p3 = _mm256_u64_(p0_p3_p1_p2, 1);
+        uint64_t &p1 = _mm256_u64_(p0_p3_p1_p2, 2);
+        uint64_t &p2 = _mm256_u64_(p0_p3_p1_p2, 3);
 #else
         __m128i a_simd = _mm_setr_epi32(a_lo, 0, a_hi, 0);
         __m128i b_simd = _mm_setr_epi32(b_lo, 0, b_hi, 0);
@@ -720,10 +720,10 @@ namespace MathCore
         __m128i p0_p3 = _mm_mul_epu32(a_simd, b_simd);       // p0 = a_lo * b_lo, p3 = a_hi * b_hi
         __m128i p1_p2 = _mm_mul_epu32(a_simd, b_hi_lo_simd); // p1 = a_lo * b_hi, p2 = a_hi * b_lo
 
-        uint64_t p0 = _mm_u64_(p0_p3, 0); // Extract p0 (lower 64 bits)
-        uint64_t p3 = _mm_u64_(p0_p3, 1); // Extract p3 (upper 64 bits)
-        uint64_t p1 = _mm_u64_(p1_p2, 0); // Extract p1 (lower 64 bits)
-        uint64_t p2 = _mm_u64_(p1_p2, 1); // Extract p2 (upper 64 bits)
+        uint64_t &p0 = _mm_u64_(p0_p3, 0); // Extract p0 (lower 64 bits)
+        uint64_t &p3 = _mm_u64_(p0_p3, 1); // Extract p3 (upper 64 bits)
+        uint64_t &p1 = _mm_u64_(p1_p2, 0); // Extract p1 (lower 64 bits)
+        uint64_t &p2 = _mm_u64_(p1_p2, 1); // Extract p2 (upper 64 bits)
 #endif
         uint64_t mid1 = p1 + (p0 >> 32);
         uint64_t mid2 = p2;
