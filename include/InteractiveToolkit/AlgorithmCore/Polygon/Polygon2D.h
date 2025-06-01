@@ -134,7 +134,7 @@ namespace AlgorithmCore
                     // linear distance
                     float_type length_sqr = MathCore::OP<PointType>::sqrLength(item.p2 - item.p0);
                     if (length_sqr <= max_dst_squared)
-                        list.push_back(item.p2);
+                        polygon.push_back(item.p2);
                     else
                     {
                         PointType p0_p1_middle = (item.p0 + item.p1) * (float_type)0.5;
@@ -178,7 +178,7 @@ namespace AlgorithmCore
                     // linear distance
                     float_type length_sqr = MathCore::OP<PointType>::sqrLength(item.p3 - item.p0);
                     if (length_sqr <= max_dst_squared)
-                        list.push_back(item.p3);
+                        polygon.push_back(item.p3);
                     else
                     {
                         PointType p0_p1_middle = (item.p0 + item.p1) * (float_type)0.5;
@@ -219,14 +219,40 @@ namespace AlgorithmCore
                 PointType pointType;
                 VecType vertex;
             };
+            using float_type = typename VecType::element_type;
 
             std::vector<Point> points; // Points of the closed polygon
-            using float_type = typename VecType::element_type;
             float_type signedArea;
+
+            Polygon2D() : signedArea(0) {}
+            Polygon2D(const Polygon2D &other) : points(other.points), signedArea(other.signedArea) {}
+            Polygon2D(Polygon2D &&other) noexcept : points(std::move(other.points)), signedArea(other.signedArea)
+            {
+                other.signedArea = 0;
+            }
+            Polygon2D &operator=(const Polygon2D &other)
+            {
+                if (this != &other)
+                {
+                    points = other.points;
+                    signedArea = other.signedArea;
+                }
+                return *this;
+            }
+            Polygon2D &operator=(Polygon2D &&other) noexcept
+            {
+                if (this != &other)
+                {
+                    points = std::move(other.points);
+                    signedArea = other.signedArea;
+                    other.signedArea = 0;
+                }
+                return *this;
+            }
 
             bool isHole() const
             {
-                return signedArea <= 0;
+                return signedArea < 0;
             }
 
             bool isOutline() const
@@ -244,14 +270,6 @@ namespace AlgorithmCore
                 // remove the last point, which is the same as the first point
                 points.pop_back(); 
                 signedArea = -signedArea; // reverse the sign of the area
-            }
-
-            void getPoints(std::vector<VecType> *output) const
-            {
-                output -.clear();
-                output->reserve(points.size());
-                for (const auto &point : points)
-                    result.push_back(point.vertex);
             }
 
             void samplePoints(std::vector<VecType> *output, typename VecType::element_type max_dst) const
@@ -298,17 +316,29 @@ namespace AlgorithmCore
                 }
             }
 
-            void removeLastPointAndComputeSignedArea()
+            void removeLastPoint()
             {
                 if (!points.empty())
                     points.pop_back();
+            }
+            void computeSignedArea()
+            {
+                if (points.size() < 3)
+                {
+                    signedArea = 0;
+                    return;
+                }    
                 std::vector<VecType> points;
-                getPoints(&points);
+                samplePoints(&points, MathCore::FloatTypeInfo<float_type>::max);
                 signedArea = Polygon2DUtils::signedArea<VecType>(points);
             }
             void addPoint(const VecType &point)
             {
                 points.push_back({PointTypeVertex, point});
+            }
+            void addControlPoint(const VecType &point)
+            {
+                points.push_back({PointTypeControlPoint, point});
             }
             void addBezierQuadratic(const VecType &p0, const VecType &p1, const VecType &p2)
             {
