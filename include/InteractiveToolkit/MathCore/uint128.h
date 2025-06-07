@@ -19,14 +19,14 @@ namespace MathCore
 #if defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__)
 #if defined(__APPLE__) || defined(__linux__)
     typedef __uint128_t uint128;
-#define INT128_MSVC_CHOOSE INT128_GNU_IMPLEMENTATION
-// #define ___need_to_define_uint128_type
+#define INT128_IMPLEMENTATION_TO_CHOOSE INT128_GNU_IMPLEMENTATION
+    // #define ___need_to_define_uint128_type
 #elif defined(_MSC_VER)
 #define ___need_to_define_uint128_type
-#define INT128_MSVC_CHOOSE INT128_MSVC_IMPLEMENTATION
+#define INT128_IMPLEMENTATION_TO_CHOOSE INT128_MSVC_IMPLEMENTATION
 #elif defined(__GNUC__) || defined(__clang__)
     typedef __uint128_t uint128; // windows with gcc or clang
-#define INT128_MSVC_CHOOSE INT128_GNU_IMPLEMENTATION
+#define INT128_IMPLEMENTATION_TO_CHOOSE INT128_GNU_IMPLEMENTATION
 #else
 #define ___need_to_define_uint128_type
 #endif
@@ -638,7 +638,7 @@ namespace MathCore
 
 #endif
 
-#if defined(INT128_MSVC_CHOOSE) && INT128_MSVC_CHOOSE == INT128_GNU_IMPLEMENTATION
+#if defined(INT128_IMPLEMENTATION_TO_CHOOSE) && INT128_IMPLEMENTATION_TO_CHOOSE == INT128_GNU_IMPLEMENTATION
 
     static inline void multiply_uint64_to_uint128(uint64_t a, uint64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {
@@ -663,7 +663,7 @@ namespace MathCore
         return static_cast<int64_t>(dividend / divisor);
     }
 
-#elif defined(INT128_MSVC_CHOOSE) && INT128_MSVC_CHOOSE == INT128_MSVC_IMPLEMENTATION
+#elif defined(INT128_IMPLEMENTATION_TO_CHOOSE) && INT128_IMPLEMENTATION_TO_CHOOSE == INT128_MSVC_IMPLEMENTATION
 
     static inline void multiply_uint64_to_uint128(uint64_t a, uint64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {
@@ -692,10 +692,8 @@ namespace MathCore
         // *r_low = result.low;
         // *r_high = result.high;
 
-        // Karatsuba multiplication algorithm for 64-bit integers
-        // This algorithm is more efficient than the naive approach for large numbers.
-
-#if defined(ITK_SSE2)
+        // the normal cpu algorithm performs better
+#if defined(ITK_SSE2) && false
 
         uint32_t a_lo = (uint32_t)a;
         uint32_t a_hi = a >> 32;
@@ -703,16 +701,18 @@ namespace MathCore
         uint32_t b_hi = b >> 32;
 
 #if defined(ITK_AVX2)
+
         __m256i a_simd = _mm256_setr_epi32(a_lo, 0, a_hi, 0, a_lo, 0, a_hi, 0);
         __m256i b_simd = _mm256_setr_epi32(b_lo, 0, b_hi, 0, b_hi, 0, b_lo, 0);
 
         __m256i p0_p3_p1_p2 = _mm256_mul_epu32(a_simd, b_simd);
 
-        uint64_t &p0 = _mm256_u64_(p0_p3_p1_p2, 0);
-        uint64_t &p3 = _mm256_u64_(p0_p3_p1_p2, 1);
-        uint64_t &p1 = _mm256_u64_(p0_p3_p1_p2, 2);
-        uint64_t &p2 = _mm256_u64_(p0_p3_p1_p2, 3);
+        uint64_t &mul00 = _mm256_u64_(p0_p3_p1_p2, 0);
+        uint64_t &mul11 = _mm256_u64_(p0_p3_p1_p2, 1);
+        uint64_t &mul10 = _mm256_u64_(p0_p3_p1_p2, 2);
+        uint64_t &mul01 = _mm256_u64_(p0_p3_p1_p2, 3);
 #else
+
         __m128i a_simd = _mm_setr_epi32(a_lo, 0, a_hi, 0);
         __m128i b_simd = _mm_setr_epi32(b_lo, 0, b_hi, 0);
         __m128i b_hi_lo_simd = _mm_shuffle_epi32(b_simd, _MM_SHUFFLE(3, 0, 1, 2)); // (b_hi, 0, b_lo, 0)
@@ -720,24 +720,13 @@ namespace MathCore
         __m128i p0_p3 = _mm_mul_epu32(a_simd, b_simd);       // p0 = a_lo * b_lo, p3 = a_hi * b_hi
         __m128i p1_p2 = _mm_mul_epu32(a_simd, b_hi_lo_simd); // p1 = a_lo * b_hi, p2 = a_hi * b_lo
 
-        uint64_t &p0 = _mm_u64_(p0_p3, 0); // Extract p0 (lower 64 bits)
-        uint64_t &p3 = _mm_u64_(p0_p3, 1); // Extract p3 (upper 64 bits)
-        uint64_t &p1 = _mm_u64_(p1_p2, 0); // Extract p1 (lower 64 bits)
-        uint64_t &p2 = _mm_u64_(p1_p2, 1); // Extract p2 (upper 64 bits)
+        uint64_t &mul00 = _mm_u64_(p0_p3, 0); // Extract p0 (lower 64 bits)
+        uint64_t &mul11 = _mm_u64_(p0_p3, 1); // Extract p3 (upper 64 bits)
+        uint64_t &mul10 = _mm_u64_(p1_p2, 0); // Extract p1 (lower 64 bits)
+        uint64_t &mul01 = _mm_u64_(p1_p2, 1); // Extract p2 (upper 64 bits)
 #endif
-        uint64_t mid1 = p1 + (p0 >> 32);
-        uint64_t mid2 = p2;
 
-        uint64_t mid1_lo = (uint32_t)mid1;
-        uint64_t mid1_hi = mid1 >> 32;
-
-        uint64_t sum = mid2 + mid1_lo;
-        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
-
-        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
-        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
-
-#elif defined(ITK_NEON)
+#elif defined(ITK_NEON) && false
 
         uint32_t a_lo = (uint32_t)a;
         uint32_t a_hi = a >> 32;
@@ -751,46 +740,37 @@ namespace MathCore
         uint64x2_t p0_p3 = vmull_u32(a_simd, b_simd);       // p0 = a_lo * b_lo, p3 = a_hi * b_hi
         uint64x2_t p1_p2 = vmull_u32(a_simd, b_hi_lo_simd); // p1 = a_lo * b_hi, p2 = a_hi * b_lo
 
-        uint64_t p0 = vgetq_lane_u64(p0_p3, 0); // Extract p0 (lower 64 bits)
-        uint64_t p3 = vgetq_lane_u64(p0_p3, 1); // Extract p3 (upper 64 bits)
-        uint64_t p1 = vgetq_lane_u64(p1_p2, 0); // Extract p1 (lower 64 bits)
-        uint64_t p2 = vgetq_lane_u64(p1_p2, 1); // Extract p2 (upper 64 bits)
-
-        uint64_t mid1 = p1 + (p0 >> 32);
-        uint64_t mid2 = p2;
-
-        uint64_t mid1_lo = (uint32_t)mid1;
-        uint64_t mid1_hi = mid1 >> 32;
-
-        uint64_t sum = mid2 + mid1_lo;
-        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
-
-        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
-        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
+        uint64_t mul00 = vgetq_lane_u64(p0_p3, 0); // Extract p0 (lower 64 bits)
+        uint64_t mul11 = vgetq_lane_u64(p0_p3, 1); // Extract p3 (upper 64 bits)
+        uint64_t mul10 = vgetq_lane_u64(p1_p2, 0); // Extract p1 (lower 64 bits)
+        uint64_t mul01 = vgetq_lane_u64(p1_p2, 1); // Extract p2 (upper 64 bits)
 
 #else
-        uint64_t a_lo = (uint32_t)a;
-        uint64_t a_hi = a >> 32;
-        uint64_t b_lo = (uint32_t)b;
-        uint64_t b_hi = b >> 32;
 
-        uint64_t p0 = a_lo * b_lo;
-        uint64_t p1 = a_lo * b_hi;
-        uint64_t p2 = a_hi * b_lo;
-        uint64_t p3 = a_hi * b_hi;
+        uint64_t a_low = (uint32_t)a;
+        uint64_t a_high = a >> 32;
+        uint64_t b_low = (uint32_t)b;
+        uint64_t b_high = b >> 32;
 
-        uint64_t mid1 = p1 + (p0 >> 32);
-        uint64_t mid2 = p2;
+        uint64_t mul00 = b_low * a_low;
+        uint64_t mul01 = b_low * a_high;
+        uint64_t mul10 = b_high * a_low;
+        uint64_t mul11 = b_high * a_high;
 
-        uint64_t mid1_lo = (uint32_t)mid1;
-        uint64_t mid1_hi = mid1 >> 32;
-
-        uint64_t sum = mid2 + mid1_lo;
-        uint64_t sum_hi = (sum < mid2) ? 1 : 0; // carry
-
-        *r_low = (p0 & UINT64_C(0xFFFFFFFF)) | (sum << 32);
-        *r_high = p3 + mid1_hi + (sum >> 32) + sum_hi;
 #endif
+
+        const uint64_t _32bit_mask = UINT64_C(0x00000000ffffffff);
+
+        // multiplication step
+        // uint64_t r0 = (uint32_t)mul00;
+        uint64_t r1 = (mul00 >> 32) + (mul01 & _32bit_mask) + (mul10 & _32bit_mask);
+        uint64_t r1_carry = (r1 >> 32);
+        // uint64_t r2 = (r1 >> 32) + (mul01 >> 32) + (mul10 >> 32) + (uint32_t)mul11;
+        // uint64_t r3 = (r2 >> 32) + (mul11 >> 32);
+
+        // // result
+        *r_low = (r1 << 32) | (mul00 & _32bit_mask);
+        *r_high = r1_carry + (mul01 >> 32) + (mul10 >> 32) + mul11;
     }
     static inline void multiply_int64_to_int128(int64_t a, int64_t b, uint64_t *r_high, uint64_t *r_low) noexcept
     {
