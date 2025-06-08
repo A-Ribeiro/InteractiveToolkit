@@ -250,15 +250,11 @@ namespace AlgorithmCore
                 return *this;
             }
 
-            bool isHole() const
-            {
-                return signedArea < 0;
-            }
+            bool isHole() const { return isCW(); }
+            bool isOutline() const { return isCCW(); }
 
-            bool isOutline() const
-            {
-                return signedArea > 0;
-            }
+            bool isCCW() const { return signedArea > 0; }
+            bool isCW() const { return signedArea < 0; }
 
             void reverse()
             {
@@ -268,7 +264,7 @@ namespace AlgorithmCore
                 points.push_back(points[0]);
                 std::reverse(points.begin(), points.end());
                 // remove the last point, which is the same as the first point
-                points.pop_back(); 
+                points.pop_back();
                 signedArea = -signedArea; // reverse the sign of the area
             }
 
@@ -327,7 +323,7 @@ namespace AlgorithmCore
                 {
                     signedArea = 0;
                     return;
-                }    
+                }
                 std::vector<VecType> points;
                 samplePoints(&points, MathCore::FloatTypeInfo<float_type>::max);
                 signedArea = Polygon2DUtils::signedArea<VecType>(points);

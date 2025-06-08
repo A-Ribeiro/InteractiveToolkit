@@ -150,24 +150,33 @@ namespace STL_Tools
         using _ListT = ContainerT<ValueT, AllocatorT>;
         _ListT &_obj;
 
-        Reversal_Impl(_ListT &obj) : _obj(obj)
-        {
-        }
-        typename _ListT::reverse_iterator begin()
-        {
-            return _obj.rbegin();
-        }
-        typename _ListT::reverse_iterator end()
-        {
-            return _obj.rend();
-        }
+        Reversal_Impl(_ListT &obj) : _obj(obj) {}
+        typename _ListT::reverse_iterator begin() { return _obj.rbegin(); }
+        typename _ListT::reverse_iterator end() { return _obj.rend(); }
     };
 
-    
+    template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>
+    class Reversal_Impl_Const
+    {
+    public:
+        using _ListT = const ContainerT<ValueT, AllocatorT>;
+        _ListT &_obj;
+
+        Reversal_Impl_Const(_ListT &obj) : _obj(obj) {}
+        typename _ListT::const_reverse_iterator begin() const { return _obj.rbegin(); }
+        typename _ListT::const_reverse_iterator end() const { return _obj.rend(); }
+    };
+
     template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>
     static inline Reversal_Impl<ContainerT, ValueT, AllocatorT> Reversal(ContainerT<ValueT, AllocatorT> &obj)
     {
         return Reversal_Impl<ContainerT, ValueT, AllocatorT>(obj);
+    }
+
+    template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>
+    static inline Reversal_Impl_Const<ContainerT, ValueT, AllocatorT> Reversal(const ContainerT<ValueT, AllocatorT> &obj)
+    {
+        return Reversal_Impl_Const<ContainerT, ValueT, AllocatorT>(obj);
     }
 
 }
