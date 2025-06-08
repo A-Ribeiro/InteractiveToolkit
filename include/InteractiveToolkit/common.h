@@ -129,7 +129,7 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_i64_(v, i) (v).m128i_i64[i]
 #define _mm_u64_(v, i) (v).m128i_u64[i]
 
-#define _mm_f32_read_0(vec, index) _mm_cvtss_f32(vec)
+#define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
 #define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
 
 #if defined(ITK_AVX2)
