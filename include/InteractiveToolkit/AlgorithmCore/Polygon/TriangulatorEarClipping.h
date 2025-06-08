@@ -55,8 +55,8 @@ namespace AlgorithmCore
                 for (int i = 0; i < vertices.size(); ++i)
                     indices.push_back(i);
 
-                int safety_counter = 0;
-                int max_iterations = indices.size() * indices.size(); // Previne loop infinito
+                size_t safety_counter = 0;
+                size_t max_iterations = indices.size() * indices.size(); // Previne loop infinito
 
                 while (indices.size() > 3 && safety_counter < max_iterations)
                 {
