@@ -48,7 +48,7 @@ namespace MathCore
         static ITK_INLINE _type dot(const typeMat2 &a, const typeMat2 &b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(dot_sse_4(a.array_sse, b.array_sse), 0);
+            return _mm_f32_read_0(dot_sse_4(a.array_sse, b.array_sse));
 #elif defined(ITK_NEON)
             return vgetq_lane_f32(dot_neon_4(a.array_neon, b.array_neon), 0);
 #else
@@ -60,7 +60,7 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
             __m128 mag2 = dot_sse_4(m.array_sse, m.array_sse);
-            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_(mag2, 0));
+            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_read_0(mag2));
             __m128 magInv = _mm_set1_ps(mag2_rsqrt);
             return _mm_mul_ps(m.array_sse, magInv);
 #elif defined(ITK_NEON)
@@ -98,7 +98,7 @@ namespace MathCore
         static ITK_INLINE _type maximum(const typeMat2 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(max_sse_4(a.array_sse), 0);
+            return _mm_f32_read_0(max_sse_4(a.array_sse));
 #elif defined(ITK_NEON)
             float32x4_t max_neon = vmaxq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             max_neon = vmaxq_f32(max_neon, vshuffle_1111(max_neon));
@@ -122,7 +122,7 @@ namespace MathCore
         static ITK_INLINE _type minimum(const typeMat2 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(min_sse_4(a.array_sse), 0);
+            return _mm_f32_read_0(min_sse_4(a.array_sse));
 #elif defined(ITK_NEON)
             float32x4_t min_neon = vminq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             min_neon = vminq_f32(min_neon, vshuffle_1111(min_neon));

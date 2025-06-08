@@ -939,7 +939,7 @@ namespace MathCore
             __m128 tmp0 = _mm_shuffle_ps(result.array_sse[0], result.array_sse[1], _MM_SHUFFLE(1, 0, 1, 0));
             __m128 tmp1 = _mm_shuffle_ps(result.array_sse[2], _vec4_0001_sse, _MM_SHUFFLE(1, 0, 1, 0));
             __m128 aux = _mm_shuffle_ps(tmp0, tmp1, _MM_SHUFFLE(2, 0, 2, 0));
-            _BaseType det = _mm_f32_(dot_sse_3(array_sse[0], aux), 0);
+            _BaseType det = _mm_f32_read_0(dot_sse_3(array_sse[0], aux));
 #elif defined(ITK_NEON)
             _BaseType det = (a1 * result.a1 + a2 * result.b1 + a3 * result.c1);
 #else

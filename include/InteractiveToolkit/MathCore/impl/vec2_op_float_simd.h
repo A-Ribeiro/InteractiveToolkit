@@ -136,7 +136,7 @@ namespace MathCore
 #else
             __m128 dp = _mm_dp_ps(a.array_sse, b.array_sse, 0x33);
 #endif
-            return _mm_f32_(dp, 0);
+            return _mm_f32_read_0(dp);
 #elif defined(ITK_NEON)
             float32x2_t rc = dot_neon_2(a.array_neon, b.array_neon);
             // float32x2_t mul0 = vmul_f32(a.array_neon, b.array_neon);
@@ -202,9 +202,53 @@ namespace MathCore
             return OP<_type>::acos(cosA);
         }
 
-        static ITK_INLINE _type cross_z_result(const type2 &a, const type2 &b) noexcept
+        static ITK_INLINE _type cross_z_mag(const type2 &a, const type2 &b) noexcept
         {
             return (a.x * b.y - a.y * b.x);
+        }
+
+        /// \brief Computes the orientation of three points in 2D space
+        ///
+        /// The orientation is computed as the cross product of the vectors formed by the points.
+        /// It returns a positive value if the points are oriented counter-clockwise,
+        /// a negative value if they are oriented clockwise, and zero if they are collinear.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point
+        /// \param b The second point
+        /// \param c The third point
+        /// \return A positive value if the points are oriented counter-clockwise,
+        ///         a negative value if they are oriented clockwise, and zero if they are collinear.
+        ///
+        static ITK_INLINE _type orientation(const type2 &a, const type2 &b, const type2 &c) noexcept
+        {
+            type2 ab = b - a;
+            type2 ac = c - a;
+            return cross_z_mag(ab, ac);
+        }
+
+        /// \brief Checks if a point is inside a triangle defined by three points in 2D space
+        /// 
+        /// The function uses the orientation of the points to determine if the point is inside the triangle.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The point to check
+        /// \param a The first vertex of the triangle
+        /// \param b The second vertex of the triangle
+        /// \param c The third vertex of the triangle
+        /// \return true if the point is inside the triangle, false otherwise
+        ///
+        static ITK_INLINE bool point_inside_triangle(const type2 &p,
+                                                     const type2 &a, const type2 &b, const type2 &c)
+        {
+            float d1 = orientation(p, a, b);
+            float d2 = orientation(p, b, c);
+            float d3 = orientation(p, c, a);
+
+            bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            return !(has_neg && has_pos);
         }
 
         static ITK_INLINE type2 cross_z_up(const type2 &a) noexcept
@@ -712,7 +756,7 @@ namespace MathCore
         static ITK_INLINE _type maximum(const type2 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(max_sse_2(a.array_sse), 0);
+            return _mm_f32_read_0(max_sse_2(a.array_sse));
 #elif defined(ITK_NEON)
             float32x2_t max_neon = vmax_f32(a.array_neon,
                                             vdup_lane_f32(a.array_neon, 1)
@@ -777,7 +821,7 @@ namespace MathCore
         static ITK_INLINE _type minimum(const type2 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(min_sse_2(a.array_sse), 0);
+            return _mm_f32_read_0(min_sse_2(a.array_sse));
 #elif defined(ITK_NEON)
             float32x2_t min_neon = vmin_f32(a.array_neon,
                                             vdup_lane_f32(a.array_neon, 1)

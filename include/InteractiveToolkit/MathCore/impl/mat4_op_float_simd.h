@@ -319,7 +319,7 @@ namespace MathCore
 
             __m128 Det0 = dot_sse_4(m.array_sse[0], DetCof);
 
-            return _mm_f32_(Det0, 0);
+            return _mm_f32_read_0(Det0);
 #elif defined(ITK_NEON)
 
             // T SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];

@@ -136,7 +136,7 @@ namespace MathCore
         static ITK_INLINE _type dot(const type4 &a, const type4 &b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(dot_sse_4(a.array_sse, b.array_sse), 0);
+            return _mm_f32_read_0(dot_sse_4(a.array_sse, b.array_sse));
 #elif defined(ITK_NEON)
             return vgetq_lane_f32(dot_neon_4(a.array_neon, b.array_neon), 0);
 #else
@@ -169,7 +169,7 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
             __m128 mag2 = dot_sse_4(vec.array_sse, vec.array_sse);
-            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_(mag2, 0));
+            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_read_0(mag2));
             __m128 magInv = _mm_set1_ps(mag2_rsqrt);
             return _mm_mul_ps(vec.array_sse, magInv);
 #elif defined(ITK_NEON)
@@ -208,7 +208,7 @@ namespace MathCore
                 OP<type3>::normalize(a.array_sse).array_sse,
                 OP<type3>::normalize(b.array_sse).array_sse);
             __m128 cosA = clamp_sse_4(dot0, _vec4_minus_one_sse, _vec4_one_sse);
-            return OP<_type>::acos(_mm_f32_(cosA, 0));
+            return OP<_type>::acos(_mm_f32_read_0(cosA));
 #elif defined(ITK_NEON)
             float32x4_t dot0 = dot_neon_3(
                 OP<type3>::normalize(a.array_neon).array_neon,
@@ -281,7 +281,8 @@ namespace MathCore
             __m128 mul0 = _mm_mul_ps(swp0, swp3);
             __m128 mul1 = _mm_mul_ps(swp1, swp2);
             __m128 sub0 = _mm_sub_ps(mul0, mul1);
-            _mm_f32_(sub0, 3) = 0;
+            //_mm_f32_(sub0, 3) = 0;
+            sub0 = _mm_and_ps(sub0, _vec3_valid_bits_sse);
             return sub0;
 #elif defined(ITK_NEON)
             float32x4_t swp0 = vshuffle_3021(a.array_neon);
@@ -297,6 +298,36 @@ namespace MathCore
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
+        }
+
+        /// \brief Computes the orientation of four points in 3D space
+        ///
+        /// The orientation is computed as the scalar triple product (determinant) of the vectors
+        /// formed by the points. It returns a positive value if the fourth point is on the
+        /// positive side of the plane formed by the first three points (counter-clockwise when
+        /// viewed from the fourth point), a negative value if it's on the negative side
+        /// (clockwise), and zero if the points are coplanar.
+        ///
+        /// The result represents the signed volume of the tetrahedron formed by the four points.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point
+        /// \param b The second point
+        /// \param c The third point
+        /// \param d The fourth point
+        /// \return A positive value if d is on the positive side of plane abc,
+        ///         a negative value if d is on the negative side of plane abc,
+        ///         and zero if the points are coplanar.
+        ///
+        static ITK_INLINE _type orientation(const type4 &a, const type4 &b, const type4 &c, const type4 &d) noexcept
+        {
+            type4 ab = b - a;
+            type4 ac = c - a;
+            type4 ad = d - a;
+
+            // Scalar triple product: ad · (ab × ac)
+            // This gives the signed volume of the tetrahedron formed by the four points
+            return self_type::dot(ad, self_type::cross(ab, ac));
         }
 
         /// \brief Computes the reflected vector 'a' related to a normal N
@@ -753,7 +784,7 @@ namespace MathCore
         static ITK_INLINE _type maximum(const type4 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(max_sse_4(a.array_sse), 0);
+            return _mm_f32_read_0(max_sse_4(a.array_sse));
 #elif defined(ITK_NEON)
             float32x4_t max_neon = vmaxq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             max_neon = vmaxq_f32(max_neon, vshuffle_1111(max_neon));
@@ -816,7 +847,7 @@ namespace MathCore
         static ITK_INLINE _type minimum(const type4 &a) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(min_sse_4(a.array_sse), 0);
+            return _mm_f32_read_0(min_sse_4(a.array_sse));
 #elif defined(ITK_NEON)
             float32x4_t min_neon = vminq_f32(a.array_neon, vshuffle_1032(a.array_neon));
             min_neon = vminq_f32(min_neon, vshuffle_1111(min_neon));

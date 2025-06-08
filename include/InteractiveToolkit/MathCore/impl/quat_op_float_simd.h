@@ -95,7 +95,7 @@ namespace MathCore
         static ITK_INLINE _type dot(const quatT &a, const quatT &b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(dot_sse_4(a.array_sse, b.array_sse), 0);
+            return _mm_f32_read_0(dot_sse_4(a.array_sse, b.array_sse));
 #elif defined(ITK_NEON)
             return vgetq_lane_f32(dot_neon_4(a.array_neon, b.array_neon),0);
 #else
@@ -128,7 +128,7 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
             __m128 mag2 = dot_sse_4(vec.array_sse, vec.array_sse);
-            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_(mag2, 0));
+            _type mag2_rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_read_0(mag2));
             __m128 magInv = _mm_set1_ps(mag2_rsqrt);
             return _mm_mul_ps(vec.array_sse, magInv);
 #elif defined(ITK_NEON)
@@ -179,7 +179,7 @@ namespace MathCore
                 self_type::normalize(b).array_sse);
             dot0 = _mm_andnot_ps(_vec4_sign_mask_sse, dot0);
             __m128 cosA = _mm_min_ps(dot0, _vec4_one_sse);
-            return OP<_type>::acos(_mm_f32_(cosA, 0)) * 2.0f;
+            return OP<_type>::acos(_mm_f32_read_0(cosA)) * 2.0f;
 
             // __m128 dot0 = dot_sse_4(
             //     OP<type3>::normalize(a.array_sse).array_sse,
@@ -372,7 +372,7 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
             __m128 dot0 = dot_sse_3(q.array_sse, q.array_sse);
-            _type _rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_(dot0, 0));
+            _type _rsqrt = OP<_type, void, _algorithm>::rsqrt(_mm_f32_read_0(dot0));
             __m128 inv_length = _mm_set1_ps(_rsqrt);
             __m128 result = _mm_mul_ps(q.array_sse, inv_length);
             axis->array_sse = result;

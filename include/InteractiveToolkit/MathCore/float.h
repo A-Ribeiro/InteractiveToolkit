@@ -214,10 +214,10 @@ namespace MathCore
         static ITK_INLINE float maximum(const float& a, const float& b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(_mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)), 0);
+            return _mm_f32_read_0(_mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(ITK_NEON)
             float32x2_t max_neon = vmax_f32(vdup_n_f32(a), vdup_n_f32(b));
-            return max_neon[0];
+            return vget_lane_f32(max_neon,0);
 #else
             return (a > b) ? a : b;
 #endif
@@ -248,10 +248,10 @@ namespace MathCore
         static ITK_INLINE float minimum(const float& a, const float& b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_f32_(_mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)), 0);
+            return _mm_f32_read_0(_mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(ITK_NEON)
             float32x2_t min_neon = vmin_f32(vdup_n_f32(a), vdup_n_f32(b));
-            return min_neon[0];
+            return vget_lane_f32(min_neon,0);
 #else
             return (a < b) ? a : b;
 #endif
@@ -290,11 +290,11 @@ namespace MathCore
 #if defined(ITK_SSE2)
             __m128 maxStep = _mm_max_ss(_mm_set_ss(value), _mm_set_ss(min));
             __m128 minStep = _mm_min_ss(maxStep, _mm_set_ss(max));
-            return _mm_f32_(minStep, 0);
+            return _mm_f32_read_0(minStep);
 #elif defined(ITK_NEON)
             float32x2_t max_neon = vmax_f32(vdup_n_f32(value), vdup_n_f32(min));
             float32x2_t min_neon = vmin_f32(max_neon, vdup_n_f32(max));
-            return min_neon[0];
+            return vget_lane_f32(min_neon,0);
 #else
             _type maxStep = OP<_type>::maximum(value, min);
             _type minStep = OP<_type>::minimum(maxStep, max);
@@ -459,7 +459,7 @@ namespace MathCore
             using type_info = FloatTypeInfo<_type>;
             float x = self_type::maximum(_x, type_info::min);
 #if defined(ITK_SSE2)
-            float y = _mm_f32_(_mm_rsqrt_ss(_mm_set_ss(x)), 0);
+            float y = _mm_f32_read_0(_mm_rsqrt_ss(_mm_set_ss(x)));
             // 2nd iteration: y = y * ( 0.5f * (3.0f - (x * y) * y) );
             y = y * (0.5f * (3.0f - (x * y) * y));
             return y;
@@ -558,7 +558,7 @@ namespace MathCore
         static ITK_INLINE float floor(const float& v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_mm_floor_ps(_mm_set_ss(v)), 0);
+            return _mm_f32_read_0(_mm_floor_ps(_mm_set_ss(v)));
 #else
             float f_sign = OP<float>::sign(v);
             float r = (float)(int)v;
@@ -590,7 +590,7 @@ namespace MathCore
         static ITK_INLINE float ceil(const float& v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_mm_ceil_ps(_mm_set_ss(v)), 0);
+            return _mm_f32_read_0(_mm_ceil_ps(_mm_set_ss(v)));
 #else
             // floor(-fp) = -ceiling(fp)
             // ceiling(fp) = -floor(-fp)
@@ -627,7 +627,7 @@ namespace MathCore
         static ITK_INLINE float round(const float& v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
-            return _mm_f32_(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC), 0);
+            return _mm_f32_read_0(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
 #else
             float f_sign = OP<float>::sign(v);
             float _half_signed = f_sign * .5f;

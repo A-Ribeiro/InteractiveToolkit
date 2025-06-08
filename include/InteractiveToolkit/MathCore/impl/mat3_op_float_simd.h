@@ -206,7 +206,7 @@ namespace MathCore
             type3 aux = type3(m.c3, m.b3, m.c2) * type3(m.b2, m.c1, m.b1) - type3(m.b3, m.c3, m.b2) * type3(m.c2, m.b1, m.c1);
             // return OP<type3>::dot(m[0], aux);
 #if defined(ITK_SSE2)
-            return _mm_f32_(dot_sse_3(m.array_sse[0], aux.array_sse), 0);
+            return _mm_f32_read_0(dot_sse_3(m.array_sse[0], aux.array_sse));
 #elif defined(ITK_NEON)
             return vgetq_lane_f32(dot_neon_3(m.array_neon[0], aux.array_neon), 0);
 #else

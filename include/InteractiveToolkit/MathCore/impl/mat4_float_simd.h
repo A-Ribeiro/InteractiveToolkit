@@ -1170,7 +1170,7 @@ namespace MathCore
             //      exit(-1);
             //  }
 
-            _BaseType det = _mm_f32_(Det0, 0);
+            _BaseType det = _mm_f32_read_0(Det0);
             _BaseType sign_det = OP<_BaseType>::sign(det);
             det = OP<_BaseType>::maximum(OP<_BaseType>::abs(det), FloatTypeInfo<_BaseType>::min);
 
@@ -1461,7 +1461,7 @@ namespace MathCore
             __m128 _c = _mm_shuffle_ps(tmp2, tmp3, _MM_SHUFFLE(2, 0, 2, 0));
             __m128 _d = _mm_shuffle_ps(tmp2, tmp3, _MM_SHUFFLE(3, 1, 3, 1));
 
-            _BaseType det = _mm_f32_(dot_sse_3(array_sse[0], _a), 0);
+            _BaseType det = _mm_f32_read_0(dot_sse_3(array_sse[0], _a));
 
             // check det
             // MATH_CORE_THROW_RUNTIME_ERROR(det == 0, "trying to invert a singular matrix\n");

@@ -18,7 +18,7 @@ namespace AlgorithmCore
             /// \param polygon The polygon represented as a vector of points.
             /// \return True if the point is inside the polygon, false otherwise.
             template <typename PointType = MathCore::vec2f>
-            bool checkPointInside(const std::vector<PointType> &polygon, const PointType &point)
+            static inline bool checkPointInside(const std::vector<PointType> &polygon, const PointType &point)
             {
                 using float_type = typename PointType::element_type;
 
@@ -58,7 +58,7 @@ namespace AlgorithmCore
             /// \param polygon The polygon represented as a vector of points.
             /// \return The signed area of the polygon.
             template <typename PointType = MathCore::vec2f>
-            typename PointType::element_type signedArea(const std::vector<PointType> &polygon)
+            static inline typename PointType::element_type signedArea(const std::vector<PointType> &polygon)
             {
                 using float_type = typename PointType::element_type;
 
@@ -84,7 +84,7 @@ namespace AlgorithmCore
             /// /// \param polygon The polygon represented as a vector of points.
             /// \return The perimeter of the polygon.
             template <typename PointType = MathCore::vec2f>
-            typename PointType::element_type perimeter(const std::vector<PointType> &polygon)
+            static inline typename PointType::element_type perimeter(const std::vector<PointType> &polygon)
             {
                 using float_type = typename PointType::element_type;
 
@@ -100,13 +100,13 @@ namespace AlgorithmCore
             }
 
             template <typename PointType = MathCore::vec2f>
-            void addPoint(std::vector<PointType> &polygon, const PointType &point)
+            static inline void addPoint(std::vector<PointType> &polygon, const PointType &point)
             {
                 polygon.push_back(point);
             }
 
             template <typename PointType = MathCore::vec2f>
-            void addBezierQuadratic(std::vector<PointType> &polygon, const PointType &_p0, const PointType &_p1, const PointType &_p2, typename PointType::element_type max_dst)
+            static inline void addBezierQuadratic(std::vector<PointType> &polygon, const PointType &_p0, const PointType &_p1, const PointType &_p2, typename PointType::element_type max_dst)
             {
                 using float_type = typename PointType::element_type;
                 float_type max_dst_squared = max_dst * max_dst;
@@ -148,7 +148,7 @@ namespace AlgorithmCore
             }
 
             template <typename PointType = MathCore::vec2f>
-            void addBezierCubic(std::vector<PointType> &polygon, const PointType &_p0, const PointType &_p1, const PointType &_p2, const PointType &_p3, typename PointType::element_type max_dst)
+            static inline void addBezierCubic(std::vector<PointType> &polygon, const PointType &_p0, const PointType &_p1, const PointType &_p2, const PointType &_p3, typename PointType::element_type max_dst)
             {
                 using float_type = typename PointType::element_type;
                 float_type max_dst_squared = max_dst * max_dst;

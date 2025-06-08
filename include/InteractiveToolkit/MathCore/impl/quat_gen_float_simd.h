@@ -471,9 +471,9 @@ namespace MathCore
             __m128 sum = _mm_add_ps(sum_a, sum_b);
 
             // large enough
-            if (_mm_f32_(sum, 0) > (_type)0.001)
+            if (_mm_f32_read_0(sum) > (_type)0.001)
             {
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 0)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read_0(sum)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.b3, m.c1, m.a2, 0.25f);
@@ -490,7 +490,7 @@ namespace MathCore
             else if (m.a1 > m.b2 && m.a1 > m.c3)
             {
                 // Column 0:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 1)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 1)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(0.25f, m.a2, m.c1, m.b3);
@@ -506,7 +506,7 @@ namespace MathCore
             else if (m.b2 > m.c3)
             {
                 // Column 1:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 2)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 2)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.a2, 0.25f, m.b3, m.c1);
@@ -522,7 +522,7 @@ namespace MathCore
             else
             {
                 // Column 2:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 3)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 3)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.c1, m.b3, 0.25f, m.a2);
@@ -675,9 +675,9 @@ namespace MathCore
             __m128 sum = _mm_add_ps(sum_a, sum_b);
 
             // large enough
-            if (_mm_f32_(sum, 0) > (_type)0.001)
+            if (_mm_f32_read_0(sum) > (_type)0.001)
             {
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 0)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read_0(sum)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.b3, m.c1, m.a2, 0.25f);
@@ -694,7 +694,7 @@ namespace MathCore
             else if (m.a1 > m.b2 && m.a1 > m.c3)
             {
                 // Column 0:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 1)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 1)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(0.25f, m.a2, m.c1, m.b3);
@@ -710,7 +710,7 @@ namespace MathCore
             else if (m.b2 > m.c3)
             {
                 // Column 1:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 2)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 2)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.a2, 0.25f, m.b3, m.c1);
@@ -726,7 +726,7 @@ namespace MathCore
             else
             {
                 // Column 2:
-                _type s = OP<_type>::sqrt(_mm_f32_(sum, 3)) * (_type)2;
+                _type s = OP<_type>::sqrt(_mm_f32_read(sum, 3)) * (_type)2;
                 _type _1_o_s = 1.0f / s;
 
                 __m128 _el1 = _mm_setr_ps(m.c1, m.b3, 0.25f, m.a2);

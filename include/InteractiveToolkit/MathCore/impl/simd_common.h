@@ -397,7 +397,9 @@ namespace MathCore
 #if defined(ITK_SSE_SKIP_SSE41)
         __m128 mul0 = _mm_mul_ps(a, b);
 
-        _mm_f32_(mul0, 3) = 0;
+        // _mm_f32_(mul0, 3) = 0;
+        mul0 = _mm_and_ps(mul0, _vec3_valid_bits_sse);
+
         mul0 = _mm_hadd_ps(mul0, mul0);
         mul0 = _mm_hadd_ps(mul0, mul0);
 
@@ -410,7 +412,9 @@ namespace MathCore
 
         __m128 mul0 = _mm_mul_ps(a, b);
 
-        _mm_f32_(mul0, 3) = 0;
+        // _mm_f32_(mul0, 3) = 0;
+        mul0 = _mm_and_ps(mul0, _vec3_valid_bits_sse);
+
         mul0 = _mm_hadd_ps(mul0, mul0);
         mul0 = _mm_hadd_ps(mul0, mul0);
 

@@ -128,6 +128,10 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_u32_(v, i) (v).m128i_u32[i]
 #define _mm_i64_(v, i) (v).m128i_i64[i]
 #define _mm_u64_(v, i) (v).m128i_u64[i]
+
+#define _mm_f32_read_0(vec, index) _mm_cvtss_f32(vec)
+#define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
+
 #if defined(ITK_AVX2)
 #define _mm256_u32_(v, i) (v).m256i_u32[i]
 #define _mm256_u64_(v, i) (v).m256i_u64[i]
@@ -137,6 +141,9 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #include <x86intrin.h>
 
 #define _mm_f32_(v, i) (v)[i]
+
+#define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
+#define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
 
 static ITK_INLINE int32_t &_mm_i32_(const __m128i &v, int i) noexcept
 {

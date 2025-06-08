@@ -173,9 +173,53 @@ namespace MathCore
             return OP<_type>::acos(cosA);
         }
 
-        static ITK_INLINE _type cross_z_result(const type2 &a, const type2 &b) noexcept
+        static ITK_INLINE _type cross_z_mag(const type2 &a, const type2 &b) noexcept
         {
             return (a.x * b.y - a.y * b.x);
+        }
+
+        /// \brief Computes the orientation of three points in 2D space
+        ///
+        /// The orientation is computed as the cross product of the vectors formed by the points.
+        /// It returns a positive value if the points are oriented counter-clockwise,
+        /// a negative value if they are oriented clockwise, and zero if they are collinear.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point
+        /// \param b The second point
+        /// \param c The third point
+        /// \return A positive value if the points are oriented counter-clockwise,
+        ///         a negative value if they are oriented clockwise, and zero if they are collinear.
+        ///
+        static ITK_INLINE _type orientation(const type2 &a, const type2 &b, const type2 &c) noexcept
+        {
+            type2 ab = b - a;
+            type2 ac = c - a;
+            return cross_z_mag(ab, ac);
+        }
+
+        /// \brief Checks if a point is inside a triangle defined by three points in 2D space
+        /// 
+        /// The function uses the orientation of the points to determine if the point is inside the triangle.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The point to check
+        /// \param a The first vertex of the triangle
+        /// \param b The second vertex of the triangle
+        /// \param c The third vertex of the triangle
+        /// \return true if the point is inside the triangle, false otherwise
+        ///
+        static ITK_INLINE bool point_inside_triangle(const type2 &p,
+                                                     const type2 &a, const type2 &b, const type2 &c)
+        {
+            float d1 = orientation(p, a, b);
+            float d2 = orientation(p, b, c);
+            float d3 = orientation(p, c, a);
+
+            bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            return !(has_neg && has_pos);
         }
 
         static ITK_INLINE type2 cross_z_up(const type2 &a) noexcept

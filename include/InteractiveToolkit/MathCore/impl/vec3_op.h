@@ -236,6 +236,36 @@ namespace MathCore
                          (a.x * b.y - a.y * b.x));
         }
 
+        /// \brief Computes the orientation of four points in 3D space
+        ///
+        /// The orientation is computed as the scalar triple product (determinant) of the vectors
+        /// formed by the points. It returns a positive value if the fourth point is on the
+        /// positive side of the plane formed by the first three points (counter-clockwise when
+        /// viewed from the fourth point), a negative value if it's on the negative side
+        /// (clockwise), and zero if the points are coplanar.
+        ///
+        /// The result represents the signed volume of the tetrahedron formed by the four points.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point
+        /// \param b The second point
+        /// \param c The third point
+        /// \param d The fourth point
+        /// \return A positive value if d is on the positive side of plane abc,
+        ///         a negative value if d is on the negative side of plane abc,
+        ///         and zero if the points are coplanar.
+        ///
+        static ITK_INLINE _type orientation(const type3 &a, const type3 &b, const type3 &c, const type3 &d) noexcept
+        {
+            type3 ab = b - a;
+            type3 ac = c - a;
+            type3 ad = d - a;
+
+            // Scalar triple product: ad · (ab × ac)
+            // This gives the signed volume of the tetrahedron formed by the four points
+            return self_type::dot(ad, self_type::cross(ab, ac));
+        }
+
         /// \brief Computes the reflected vector 'a' related to a normal N
         ///
         /// The reflection of a vector is another vector with the same length, but the direction is
@@ -582,7 +612,7 @@ namespace MathCore
         /// \param parallel It is a return parameter, thats will hold the computed parallel vector
         ///
         static ITK_INLINE void vecDecomp(const type3 &a, const type3 &unitV,
-                                          type3 *perpendicular, type3 *parallel) noexcept
+                                         type3 *perpendicular, type3 *parallel) noexcept
         {
             *parallel = unitV * (self_type::dot(a, unitV));
             *perpendicular = a - *parallel;
@@ -947,7 +977,7 @@ namespace MathCore
         /// \return A vector interpolated based on dxdy considering the 4 vectors of the parameter
         ///
         static ITK_INLINE type3 blerp(const type3 &A, const type3 &B, const type3 &C, const type3 &D,
-                                       const _type &dx, const _type &dy) noexcept
+                                      const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;

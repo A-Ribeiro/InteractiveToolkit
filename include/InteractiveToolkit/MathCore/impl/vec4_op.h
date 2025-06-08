@@ -238,6 +238,36 @@ namespace MathCore
                          0);
         }
 
+        /// \brief Computes the orientation of four points in 3D space
+        ///
+        /// The orientation is computed as the scalar triple product (determinant) of the vectors
+        /// formed by the points. It returns a positive value if the fourth point is on the
+        /// positive side of the plane formed by the first three points (counter-clockwise when
+        /// viewed from the fourth point), a negative value if it's on the negative side
+        /// (clockwise), and zero if the points are coplanar.
+        ///
+        /// The result represents the signed volume of the tetrahedron formed by the four points.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point
+        /// \param b The second point
+        /// \param c The third point
+        /// \param d The fourth point
+        /// \return A positive value if d is on the positive side of plane abc,
+        ///         a negative value if d is on the negative side of plane abc,
+        ///         and zero if the points are coplanar.
+        ///
+        static ITK_INLINE _type orientation(const type4 &a, const type4 &b, const type4 &c, const type4 &d) noexcept
+        {
+            type4 ab = b - a;
+            type4 ac = c - a;
+            type4 ad = d - a;
+
+            // Scalar triple product: ad · (ab × ac)
+            // This gives the signed volume of the tetrahedron formed by the four points
+            return self_type::dot(ad, self_type::cross(ab, ac));
+        }
+
         /// \brief Computes the reflected vector 'a' related to a normal N
         ///
         /// The reflection of a vector is another vector with the same length, but the direction is
