@@ -5,6 +5,7 @@
 #include "Polygon2D.h"
 
 #include "../../ITKCommon/STL_Tools.h"
+#include "./Quadtree2D_IndexedPoints.h"
 
 namespace AlgorithmCore
 {
@@ -14,7 +15,7 @@ namespace AlgorithmCore
         namespace EarClipping
         {
 
-            static inline bool isEar(const std::vector<MathCore::vec2f> &vertices, int prev, int curr, int next)
+            static inline bool isEar(std::unique_ptr<Quadtree2D_IndexedPoints> &quadtree, const std::vector<MathCore::vec2f> &vertices, int prev, int curr, int next)
             {
                 const auto &a = vertices[prev];
                 const auto &b = vertices[curr];
@@ -25,54 +26,79 @@ namespace AlgorithmCore
                 if (orientation <= 0)
                     return false;
 
-                // Check if any other vertex is inside this triangle
-                for (size_t i = 0; i < vertices.size(); ++i)
+                if (quadtree != nullptr)
                 {
-                    if (i == prev || i == curr || i == next)
-                        continue;
+                    MathCore::vec2f box_min = MathCore::OP<MathCore::vec2f>::minimum(a, MathCore::OP<MathCore::vec2f>::minimum(b, c));
+                    MathCore::vec2f box_max = MathCore::OP<MathCore::vec2f>::maximum(a, MathCore::OP<MathCore::vec2f>::maximum(b, c));
 
-                    const auto &p = vertices[i];
+                    // Query the quadtree for points inside the triangle bounding box
+                    const std::vector<size_t> &indices = quadtree->query(box_min, box_max);
+                    if (indices.empty())
+                        return true; // No points inside the bounding box, so it's an ear
 
-                    // MathCore::OP<MathCore::vec2f>::sqrDistance(p, a) < 1e-10f) ||
-                    // MathCore::OP<MathCore::vec2f>::sqrDistance(p, b) < 1e-10f) ||
-                    // MathCore::OP<MathCore::vec2f>::sqrDistance(p, c) < 1e-10f) ||
-                    // Remove duplicate points
-                    if (p == a || p == b || p == c)
-                        continue;
-                    if (MathCore::OP<MathCore::vec2f>::point_inside_triangle(p, a, b, c))
-                        return false;
+                    // Check if any other vertex is inside this triangle
+                    for (size_t i : indices)
+                    {
+                        if (i == prev || i == curr || i == next)
+                            continue;
+                        const auto &p = vertices[i];
+                        // Remove duplicate points
+                        if (p == a || p == b || p == c)
+                            continue;
+                        if (MathCore::OP<MathCore::vec2f>::point_inside_triangle(p, a, b, c))
+                            return false;
+                    }
                 }
+                else
+                {
+                    // Check if any other vertex is inside this triangle
+                    for (size_t i = 0; i < vertices.size(); ++i)
+                    {
+                        if (i == prev || i == curr || i == next)
+                            continue;
+                        const auto &p = vertices[i];
+                        // Remove duplicate points
+                        if (p == a || p == b || p == c)
+                            continue;
+                        if (MathCore::OP<MathCore::vec2f>::point_inside_triangle(p, a, b, c))
+                            return false;
+                    }
+                }
+
                 return true;
             }
 
-            static void earClipping(const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
+            static void earClipping(std::vector<int> &indices_aux_buffer, const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
             {
                 if (vertices.size() < 3)
                     return;
 
-                std::vector<int> indices;
+                std::unique_ptr<Quadtree2D_IndexedPoints> quadtree = STL_Tools::make_unique<Quadtree2D_IndexedPoints>(vertices, 16, 10);
+
+                // std::vector<int> indices;
+                indices_aux_buffer.clear();
                 // Inicializa os índices com os indices dos vértices em sequência
                 for (int i = 0; i < vertices.size(); ++i)
-                    indices.push_back(i);
+                    indices_aux_buffer.push_back(i);
 
                 size_t safety_counter = 0;
-                size_t max_iterations = indices.size() * indices.size(); // Previne loop infinito
+                size_t max_iterations = indices_aux_buffer.size() * indices_aux_buffer.size(); // Previne loop infinito
 
-                while (indices.size() > 3 && safety_counter < max_iterations)
+                while (indices_aux_buffer.size() > 3 && safety_counter < max_iterations)
                 {
                     bool ear_found = false;
-                    for (size_t i = 0; i < indices.size(); ++i)
+                    for (size_t i = 0; i < indices_aux_buffer.size(); ++i)
                     {
-                        int prev = indices[(i - 1 + indices.size()) % indices.size()];
-                        int curr = indices[i];
-                        int next = indices[(i + 1) % indices.size()];
-                        if (isEar(vertices, prev, curr, next))
+                        int prev = indices_aux_buffer[(i - 1 + indices_aux_buffer.size()) % indices_aux_buffer.size()];
+                        int curr = indices_aux_buffer[i];
+                        int next = indices_aux_buffer[(i + 1) % indices_aux_buffer.size()];
+                        if (isEar(quadtree, vertices, prev, curr, next))
                         {
                             triangles.push_back(prev);
                             triangles.push_back(curr);
                             triangles.push_back(next);
 
-                            indices.erase(indices.begin() + i);
+                            indices_aux_buffer.erase(indices_aux_buffer.begin() + i);
                             ear_found = true;
                             break;
                         }
@@ -83,15 +109,15 @@ namespace AlgorithmCore
                 }
 
                 // Adicione o último triângulo
-                if (indices.size() == 3)
+                if (indices_aux_buffer.size() == 3)
                 {
-                    triangles.push_back(indices[0]);
-                    triangles.push_back(indices[1]);
-                    triangles.push_back(indices[2]);
+                    triangles.push_back(indices_aux_buffer[0]);
+                    triangles.push_back(indices_aux_buffer[1]);
+                    triangles.push_back(indices_aux_buffer[2]);
                 }
             }
 
-            static void connectHole(std::vector<MathCore::vec2f> &outline, const std::vector<MathCore::vec2f> &hole)
+            static void connectHole(std::vector<MathCore::vec2f> &connection_sequence_aux_buffer, std::vector<MathCore::vec2f> &outline, const std::vector<MathCore::vec2f> &hole)
             {
                 // Encontre o ponto mais à direita do buraco
                 size_t rightmost = 0;
@@ -127,55 +153,59 @@ namespace AlgorithmCore
                     }
                 }
 
-                std::vector<MathCore::vec2f> connection_sequence;
-                connection_sequence.reserve(hole.size() + 2); // +2 for the connection point and the rightmost point
+                //std::vector<MathCore::vec2f> connection_sequence;
+                connection_sequence_aux_buffer.clear();
+                connection_sequence_aux_buffer.reserve(hole.size() + 2); // +2 for the connection point and the rightmost point
                 for (size_t i = 0; i < hole.size(); ++i)
-                    connection_sequence.push_back(hole[(rightmost + i) % hole.size()]);
+                    connection_sequence_aux_buffer.push_back(hole[(rightmost + i) % hole.size()]);
 
                 // insert the initial hole point at the end of the sequence
-                connection_sequence.push_back(hole[rightmost]);
+                connection_sequence_aux_buffer.push_back(hole[rightmost]);
                 // insert the connection point at the end of the sequence, so the polygon is closed
-                connection_sequence.push_back(outline[connection_point]);
+                connection_sequence_aux_buffer.push_back(outline[connection_point]);
 
                 // Insere a sequência no outline após o ponto de conexão
                 auto insertion_point = outline.begin() + connection_point + 1;
 
-                outline.insert(insertion_point, connection_sequence.begin(), connection_sequence.end());
+                outline.insert(insertion_point, connection_sequence_aux_buffer.begin(), connection_sequence_aux_buffer.end());
             }
 
-            static void removeDuplicateVertices(std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
+            static void removeDuplicateVertices(std::vector<MathCore::vec2f> &filtered_aux_buffer, std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
             {
                 if (vertices.size() < 2)
                     return;
 
-                std::vector<MathCore::vec2f> filtered;
-                filtered.reserve(vertices.size());
+                //std::vector<MathCore::vec2f> filtered;
+                filtered_aux_buffer.clear();
+                filtered_aux_buffer.reserve(vertices.size());
 
                 float sqr_epsilon = epsilon * epsilon;
                 for (size_t i = 0; i < vertices.size(); ++i)
                 {
                     if (i == 0)
                         // Always keep the first vertex
-                        filtered.push_back(vertices[i]);
-                    else if (MathCore::OP<MathCore::vec2f>::sqrDistance(filtered.back(), vertices[i]) >= sqr_epsilon)
+                        filtered_aux_buffer.push_back(vertices[i]);
+                    else if (MathCore::OP<MathCore::vec2f>::sqrDistance(filtered_aux_buffer.back(), vertices[i]) >= sqr_epsilon)
                         // Check against the last added vertex
-                        filtered.push_back(vertices[i]);
+                        filtered_aux_buffer.push_back(vertices[i]);
                 }
 
                 // Check if the last and first vertices are duplicates (closing the polygon)
-                if (filtered.size() > 2 &&
-                    MathCore::OP<MathCore::vec2f>::sqrDistance(filtered.back(), filtered.front()) < sqr_epsilon)
-                    filtered.pop_back();
+                if (filtered_aux_buffer.size() > 2 &&
+                    MathCore::OP<MathCore::vec2f>::sqrDistance(filtered_aux_buffer.back(), filtered_aux_buffer.front()) < sqr_epsilon)
+                    filtered_aux_buffer.pop_back();
 
-                vertices = std::move(filtered);
+                //vertices = std::move(filtered);
+                vertices.swap(filtered_aux_buffer);
             }
 
-            static void removeColinearVertices(std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
+            static void removeColinearVertices(std::vector<MathCore::vec2f> &filtered_aux_buffer, std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
             {
                 if (vertices.size() < 3)
                     return;
-                std::vector<MathCore::vec2f> filtered;
-                filtered.reserve(vertices.size());
+                // std::vector<MathCore::vec2f> filtered;
+                filtered_aux_buffer.clear();
+                filtered_aux_buffer.reserve(vertices.size());
 
                 for (size_t i = 0; i < vertices.size(); ++i)
                 {
@@ -185,9 +215,10 @@ namespace AlgorithmCore
                     // Check if the current point is collinear with the previous and next points
                     float orient = MathCore::OP<MathCore::vec2f>::orientation(prev, curr, next);
                     if (MathCore::OP<float>::abs(orient) > epsilon)
-                        filtered.push_back(curr);
+                        filtered_aux_buffer.push_back(curr);
                 }
-                vertices = std::move(filtered);
+                //vertices = std::move(filtered);
+                vertices.swap(filtered_aux_buffer);
             }
 
             struct ContourSampled
@@ -215,13 +246,19 @@ namespace AlgorithmCore
                 if (sampled_contours.empty())
                     return;
 
+                std::vector<int> int_shared_vector;
+                std::vector<uint32_t> triangles_aux;
+                std::vector<MathCore::vec2f> combined_vertices;
+                std::vector<MathCore::vec2f> vec2_shared_vector;
+
                 // connecting the holes to the outlines
                 for (const auto &outline : sampled_contours)
                 {
                     if (outline.is_hole || outline.vertex.size() < 3)
                         continue; // Skip holes for now
                     // here the contour is an outline
-                    std::vector<MathCore::vec2f> combined_vertices = outline.vertex;
+                    //std::vector<MathCore::vec2f> combined_vertices = outline.vertex;
+                    combined_vertices.assign(outline.vertex.begin(), outline.vertex.end());
                     for (const auto &hole : sampled_contours)
                     {
                         if (!hole.is_hole || hole.vertex.size() < 3)
@@ -229,20 +266,21 @@ namespace AlgorithmCore
                         // check if the hole vertice is inside the current outline
                         if (Polygon2DUtils::checkPointInside(combined_vertices, hole.vertex[0]))
                             // Connect the hole to the outline
-                            connectHole(combined_vertices, hole.vertex);
+                            connectHole(vec2_shared_vector, combined_vertices, hole.vertex);
                     }
 
-                    removeDuplicateVertices(combined_vertices);
+                    removeDuplicateVertices(vec2_shared_vector, combined_vertices);
                     if (combined_vertices.size() < 3)
                         continue; // Not enough vertices to form a polygon
 
-                    removeColinearVertices(combined_vertices);
+                    removeColinearVertices(vec2_shared_vector, combined_vertices);
                     if (combined_vertices.size() < 3)
                         continue; // Not enough vertices to form a polygon
 
-                    std::vector<uint32_t> triangles_aux;
+                    // std::vector<uint32_t> triangles_aux;
+                    triangles_aux.clear();
                     // Triangulate the combined vertices
-                    earClipping(combined_vertices, triangles_aux);
+                    earClipping(int_shared_vector, combined_vertices, triangles_aux);
                     if (triangles_aux.empty())
                         continue; // No triangles found
 
