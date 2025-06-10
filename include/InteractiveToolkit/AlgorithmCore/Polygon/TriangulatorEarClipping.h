@@ -167,8 +167,7 @@ namespace AlgorithmCore
                     MathCore::OP<MathCore::vec2f>::sqrDistance(filtered.back(), filtered.front()) < sqr_epsilon)
                     filtered.pop_back();
 
-                if (filtered.size() >= 3)
-                    vertices = std::move(filtered);
+                vertices = std::move(filtered);
             }
 
             static void removeColinearVertices(std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
