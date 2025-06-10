@@ -30,9 +30,9 @@ namespace AlgorithmCore
                 {
                     if (i == prev || i == curr || i == next)
                         continue;
-                    
+
                     const auto &p = vertices[i];
-                    
+
                     // MathCore::OP<MathCore::vec2f>::sqrDistance(p, a) < 1e-10f) ||
                     // MathCore::OP<MathCore::vec2f>::sqrDistance(p, b) < 1e-10f) ||
                     // MathCore::OP<MathCore::vec2f>::sqrDistance(p, c) < 1e-10f) ||
@@ -143,12 +143,70 @@ namespace AlgorithmCore
                 outline.insert(insertion_point, connection_sequence.begin(), connection_sequence.end());
             }
 
+            static void removeDuplicateVertices(std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
+            {
+                if (vertices.size() < 2)
+                    return;
+
+                std::vector<MathCore::vec2f> filtered;
+                filtered.reserve(vertices.size());
+
+                float sqr_epsilon = epsilon * epsilon;
+                for (size_t i = 0; i < vertices.size(); ++i)
+                {
+                    if (i == 0)
+                        // Always keep the first vertex
+                        filtered.push_back(vertices[i]);
+                    else if (MathCore::OP<MathCore::vec2f>::sqrDistance(filtered.back(), vertices[i]) >= sqr_epsilon)
+                        // Check against the last added vertex
+                        filtered.push_back(vertices[i]);
+                }
+
+                // Check if the last and first vertices are duplicates (closing the polygon)
+                if (filtered.size() > 2 &&
+                    MathCore::OP<MathCore::vec2f>::sqrDistance(filtered.back(), filtered.front()) < sqr_epsilon)
+                    filtered.pop_back();
+
+                if (filtered.size() >= 3)
+                    vertices = std::move(filtered);
+            }
+
+            static void removeColinearVertices(std::vector<MathCore::vec2f> &vertices, float epsilon = MathCore::EPSILON<float>::high_precision)
+            {
+                if (vertices.size() < 3)
+                    return;
+                std::vector<MathCore::vec2f> filtered;
+                filtered.reserve(vertices.size());
+
+                for (size_t i = 0; i < vertices.size(); ++i)
+                {
+                    const auto &prev = vertices[(i + vertices.size() - 1) % vertices.size()];
+                    const auto &curr = vertices[i];
+                    const auto &next = vertices[(i + 1) % vertices.size()];
+                    // Check if the current point is collinear with the previous and next points
+                    float orient = MathCore::OP<MathCore::vec2f>::orientation(prev, curr, next);
+                    if (MathCore::OP<float>::abs(orient) > epsilon)
+                        filtered.push_back(curr);
+                }
+                vertices = std::move(filtered);
+            }
+
             struct ContourSampled
             {
                 std::vector<MathCore::vec2f> vertex;
                 bool is_hole; ///< true if this is a hole, false if it is an outline
             };
 
+            /// \brief Triangulates a set of sampled contours, connecting holes to outlines.
+            /// \param sampled_contours The contours to triangulate, each contour can be an outline or a hole.
+            /// \param vertices The output vertices of the triangulation.
+            /// \param triangles The output triangles of the triangulation, each triangle is represented by 3 indices into the vertices array in CCW winding.
+            /// \details This function connects holes to outlines, removes duplicate and collinear vertices, and performs triangulation using the ear clipping method.
+            /// \author Alessandro Ribeiro
+            /// \note The input contours should be sampled and closed.
+            /// \note The function assumes that the contours are in a 2D plane and will set the z-coordinate of the vertices to 0.
+            /// \note The function does not handle self-intersecting polygons or complex cases where holes are nested within other holes.
+            ///
             static void triangulate(const std::vector<ContourSampled> &sampled_contours,
                                     std::vector<MathCore::vec3f> *vertices,
                                     std::vector<uint32_t> *triangles)
@@ -174,6 +232,14 @@ namespace AlgorithmCore
                             // Connect the hole to the outline
                             connectHole(combined_vertices, hole.vertex);
                     }
+
+                    removeDuplicateVertices(combined_vertices);
+                    if (combined_vertices.size() < 3)
+                        continue; // Not enough vertices to form a polygon
+
+                    removeColinearVertices(combined_vertices);
+                    if (combined_vertices.size() < 3)
+                        continue; // Not enough vertices to form a polygon
 
                     std::vector<uint32_t> triangles_aux;
                     // Triangulate the combined vertices
