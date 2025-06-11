@@ -6,6 +6,13 @@
 
 #include "../../ITKCommon/STL_Tools.h"
 #include "./Quadtree2D_IndexedPoints.h"
+#include "./FastRemovalCyclicVector.h"
+
+#define EAR_CLIPPING_USE_IndexVector 0
+#define EAR_CLIPPING_USE_FastRemovalCyclicVector 1
+
+#define EAR_CLIPPING_CHOOSE EAR_CLIPPING_USE_IndexVector
+
 
 namespace AlgorithmCore
 {
@@ -15,7 +22,7 @@ namespace AlgorithmCore
         namespace EarClipping
         {
 
-            static inline bool isEar(std::unique_ptr<Quadtree2D_IndexedPoints> &quadtree, const std::vector<MathCore::vec2f> &vertices, int prev, int curr, int next)
+            static inline bool isEar(std::unique_ptr<Quadtree2D_IndexedPoints> &quadtree, const std::vector<MathCore::vec2f> &vertices, int32_t prev, int32_t curr, int32_t next)
             {
                 const auto &a = vertices[prev];
                 const auto &b = vertices[curr];
@@ -67,8 +74,8 @@ namespace AlgorithmCore
 
                 return true;
             }
-
-            static void earClipping(std::vector<int> &indices_aux_buffer, const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
+#if EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_IndexVector
+            static void earClipping(std::vector<int32_t> &ciclic_next_idx_walk, const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
             {
                 if (vertices.size() < 3)
                     return;
@@ -76,46 +83,122 @@ namespace AlgorithmCore
                 std::unique_ptr<Quadtree2D_IndexedPoints> quadtree = STL_Tools::make_unique<Quadtree2D_IndexedPoints>(vertices, 16, 10);
 
                 // std::vector<int> indices;
-                indices_aux_buffer.clear();
-                // Inicializa os índices com os indices dos vértices em sequência
-                for (int i = 0; i < vertices.size(); ++i)
-                    indices_aux_buffer.push_back(i);
+                ciclic_next_idx_walk.clear();
+                ciclic_next_idx_walk.reserve(vertices.size());
+                // next_idx is a idx list that points to the next valid index in the vertices array
+                for (int32_t i = 0; i < (int32_t)vertices.size(); ++i)
+                    ciclic_next_idx_walk.push_back((i + 1) % (int32_t)vertices.size());
 
-                size_t safety_counter = 0;
-                size_t max_iterations = indices_aux_buffer.size() * indices_aux_buffer.size(); // Previne loop infinito
+                int32_t logic_size = static_cast<int32_t>(ciclic_next_idx_walk.size());
+                int32_t prev_walker = 0;
 
-                while (indices_aux_buffer.size() > 3 && safety_counter < max_iterations)
+                while (logic_size > 3)
                 {
                     bool ear_found = false;
-                    for (size_t i = 0; i < indices_aux_buffer.size(); ++i)
+
+                    int32_t count = 0;
+                    while (count < logic_size)
                     {
-                        int prev = indices_aux_buffer[(i - 1 + indices_aux_buffer.size()) % indices_aux_buffer.size()];
-                        int curr = indices_aux_buffer[i];
-                        int next = indices_aux_buffer[(i + 1) % indices_aux_buffer.size()];
+
+                        const auto &prev = prev_walker;
+                        const auto &curr = ciclic_next_idx_walk[prev];
+                        const auto &next = ciclic_next_idx_walk[curr];
+
                         if (isEar(quadtree, vertices, prev, curr, next))
                         {
                             triangles.push_back(prev);
                             triangles.push_back(curr);
                             triangles.push_back(next);
 
-                            indices_aux_buffer.erase(indices_aux_buffer.begin() + i);
+                            // erase current vertex from the walk by linking the previous to the next vertex
+                            ciclic_next_idx_walk[prev] = next;
+                            logic_size--;
+                            
+                            ear_found = true;
+                            break;
+                        }
+
+                        prev_walker = ciclic_next_idx_walk[prev_walker];
+                        count++;
+                    }
+
+                    // avoid infinite loop if no ear is found
+                    if (!ear_found)
+                        break;
+                }
+
+                // Adicione o último triângulo
+                if (logic_size == 3)
+                {
+                    const auto &prev = prev_walker;
+                    const auto &curr = ciclic_next_idx_walk[prev];
+                    const auto &next = ciclic_next_idx_walk[curr];
+
+                    triangles.push_back(prev);
+                    triangles.push_back(curr);
+                    triangles.push_back(next);
+                }
+            }
+#elif EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_FastRemovalCyclicVector
+            static void earClipping(FastRemovalCyclicVector<int32_t> &indices_aux_buffer, const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
+            {
+                if (vertices.size() < 3)
+                    return;
+
+                std::unique_ptr<Quadtree2D_IndexedPoints> quadtree = STL_Tools::make_unique<Quadtree2D_IndexedPoints>(vertices, 16, 10);
+
+                // std::vector<int> indices;
+                indices_aux_buffer.resize((uint32_t)vertices.size(), 1);
+                // next_idx is a idx list that points to the next valid index in the vertices array
+                for (int32_t i = 0; i < (int32_t)vertices.size(); ++i)
+                    indices_aux_buffer[i] = i;
+
+                while (indices_aux_buffer.size() > 3)
+                {
+                    bool ear_found = false;
+
+                    for(auto it=indices_aux_buffer.begin(); it != indices_aux_buffer.end(); it++)
+                    {
+                        const auto &prev = it.element_back();
+                        const auto &curr = *it;
+                        const auto &next = it.element_next();
+
+                        if (isEar(quadtree, vertices, prev, curr, next))
+                        {
+                            triangles.push_back(prev);
+                            triangles.push_back(curr);
+                            triangles.push_back(next);
+
+
+                            // erase current vertex from the walk by linking the previous to the next vertex
+                            indices_aux_buffer.remove(it);
                             ear_found = true;
                             break;
                         }
                     }
+
+                    // avoid infinite loop if no ear is found
                     if (!ear_found)
-                        break; // Evita loop infinito
-                    safety_counter++;
+                        break;
                 }
 
                 // Adicione o último triângulo
                 if (indices_aux_buffer.size() == 3)
                 {
-                    triangles.push_back(indices_aux_buffer[0]);
-                    triangles.push_back(indices_aux_buffer[1]);
-                    triangles.push_back(indices_aux_buffer[2]);
+                    auto it=indices_aux_buffer.begin();
+
+                    const auto &prev = it.element_back();
+                    const auto &curr = *it;
+                    const auto &next = it.element_next();
+
+                    triangles.push_back(prev);
+                    triangles.push_back(curr);
+                    triangles.push_back(next);
                 }
             }
+#else
+    #error "Please choose EAR_CLIPPING_CHOOSE to EAR_CLIPPING_USE_IndexVector or EAR_CLIPPING_USE_FastRemovalCyclicVector"
+#endif
 
             static void connectHole(std::vector<MathCore::vec2f> &connection_sequence_aux_buffer, std::vector<MathCore::vec2f> &outline, const std::vector<MathCore::vec2f> &hole)
             {
@@ -153,7 +236,7 @@ namespace AlgorithmCore
                     }
                 }
 
-                //std::vector<MathCore::vec2f> connection_sequence;
+                // std::vector<MathCore::vec2f> connection_sequence;
                 connection_sequence_aux_buffer.clear();
                 connection_sequence_aux_buffer.reserve(hole.size() + 2); // +2 for the connection point and the rightmost point
                 for (size_t i = 0; i < hole.size(); ++i)
@@ -175,7 +258,7 @@ namespace AlgorithmCore
                 if (vertices.size() < 2)
                     return;
 
-                //std::vector<MathCore::vec2f> filtered;
+                // std::vector<MathCore::vec2f> filtered;
                 filtered_aux_buffer.clear();
                 filtered_aux_buffer.reserve(vertices.size());
 
@@ -195,7 +278,7 @@ namespace AlgorithmCore
                     MathCore::OP<MathCore::vec2f>::sqrDistance(filtered_aux_buffer.back(), filtered_aux_buffer.front()) < sqr_epsilon)
                     filtered_aux_buffer.pop_back();
 
-                //vertices = std::move(filtered);
+                // vertices = std::move(filtered);
                 vertices.swap(filtered_aux_buffer);
             }
 
@@ -217,7 +300,7 @@ namespace AlgorithmCore
                     if (MathCore::OP<float>::abs(orient) > epsilon)
                         filtered_aux_buffer.push_back(curr);
                 }
-                //vertices = std::move(filtered);
+                // vertices = std::move(filtered);
                 vertices.swap(filtered_aux_buffer);
             }
 
@@ -246,7 +329,11 @@ namespace AlgorithmCore
                 if (sampled_contours.empty())
                     return;
 
-                std::vector<int> int_shared_vector;
+#if EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_IndexVector
+                std::vector<int32_t> index_shared_vector;
+#elif EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_FastRemovalCyclicVector
+                FastRemovalCyclicVector<int32_t> index_shared_vector;
+#endif
                 std::vector<uint32_t> triangles_aux;
                 std::vector<MathCore::vec2f> combined_vertices;
                 std::vector<MathCore::vec2f> vec2_shared_vector;
@@ -257,7 +344,7 @@ namespace AlgorithmCore
                     if (outline.is_hole || outline.vertex.size() < 3)
                         continue; // Skip holes for now
                     // here the contour is an outline
-                    //std::vector<MathCore::vec2f> combined_vertices = outline.vertex;
+                    // std::vector<MathCore::vec2f> combined_vertices = outline.vertex;
                     combined_vertices.assign(outline.vertex.begin(), outline.vertex.end());
                     for (const auto &hole : sampled_contours)
                     {
@@ -280,7 +367,7 @@ namespace AlgorithmCore
                     // std::vector<uint32_t> triangles_aux;
                     triangles_aux.clear();
                     // Triangulate the combined vertices
-                    earClipping(int_shared_vector, combined_vertices, triangles_aux);
+                    earClipping(index_shared_vector, combined_vertices, triangles_aux);
                     if (triangles_aux.empty())
                         continue; // No triangles found
 
