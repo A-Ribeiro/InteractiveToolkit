@@ -14,8 +14,8 @@ namespace AlgorithmCore
             struct prev_next_indices
             {
                 T data;
-                uint32_t next;
                 uint32_t prev;
+                uint32_t next;
             };
 
             ITK_INLINE void remove(uint32_t index)
@@ -55,13 +55,16 @@ namespace AlgorithmCore
             ITK_INLINE void resize(uint32_t size_, uint32_t start_idx_)
             {
                 m_size = size_;
-                // data.resize(m_size);
                 indices.resize(m_size);
-                for (uint32_t i = 0; i < m_size; ++i)
-                {
-                    indices[i].prev = (i + m_size - 1) % m_size;
-                    indices[i].next = (i + 1) % m_size;
+                // ultra fast initialization of prev and next indices
+                for (uint32_t i = 0, prev = -1, next = 1; i < m_size; ++i, ++prev, ++next){
+                    auto &item = indices[i];
+                    item.prev = prev;
+                    item.next = next;
                 }
+                    
+                indices[0].prev = m_size - 1; // wrap around
+                indices[m_size - 1].next = 0; // wrap around
                 start_idx = start_idx_;
             }
 
@@ -125,7 +128,6 @@ namespace AlgorithmCore
                     idx = vec->indices[idx].next;
                     return *this;
                 }
-
 
                 ITK_INLINE constexpr bool operator==(const iterator &other) const
                 {
@@ -229,21 +231,19 @@ namespace AlgorithmCore
             }
 
         private:
-            //std::vector<T> data;
+            // std::vector<T> data;
             std::vector<prev_next_indices> indices;
             uint32_t m_size;
             uint32_t start_idx;
             bool cache_friendly_removal;
         };
 
-
-
         class FastRemovalCyclicVector_OnlyIndex_Uint32
         {
             struct prev_next_indices
             {
-                uint32_t next;
                 uint32_t prev;
+                uint32_t next;
             };
 
             ITK_INLINE void remove(uint32_t index)
@@ -283,13 +283,12 @@ namespace AlgorithmCore
             ITK_INLINE void resize(uint32_t size_, uint32_t start_idx_)
             {
                 m_size = size_;
-                // data.resize(m_size);
                 indices.resize(m_size);
-                for (uint32_t i = 0; i < m_size; ++i)
-                {
-                    indices[i].prev = (i + m_size - 1) % m_size;
-                    indices[i].next = (i + 1) % m_size;
-                }
+                // ultra fast initialization of prev and next indices
+                for (uint32_t i = 0, prev = -1, next = 1; i < m_size; ++i, ++prev, ++next)
+                    indices[i] = {prev, next};
+                indices[0].prev = m_size - 1; // wrap around
+                indices[m_size - 1].next = 0; // wrap around
                 start_idx = start_idx_;
             }
 
@@ -308,8 +307,8 @@ namespace AlgorithmCore
             public:
                 using iterator_category = std::input_iterator_tag;
                 using value_type = uint32_t;
-                //using pointer = T *;
-                //using reference = T &;
+                // using pointer = T *;
+                // using reference = T &;
 
                 ITK_INLINE iterator(FastRemovalCyclicVector_OnlyIndex_Uint32 *vec, uint32_t idx)
                     : vec(vec), idx(idx), size(vec->m_size) {}
@@ -360,7 +359,6 @@ namespace AlgorithmCore
                     idx = vec->indices[idx].next;
                     return *this;
                 }
-
 
                 ITK_INLINE constexpr bool operator==(const iterator &other) const
                 {
@@ -471,7 +469,7 @@ namespace AlgorithmCore
             }
 
         private:
-            //std::vector<T> data;
+            // std::vector<T> data;
             std::vector<prev_next_indices> indices;
             uint32_t m_size;
             uint32_t start_idx;

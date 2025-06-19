@@ -12,7 +12,7 @@
 #define EAR_CLIPPING_USE_FastRemovalCyclicVector 1
 #define EAR_CLIPPING_USE_FastRemovalCyclicVector_OnlyIndex_Uint32 2
 
-#define EAR_CLIPPING_CHOOSE EAR_CLIPPING_USE_IndexVector
+#define EAR_CLIPPING_CHOOSE EAR_CLIPPING_USE_FastRemovalCyclicVector_OnlyIndex_Uint32
 
 
 namespace AlgorithmCore
