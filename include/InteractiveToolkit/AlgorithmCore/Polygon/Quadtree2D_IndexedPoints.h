@@ -26,8 +26,9 @@ namespace AlgorithmCore
                 std::unique_ptr<Node> children[Quadrant_COUNT];
                 int32_t depth;
 
-                Node(const MathCore::vec2f &min_, const MathCore::vec2f &max_, int32_t depth_)
+                Node(const MathCore::vec2f &min_, const MathCore::vec2f &max_, int32_t depth_, int32_t initial_item_count):indices(initial_item_count)
                 {
+                    indices.clear();
                     box_min = min_;
                     box_max = max_;
                     depth = depth_;
@@ -61,13 +62,13 @@ namespace AlgorithmCore
                     }
                 }
 
-                void subdivide(const std::vector<MathCore::vec2f> &points)
+                void subdivide(const std::vector<MathCore::vec2f> &points, int32_t initial_index_count)
                 {
                     using namespace MathCore;
-                    children[Quadrant_SW] = STL_Tools::make_unique<Node>(box_min, box_center, depth + 1);
-                    children[Quadrant_SE] = STL_Tools::make_unique<Node>(vec2f(box_center.x, box_min.y), vec2f(box_max.x, box_center.y), depth + 1);
-                    children[Quadrant_NW] = STL_Tools::make_unique<Node>(vec2f(box_min.x, box_center.y), vec2f(box_center.x, box_max.y), depth + 1);
-                    children[Quadrant_NE] = STL_Tools::make_unique<Node>(box_center, box_max, depth + 1);
+                    children[Quadrant_SW] = STL_Tools::make_unique<Node>(box_min, box_center, depth + 1, initial_index_count);
+                    children[Quadrant_SE] = STL_Tools::make_unique<Node>(vec2f(box_center.x, box_min.y), vec2f(box_max.x, box_center.y), depth + 1, initial_index_count);
+                    children[Quadrant_NW] = STL_Tools::make_unique<Node>(vec2f(box_min.x, box_center.y), vec2f(box_center.x, box_max.y), depth + 1, initial_index_count);
+                    children[Quadrant_NE] = STL_Tools::make_unique<Node>(box_center, box_max, depth + 1, initial_index_count);
 
                     if (indices.empty())
                         return; // No indices to distribute
@@ -95,7 +96,7 @@ namespace AlgorithmCore
                     // If the node is a leaf and has no children, subdivide it
                     //if (isLeaf())
                     if (!has_children)
-                        subdivide(points);
+                        subdivide(points, point_count_threshold_to_subdivide);
                     Quadrant quad = computeQuadrant(points[idx]);
                     children[quad]->insert_point(points, idx, maxDepth, point_count_threshold_to_subdivide);
                 }
@@ -178,7 +179,7 @@ namespace AlgorithmCore
                     _min = MathCore::OP<MathCore::vec2f>::minimum(_min, p);
                     _max = MathCore::OP<MathCore::vec2f>::maximum(_max, p);
                 }
-                root = STL_Tools::make_unique<Node>(_min, _max, 0);
+                root = STL_Tools::make_unique<Node>(_min, _max, 0, minPointThresholdToSubdivide);
                 for (size_t i = 0; i < points.size(); ++i)
                     root->insert_point(points, i, maxDepth, minPointThresholdToSubdivide);
             }
