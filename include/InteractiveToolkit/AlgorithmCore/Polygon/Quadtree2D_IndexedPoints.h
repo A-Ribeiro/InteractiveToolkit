@@ -43,6 +43,8 @@ namespace AlgorithmCore
 
                 Quadrant computeQuadrant(const MathCore::vec2f &p) const
                 {
+                    //return (Quadrant)(((int)(p.y >= box_center.y) << 1) | (int)(p.x >= box_center.x));
+
                     if (p.x < box_center.x)
                     {
                         if (p.y < box_center.y)
@@ -66,7 +68,7 @@ namespace AlgorithmCore
                     children[Quadrant_SE] = STL_Tools::make_unique<Node>(vec2f(box_center.x, box_min.y), vec2f(box_max.x, box_center.y), depth + 1);
                     children[Quadrant_NW] = STL_Tools::make_unique<Node>(vec2f(box_min.x, box_center.y), vec2f(box_center.x, box_max.y), depth + 1);
                     children[Quadrant_NE] = STL_Tools::make_unique<Node>(box_center, box_max, depth + 1);
-                    
+
                     if (indices.empty())
                         return; // No indices to distribute
 
@@ -75,18 +77,24 @@ namespace AlgorithmCore
                         Quadrant quad = computeQuadrant(points[idx]);
                         children[quad]->indices.push_back(idx);
                     }
+                    // do not need to clear indices,
+                    // as we are moving them to the children nodes
+                    // the query is done only in the Leaf nodes
                     indices.clear();
                 }
 
                 void insert_point(const std::vector<MathCore::vec2f> &points, size_t idx, int32_t maxDepth, int32_t point_count_threshold_to_subdivide)
                 {
-                    if (depth >= maxDepth || indices.size() < point_count_threshold_to_subdivide)
+                    bool has_children = this->hasChildren();
+                    // do not have children, so we can insert the point here
+                    if (!has_children && (depth >= maxDepth || indices.size() < point_count_threshold_to_subdivide))
                     {
                         indices.push_back(idx);
                         return;
                     }
                     // If the node is a leaf and has no children, subdivide it
-                    if (isLeaf())
+                    //if (isLeaf())
+                    if (!has_children)
                         subdivide(points);
                     Quadrant quad = computeQuadrant(points[idx]);
                     children[quad]->insert_point(points, idx, maxDepth, point_count_threshold_to_subdivide);
@@ -128,16 +136,21 @@ namespace AlgorithmCore
                 {
                     if (!intersects(min, max))
                         return; // No intersection with the query box
-                    for (size_t idx : indices)
+                    if (hasChildren())
                     {
-                        const auto &p = points[idx];
-                        // Check if the point is within the query box
-                        if (contains(p))
-                            result.push_back(idx);
-                    }
-                    for (const auto &children : children)
-                        if (children)
+                        for (const auto &children : children)
                             children->query(points, min, max, result);
+                    }
+                    else
+                    {
+                        for (size_t idx : indices)
+                        {
+                            const auto &p = points[idx];
+                            // Check if the point is within the query box
+                            if (contains(p))
+                                result.push_back(idx);
+                        }
+                    }
                 }
             };
 
@@ -146,7 +159,6 @@ namespace AlgorithmCore
             int32_t maxDepth, minPointThresholdToSubdivide;
 
         public:
-
             std::vector<size_t> last_query;
 
             Quadtree2D_IndexedPoints(const std::vector<MathCore::vec2f> &pts, int32_t maxDepth_ = 8, int32_t minPointThresholdToSubdivide_ = 16)
