@@ -10,6 +10,7 @@
 
 #define EAR_CLIPPING_USE_IndexVector 0
 #define EAR_CLIPPING_USE_FastRemovalCyclicVector 1
+#define EAR_CLIPPING_USE_FastRemovalCyclicVector_OnlyIndex_Uint32 2
 
 #define EAR_CLIPPING_CHOOSE EAR_CLIPPING_USE_IndexVector
 
@@ -196,6 +197,60 @@ namespace AlgorithmCore
                     triangles.push_back(next);
                 }
             }
+#elif EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_FastRemovalCyclicVector_OnlyIndex_Uint32
+            static void earClipping(FastRemovalCyclicVector_OnlyIndex_Uint32 &indices_aux_buffer, const std::vector<MathCore::vec2f> &vertices, std::vector<uint32_t> &triangles)
+            {
+                if (vertices.size() < 3)
+                    return;
+
+                std::unique_ptr<Quadtree2D_IndexedPoints> quadtree = STL_Tools::make_unique<Quadtree2D_IndexedPoints>(vertices, 16, 10);
+
+                // std::vector<int> indices;
+                indices_aux_buffer.resize((uint32_t)vertices.size(), 1);
+
+                while (indices_aux_buffer.size() > 3)
+                {
+                    bool ear_found = false;
+
+                    for(auto it=indices_aux_buffer.begin(); it != indices_aux_buffer.end(); it++)
+                    {
+                        const auto &prev = it.element_back();
+                        const auto &curr = *it;
+                        const auto &next = it.element_next();
+
+                        if (isEar(quadtree, vertices, prev, curr, next))
+                        {
+                            triangles.push_back(prev);
+                            triangles.push_back(curr);
+                            triangles.push_back(next);
+
+
+                            // erase current vertex from the walk by linking the previous to the next vertex
+                            indices_aux_buffer.remove(it);
+                            ear_found = true;
+                            break;
+                        }
+                    }
+
+                    // avoid infinite loop if no ear is found
+                    if (!ear_found)
+                        break;
+                }
+
+                // Adicione o último triângulo
+                if (indices_aux_buffer.size() == 3)
+                {
+                    auto it=indices_aux_buffer.begin();
+
+                    const auto &prev = it.element_back();
+                    const auto &curr = *it;
+                    const auto &next = it.element_next();
+
+                    triangles.push_back(prev);
+                    triangles.push_back(curr);
+                    triangles.push_back(next);
+                }
+            }
 #else
     #error "Please choose EAR_CLIPPING_CHOOSE to EAR_CLIPPING_USE_IndexVector or EAR_CLIPPING_USE_FastRemovalCyclicVector"
 #endif
@@ -333,6 +388,8 @@ namespace AlgorithmCore
                 std::vector<int32_t> index_shared_vector;
 #elif EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_FastRemovalCyclicVector
                 FastRemovalCyclicVector<int32_t> index_shared_vector;
+#elif EAR_CLIPPING_CHOOSE == EAR_CLIPPING_USE_FastRemovalCyclicVector_OnlyIndex_Uint32
+                FastRemovalCyclicVector_OnlyIndex_Uint32 index_shared_vector;
 #endif
                 std::vector<uint32_t> triangles_aux;
                 std::vector<MathCore::vec2f> combined_vertices;
