@@ -40,12 +40,12 @@ namespace AlgorithmCore
                     MathCore::vec2f box_max = MathCore::OP<MathCore::vec2f>::maximum(a, MathCore::OP<MathCore::vec2f>::maximum(b, c));
 
                     // Query the quadtree for points inside the triangle bounding box
-                    const std::vector<size_t> &indices = quadtree->query(box_min, box_max);
+                    const std::vector<uint32_t> &indices = quadtree->query(box_min, box_max);
                     if (indices.empty())
                         return true; // No points inside the bounding box, so it's an ear
 
                     // Check if any other vertex is inside this triangle
-                    for (size_t i : indices)
+                    for (uint32_t i : indices)
                     {
                         if (i == prev || i == curr || i == next)
                             continue;
