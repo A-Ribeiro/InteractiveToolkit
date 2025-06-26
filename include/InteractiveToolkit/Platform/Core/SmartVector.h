@@ -32,30 +32,32 @@ namespace Platform
         class iterator
         {
         public:
-            using iterator_category = std::input_iterator_tag;
+            using iterator_category = std::random_access_iterator_tag;
             using value_type = T;
+            using difference_type = std::ptrdiff_t;
             using pointer = T *;
             using reference = T &;
 
-            ITK_INLINE iterator(SmartVector &vec, size_t idx, size_t count) noexcept
+            ITK_INLINE iterator(SmartVector *vec, size_t idx, size_t count) noexcept
                 : vec(vec), idx(idx), item_count(count)
             {
             }
 
-            ITK_INLINE reference operator*() const noexcept { return vec.cyclic_block_array[idx]; }
-            ITK_INLINE pointer operator->() const noexcept { return &vec.cyclic_block_array[idx]; }
+            ITK_INLINE reference operator*() const noexcept { return vec->cyclic_block_array[idx]; }
+            ITK_INLINE pointer operator->() const noexcept { return &vec->cyclic_block_array[idx]; }
 
             // Prefix increment
             ITK_INLINE iterator &operator++() noexcept
             {
                 item_count--;
-                if (item_count == 0 || item_count > vec.m_capacity)
+                if (item_count == 0 || item_count > vec->m_capacity)
                 {
-                    idx = vec.m_capacity; // end
+                    item_count = 0;
+                    idx = vec->m_capacity; // end
                     return *this;
                 }
                 idx++;
-                if (idx >= vec.m_capacity)
+                if (idx >= vec->m_capacity)
                     idx = 0; // wrap around
                 return *this;
             }
@@ -68,39 +70,148 @@ namespace Platform
                 return tmp;
             }
 
-            ITK_INLINE iterator &operator+=(int64_t offset) noexcept
+            // Prefix decrement
+            ITK_INLINE iterator &operator--() noexcept
             {
-                item_count -= offset;
-                if (item_count == 0 || item_count > vec.m_capacity)
+                item_count++;
+                if (item_count >= vec->internal_size)
                 {
-                    item_count = 0;
-                    idx = vec.m_capacity; // end
+                    // Moving before begin, clamp to begin
+                    item_count = vec->internal_size;
+                    idx = vec->_start;
                     return *this;
                 }
-                idx += offset;
-                if (idx >= vec.m_capacity)
-                    idx -= vec.m_capacity; // wrap around
+                // decrement idx
+                if (idx == vec->m_capacity)
+                    idx = vec->_end;
+
+                if (idx == 0)
+                    idx = vec->m_capacity - 1;
+                else
+                    idx--;
                 return *this;
             }
 
-            ITK_INLINE iterator operator+(int64_t offset) const noexcept
+            // Postfix decrement
+            ITK_INLINE iterator operator--(int) noexcept
+            {
+                iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+
+            ITK_INLINE iterator &operator+=(difference_type offset) noexcept
+            {
+                if (offset == 0)
+                    return *this;
+
+                if (offset > 0)
+                {
+                    item_count -= offset;
+                    if (item_count == 0 || item_count > vec->m_capacity)
+                    {
+                        item_count = 0;
+                        idx = vec->m_capacity; // end
+                        return *this;
+                    }
+                    idx += offset;
+                    if (idx >= vec->m_capacity)
+                        idx -= vec->m_capacity; // wrap around
+                }
+                else
+                {
+                    difference_type abs_offset = -offset;
+                    item_count += abs_offset;
+                    if (item_count >= vec->internal_size)
+                    {
+                        // Moving before begin, clamp to begin
+                        item_count = vec->internal_size;
+                        idx = vec->_start;
+                        return *this;
+                    }
+                    if (idx == vec->m_capacity)
+                        idx = vec->_end;
+                    idx += offset;
+                    if (idx > vec->m_capacity)
+                        idx += vec->m_capacity; // wrap around
+                }
+                return *this;
+            }
+
+            ITK_INLINE iterator &operator-=(difference_type offset) noexcept
+            {
+                return *this += (-offset);
+            }
+
+            ITK_INLINE iterator operator+(difference_type offset) const noexcept
             {
                 iterator tmp = *this;
                 tmp += offset;
                 return tmp;
             }
 
+            ITK_INLINE iterator operator-(difference_type offset) const noexcept
+            {
+                iterator tmp = *this;
+                tmp -= offset;
+                return tmp;
+            }
+
+            ITK_INLINE difference_type operator-(const iterator &other) const noexcept
+            {
+                if (idx == vec->m_capacity && other.idx == vec->m_capacity)
+                    return 0; // both at end
+                if (idx == vec->m_capacity)
+                    return other.item_count; // this is at end
+                if (other.idx == vec->m_capacity)
+                    return -(difference_type)item_count; // other is at end
+
+                return (difference_type)other.item_count - (difference_type)item_count;
+            }
+
+            ITK_INLINE reference operator[](difference_type n) const noexcept
+            {
+                iterator tmp = *this + n;
+                return *tmp;
+            }
+
             ITK_INLINE constexpr bool operator==(const iterator &other) const noexcept
             {
-                return idx == other.idx && &vec == &other.vec;
+                return idx == other.idx && vec == other.vec;
             }
             ITK_INLINE constexpr bool operator!=(const iterator &other) const noexcept
             {
                 return !(*this == other);
             }
 
+            ITK_INLINE bool operator<(const iterator &other) const noexcept
+            {
+                if (&vec != &other.vec)
+                    return false;
+                if (idx == vec->m_capacity)
+                    return false; // this is at end
+                if (other.idx == vec->m_capacity)
+                    return true;                      // other is at end
+                return item_count > other.item_count; // lower item_count means later position
+            }
+
+            ITK_INLINE bool operator<=(const iterator &other) const noexcept
+            {
+                return *this < other || *this == other;
+            }
+
+            ITK_INLINE bool operator>(const iterator &other) const noexcept
+            {
+                return !(*this <= other);
+            }
+
+            ITK_INLINE bool operator>=(const iterator &other) const noexcept
+            {
+                return !(*this < other);
+            }
+
         private:
-            SmartVector &vec;
+            SmartVector *vec;
             size_t idx;
             size_t item_count;
 
@@ -110,29 +221,30 @@ namespace Platform
         class const_iterator
         {
         public:
-            using iterator_category = std::input_iterator_tag;
+            using iterator_category = std::random_access_iterator_tag;
             using value_type = const T;
+            using difference_type = std::ptrdiff_t;
             using pointer = const T *;
             using reference = const T &;
 
-            ITK_INLINE const_iterator(const SmartVector &vec, uint32_t idx, size_t count) noexcept
+            ITK_INLINE const_iterator(const SmartVector *vec, size_t idx, size_t count) noexcept
                 : vec(vec), idx(idx), item_count(count) {}
 
-            ITK_INLINE reference operator*() const noexcept { return vec.cyclic_block_array[idx]; }
-            ITK_INLINE pointer operator->() const noexcept { return &vec.cyclic_block_array[idx]; }
+            ITK_INLINE reference operator*() const noexcept { return vec->cyclic_block_array[idx]; }
+            ITK_INLINE pointer operator->() const noexcept { return &vec->cyclic_block_array[idx]; }
 
             // Prefix increment
             ITK_INLINE const_iterator &operator++() noexcept
             {
                 item_count--;
-                if (item_count == 0 || item_count > vec.m_capacity)
+                if (item_count == 0 || item_count > vec->m_capacity)
                 {
                     item_count = 0;
-                    idx = vec.m_capacity; // end
+                    idx = vec->m_capacity; // end
                     return *this;
                 }
                 idx++;
-                if (idx >= vec.m_capacity)
+                if (idx >= vec->m_capacity)
                     idx = 0; // wrap around
                 return *this;
             }
@@ -145,49 +257,158 @@ namespace Platform
                 return tmp;
             }
 
-            ITK_INLINE const_iterator &operator+=(int64_t offset) noexcept
+            // Prefix decrement
+            ITK_INLINE const_iterator &operator--() noexcept
             {
-                item_count -= offset;
-                if (item_count == 0 || item_count > vec.m_capacity)
+                item_count++;
+                if (item_count >= vec->internal_size)
                 {
-                    item_count = 0;
-                    idx = vec.m_capacity; // end
+                    // Moving before begin, clamp to begin
+                    item_count = vec->internal_size;
+                    idx = vec->_start;
                     return *this;
                 }
-                idx += offset;
-                if (idx >= vec.m_capacity)
-                    idx -= vec.m_capacity; // wrap around
+                // decrement idx
+                if (idx == vec->m_capacity)
+                    idx = vec->_end;
+
+                if (idx == 0)
+                    idx = vec->m_capacity - 1;
+                else
+                    idx--;
                 return *this;
             }
 
-            ITK_INLINE const_iterator operator+(int64_t offset) const noexcept
+            // Postfix decrement
+            ITK_INLINE const_iterator operator--(int) noexcept
+            {
+                const_iterator tmp = *this;
+                --(*this);
+                return tmp;
+            }
+
+            ITK_INLINE const_iterator &operator+=(difference_type offset) noexcept
+            {
+                if (offset == 0)
+                    return *this;
+
+                if (offset > 0)
+                {
+                    item_count -= offset;
+                    if (item_count == 0 || item_count > vec->m_capacity)
+                    {
+                        item_count = 0;
+                        idx = vec->m_capacity; // end
+                        return *this;
+                    }
+                    idx += offset;
+                    if (idx >= vec->m_capacity)
+                        idx -= vec->m_capacity; // wrap around
+                }
+                else
+                {
+                    difference_type abs_offset = -offset;
+                    item_count += abs_offset;
+                    if (item_count >= vec->internal_size)
+                    {
+                        // Moving before begin, clamp to begin
+                        item_count = vec->internal_size;
+                        idx = vec->_start;
+                        return *this;
+                    }
+                    if (idx == vec->m_capacity)
+                        idx = vec->_end;
+                    idx += offset;
+                    if (idx > vec->m_capacity)
+                        idx += vec->m_capacity; // wrap around
+                }
+                return *this;
+            }
+
+            ITK_INLINE const_iterator &operator-=(difference_type offset) noexcept
+            {
+                return *this += (-offset);
+            }
+
+            ITK_INLINE const_iterator operator+(difference_type offset) const noexcept
             {
                 const_iterator tmp = *this;
                 tmp += offset;
                 return tmp;
             }
 
+            ITK_INLINE const_iterator operator-(difference_type offset) const noexcept
+            {
+                const_iterator tmp = *this;
+                tmp -= offset;
+                return tmp;
+            }
+
+            ITK_INLINE difference_type operator-(const const_iterator &other) const noexcept
+            {
+                if (idx == vec->m_capacity && other.idx == vec->m_capacity)
+                    return 0; // both at end
+                if (idx == vec->m_capacity)
+                    return other.item_count; // this is at end
+                if (other.idx == vec->m_capacity)
+                    return -(difference_type)item_count; // other is at end
+
+                return (difference_type)other.item_count - (difference_type)item_count;
+            }
+
+            ITK_INLINE reference operator[](difference_type n) const noexcept
+            {
+                const_iterator tmp = *this + n;
+                return *tmp;
+            }
+
             ITK_INLINE constexpr bool operator==(const const_iterator &other) const noexcept
             {
-                return idx == other.idx && &vec == &other.vec;
+                return idx == other.idx && vec == other.vec;
             }
             ITK_INLINE constexpr bool operator!=(const const_iterator &other) const noexcept
             {
                 return !(*this == other);
             }
 
+            ITK_INLINE bool operator<(const const_iterator &other) const noexcept
+            {
+                if (&vec != &other.vec)
+                    return false;
+                if (idx == vec->m_capacity)
+                    return false; // this is at end
+                if (other.idx == vec->m_capacity)
+                    return true;                      // other is at end
+                return item_count > other.item_count; // lower item_count means later position
+            }
+
+            ITK_INLINE bool operator<=(const const_iterator &other) const noexcept
+            {
+                return *this < other || *this == other;
+            }
+
+            ITK_INLINE bool operator>(const const_iterator &other) const noexcept
+            {
+                return !(*this <= other);
+            }
+
+            ITK_INLINE bool operator>=(const const_iterator &other) const noexcept
+            {
+                return !(*this < other);
+            }
+
         private:
-            const SmartVector &vec;
+            const SmartVector *vec;
             size_t idx;
             size_t item_count;
 
             friend class SmartVector<T>;
         };
 
-        ITK_INLINE iterator begin() noexcept { return iterator(*this, _start, internal_size); }
-        ITK_INLINE iterator end() noexcept { return iterator(*this, m_capacity, 0); }
-        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(*this, _start, internal_size); }
-        ITK_INLINE const_iterator end() const noexcept { return const_iterator(*this, m_capacity, 0); }
+        ITK_INLINE iterator begin() noexcept { return iterator(this, _start, internal_size); }
+        ITK_INLINE iterator end() noexcept { return iterator(this, m_capacity, 0); }
+        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(this, _start, internal_size); }
+        ITK_INLINE const_iterator end() const noexcept { return const_iterator(this, m_capacity, 0); }
         ITK_INLINE const_iterator cbegin() const noexcept { return begin(); }
         ITK_INLINE const_iterator cend() const noexcept { return end(); }
 
@@ -647,6 +868,15 @@ namespace Platform
                 internal_pos -= m_capacity;
 
             internal_insert(internal_pos, v);
+        }
+
+        ITK_INLINE void insert(const iterator &it, const T &v) noexcept
+        {
+            insert(internal_size - it.item_count, v);
+        }
+        ITK_INLINE void insert(const const_iterator &it, const T &v) noexcept
+        {
+            insert(internal_size - it.item_count, v);
         }
 
         ITK_INLINE void erase(size_t pos, bool force_moves_from_end = false) noexcept
