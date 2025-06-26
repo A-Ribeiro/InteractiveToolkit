@@ -9,10 +9,9 @@
 #include "File.h"
 
 #if defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable : 4996)
+#pragma warning(push)
+#pragma warning(disable : 4996)
 #endif
-
 
 namespace ITKCommon
 {
@@ -92,8 +91,8 @@ namespace ITKCommon
                 reference operator*() const { return fileInfo; }
                 pointer operator->() const { return &fileInfo; }
 
-                // Postfix increment
-                const_iterator &operator++(int)
+                // Prefix increment
+                const_iterator &operator++()
                 {
 #if defined(_WIN32)
                     if (hFind == INVALID_HANDLE_VALUE)
@@ -118,11 +117,11 @@ namespace ITKCommon
                     return *this;
                 }
 
-                // Prefix increment
-                const_iterator operator++()
+                // Postfix increment
+                const_iterator operator++(int)
                 {
                     const_iterator tmp = *this;
-                    (*this)++;
+                    ++(*this);
                     return tmp;
                 }
 
@@ -153,7 +152,7 @@ namespace ITKCommon
 
                     fileInfo = v.fileInfo;
                 }
-                const_iterator& operator=(const const_iterator &v)
+                const_iterator &operator=(const const_iterator &v)
                 {
 #if defined(_WIN32)
                     memset(&findfiledata, 0, sizeof(WIN32_FIND_DATAW));
@@ -189,7 +188,7 @@ namespace ITKCommon
                     v.fileInfo = value_type();
                 }
 
-                const_iterator& operator=(const_iterator &&v) noexcept
+                const_iterator &operator=(const_iterator &&v) noexcept
                 {
 #if defined(_WIN32)
                     findfiledata = v.findfiledata;
@@ -296,7 +295,7 @@ namespace ITKCommon
                         if (next_valid)
                         {
                             fileInfo.full_path = fileInfo.base_path + entry->d_name;
-                            stat_success = lstat(fileInfo.full_path.c_str(),&sb) == 0;
+                            stat_success = lstat(fileInfo.full_path.c_str(), &sb) == 0;
 
                             // read next until a valid stat file stated
                             while (next_valid && !stat_success)
@@ -326,22 +325,24 @@ namespace ITKCommon
 
                         fileInfo.isLink = mode_aux == S_IFLNK;
 
-                        if ( fileInfo.isLink ) {
+                        if (fileInfo.isLink)
+                        {
                             // realpath, or read the path is pointing to
                             // char resolved_path[PATH_MAX];
                             // if (realpath(fileInfo.full_path.c_str(), resolved_path) != nullptr) {
-                                struct stat sb_aux;
-                                stat_success = stat(fileInfo.full_path.c_str(), &sb_aux) == 0;
-                                if (stat_success){
-                                    sb = sb_aux;
-                                    mode_aux = (sb.st_mode & S_IFMT);
-                                }
+                            struct stat sb_aux;
+                            stat_success = stat(fileInfo.full_path.c_str(), &sb_aux) == 0;
+                            if (stat_success)
+                            {
+                                sb = sb_aux;
+                                mode_aux = (sb.st_mode & S_IFMT);
+                            }
                             // }
                         }
 
                         // use sb to fill the file properties
                         fileInfo.isDirectory = mode_aux == S_IFDIR;
-                        //fileInfo.isFile = !fileInfo.isDirectory;
+                        // fileInfo.isFile = !fileInfo.isDirectory;
                         fileInfo.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
                         fileInfo.name = entry->d_name;
                         // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
@@ -432,11 +433,13 @@ namespace ITKCommon
 
                         fileInfo.isLink = mode_aux == S_IFLNK;
 
-                        if ( fileInfo.isLink ) {
-                            int flags_aux = 0;// AT_SYMLINK_NOFOLLOW;
+                        if (fileInfo.isLink)
+                        {
+                            int flags_aux = 0; // AT_SYMLINK_NOFOLLOW;
                             struct statx sb_aux;
                             stat_success = statx(dirfd, fileInfo.full_path.c_str(), flags_aux, mask, &sb_aux) == 0;
-                            if (stat_success){
+                            if (stat_success)
+                            {
                                 sb = sb_aux;
                                 mode_aux = (sb.stx_mode & S_IFMT);
                             }
@@ -444,7 +447,7 @@ namespace ITKCommon
 
                         // use sb to fill the file properties
                         fileInfo.isDirectory = mode_aux == S_IFDIR;
-                        //fileInfo.isFile = !fileInfo.isDirectory;
+                        // fileInfo.isFile = !fileInfo.isDirectory;
                         fileInfo.isFile = mode_aux == S_IFSOCK || mode_aux == S_IFREG || mode_aux == S_IFBLK || mode_aux == S_IFCHR || mode_aux == S_IFIFO;
                         fileInfo.name = entry->d_name;
                         // fileInfo.full_path = fileInfo.base_path + fileInfo.name;
@@ -540,17 +543,20 @@ namespace ITKCommon
                 return File::FromPath(this->base_path);
             }
 
-            static bool mkdir(const char* dirname, std::string *errorStr = nullptr) {
+            static bool mkdir(const char *dirname, std::string *errorStr = nullptr)
+            {
 #if defined(_WIN32)
                 std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
-                if (CreateDirectoryW(_wstr.c_str(), nullptr) == FALSE){
+                if (CreateDirectoryW(_wstr.c_str(), nullptr) == FALSE)
+                {
                     if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
-                if (::mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+                if (::mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -559,25 +565,30 @@ namespace ITKCommon
 #endif
             }
 
-            static bool rename(const char* src_dirname, const char* dst_dirname, std::string *errorStr = nullptr) {
+            static bool rename(const char *src_dirname, const char *dst_dirname, std::string *errorStr = nullptr)
+            {
                 return File::rename(src_dirname, dst_dirname, errorStr);
             }
 
-            static bool move(const char* src_dirname, const char* dst_dirname, std::string *errorStr = nullptr) {
+            static bool move(const char *src_dirname, const char *dst_dirname, std::string *errorStr = nullptr)
+            {
                 return File::rename(src_dirname, dst_dirname, errorStr);
             }
 
-            static bool remove(const char* dirname, std::string *errorStr = nullptr) {
+            static bool remove(const char *dirname, std::string *errorStr = nullptr)
+            {
 #if defined(_WIN32)
                 std::wstring _wstr = ITKCommon::StringUtil::string_to_WString(dirname);
-                if (RemoveDirectoryW(_wstr.c_str()) == FALSE){
+                if (RemoveDirectoryW(_wstr.c_str()) == FALSE)
+                {
                     if (errorStr != nullptr)
                         *errorStr = ITKPlatformUtil::getLastErrorMessage();
                     return false;
                 }
                 return true;
 #elif defined(__linux__) || defined(__APPLE__)
-                if (::remove(dirname) != 0 ) {
+                if (::remove(dirname) != 0)
+                {
                     if (errorStr != nullptr)
                         *errorStr = strerror(errno);
                     return false;
@@ -585,7 +596,6 @@ namespace ITKCommon
                 return true;
 #endif
             }
-
 
         private:
             std::string base_path;
@@ -596,5 +606,5 @@ namespace ITKCommon
 }
 
 #if defined(_WIN32)
-#pragma warning( pop )
+#pragma warning(pop)
 #endif

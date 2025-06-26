@@ -57,12 +57,13 @@ namespace AlgorithmCore
                 m_size = size_;
                 indices.resize(m_size);
                 // ultra fast initialization of prev and next indices
-                for (uint32_t i = 0, prev = -1, next = 1; i < m_size; ++i, ++prev, ++next){
+                for (uint32_t i = 0, prev = -1, next = 1; i < m_size; ++i, ++prev, ++next)
+                {
                     auto &item = indices[i];
                     item.prev = prev;
                     item.next = next;
                 }
-                    
+
                 indices[0].prev = m_size - 1; // wrap around
                 indices[m_size - 1].next = 0; // wrap around
                 start_idx = start_idx_;
@@ -93,15 +94,7 @@ namespace AlgorithmCore
                 ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 // Prefix increment
-                ITK_INLINE iterator operator++()
-                {
-                    iterator tmp = *this;
-                    (*this)++;
-                    return tmp;
-                }
-
-                // Postfix increment
-                ITK_INLINE iterator &operator++(int)
+                ITK_INLINE iterator &operator++()
                 {
                     item_count--;
                     if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
@@ -112,6 +105,14 @@ namespace AlgorithmCore
                     }
                     idx = vec.indices[idx].next;
                     return *this;
+                }
+
+                // Postfix increment
+                ITK_INLINE iterator operator++(int)
+                {
+                    iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
                 }
 
                 ITK_INLINE reference element_back() const
@@ -162,15 +163,7 @@ namespace AlgorithmCore
                 ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 // Prefix increment
-                ITK_INLINE const_iterator operator++()
-                {
-                    const_iterator tmp = *this;
-                    (*this)++;
-                    return tmp;
-                }
-
-                // Postfix increment
-                ITK_INLINE const_iterator &operator++(int)
+                ITK_INLINE const_iterator &operator++()
                 {
                     item_count--;
                     if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
@@ -181,6 +174,14 @@ namespace AlgorithmCore
                     }
                     idx = vec.indices[idx].next;
                     return *this;
+                }
+
+                // Postfix increment
+                ITK_INLINE const_iterator operator++(int)
+                {
+                    const_iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
                 }
 
                 ITK_INLINE reference element_back() const
@@ -321,15 +322,7 @@ namespace AlgorithmCore
                 ITK_INLINE value_type operator*() const { return idx; }
 
                 // Prefix increment
-                ITK_INLINE iterator operator++()
-                {
-                    iterator tmp = *this;
-                    (*this)++;
-                    return tmp;
-                }
-
-                // Postfix increment
-                ITK_INLINE iterator &operator++(int)
+                ITK_INLINE iterator &operator++()
                 {
                     item_count--;
                     if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
@@ -340,6 +333,14 @@ namespace AlgorithmCore
                     }
                     idx = vec.indices[idx].next;
                     return *this;
+                }
+
+                // Postfix increment
+                ITK_INLINE iterator operator++(int)
+                {
+                    iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
                 }
 
                 ITK_INLINE value_type element_back() const
@@ -397,15 +398,7 @@ namespace AlgorithmCore
                 ITK_INLINE value_type operator*() const { return idx; }
 
                 // Prefix increment
-                ITK_INLINE const_iterator operator++()
-                {
-                    const_iterator tmp = *this;
-                    (*this)++;
-                    return tmp;
-                }
-
-                // Postfix increment
-                ITK_INLINE const_iterator &operator++(int)
+                ITK_INLINE const_iterator &operator++()
                 {
                     item_count--;
                     if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
@@ -416,6 +409,14 @@ namespace AlgorithmCore
                     }
                     idx = vec.indices[idx].next;
                     return *this;
+                }
+
+                // Postfix increment
+                ITK_INLINE const_iterator operator++(int)
+                {
+                    const_iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
                 }
 
                 ITK_INLINE value_type element_back() const

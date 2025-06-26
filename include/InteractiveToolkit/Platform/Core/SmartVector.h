@@ -46,15 +46,7 @@ namespace Platform
             ITK_INLINE pointer operator->() const noexcept { return &vec.cyclic_block_array[idx]; }
 
             // Prefix increment
-            ITK_INLINE iterator operator++() noexcept
-            {
-                iterator tmp = *this;
-                (*this)++;
-                return tmp;
-            }
-
-            // Postfix increment
-            ITK_INLINE iterator &operator++(int) noexcept
+            ITK_INLINE iterator &operator++() noexcept
             {
                 item_count--;
                 if (item_count == 0 || item_count > vec.m_capacity)
@@ -66,6 +58,14 @@ namespace Platform
                 if (idx >= vec.m_capacity)
                     idx = 0; // wrap around
                 return *this;
+            }
+
+            // Postfix increment
+            ITK_INLINE iterator operator++(int) noexcept
+            {
+                iterator tmp = *this;
+                ++(*this);
+                return tmp;
             }
 
             ITK_INLINE iterator &operator+=(int64_t offset) noexcept
@@ -90,11 +90,11 @@ namespace Platform
                 return tmp;
             }
 
-            ITK_INLINE constexpr bool operator==(const iterator &other) const
+            ITK_INLINE constexpr bool operator==(const iterator &other) const noexcept
             {
                 return idx == other.idx && &vec == &other.vec;
             }
-            ITK_INLINE constexpr bool operator!=(const iterator &other) const
+            ITK_INLINE constexpr bool operator!=(const iterator &other) const noexcept
             {
                 return !(*this == other);
             }
@@ -115,22 +115,14 @@ namespace Platform
             using pointer = const T *;
             using reference = const T &;
 
-            ITK_INLINE const_iterator(const SmartVector &vec, uint32_t idx, size_t count)
+            ITK_INLINE const_iterator(const SmartVector &vec, uint32_t idx, size_t count) noexcept
                 : vec(vec), idx(idx), item_count(count) {}
 
-            ITK_INLINE reference operator*() const { return vec.cyclic_block_array[idx]; }
-            ITK_INLINE pointer operator->() const { return &vec.cyclic_block_array[idx]; }
+            ITK_INLINE reference operator*() const noexcept { return vec.cyclic_block_array[idx]; }
+            ITK_INLINE pointer operator->() const noexcept { return &vec.cyclic_block_array[idx]; }
 
             // Prefix increment
-            ITK_INLINE const_iterator operator++()
-            {
-                const_iterator tmp = *this;
-                (*this)++;
-                return tmp;
-            }
-
-            // Postfix increment
-            ITK_INLINE const_iterator &operator++(int)
+            ITK_INLINE const_iterator &operator++() noexcept
             {
                 item_count--;
                 if (item_count == 0 || item_count > vec.m_capacity)
@@ -143,6 +135,14 @@ namespace Platform
                 if (idx >= vec.m_capacity)
                     idx = 0; // wrap around
                 return *this;
+            }
+
+            // Postfix increment
+            ITK_INLINE const_iterator operator++(int) noexcept
+            {
+                const_iterator tmp = *this;
+                ++(*this);
+                return tmp;
             }
 
             ITK_INLINE const_iterator &operator+=(int64_t offset) noexcept
@@ -167,11 +167,11 @@ namespace Platform
                 return tmp;
             }
 
-            ITK_INLINE constexpr bool operator==(const const_iterator &other) const
+            ITK_INLINE constexpr bool operator==(const const_iterator &other) const noexcept
             {
                 return idx == other.idx && &vec == &other.vec;
             }
-            ITK_INLINE constexpr bool operator!=(const const_iterator &other) const
+            ITK_INLINE constexpr bool operator!=(const const_iterator &other) const noexcept
             {
                 return !(*this == other);
             }
