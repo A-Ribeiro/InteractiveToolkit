@@ -900,6 +900,15 @@ namespace Platform
 
             internal_erase(internal_pos, force_moves_from_end);
         }
+
+        ITK_INLINE void erase(const iterator &it, bool force_moves_from_end = false) noexcept
+        {
+            erase(internal_size - it.item_count, force_moves_from_end);
+        }
+        ITK_INLINE void erase(const const_iterator &it, bool force_moves_from_end = false) noexcept
+        {
+            erase(internal_size - it.item_count, force_moves_from_end);
+        }
     };
 
     // enum class QueueOrder : uint8_t
