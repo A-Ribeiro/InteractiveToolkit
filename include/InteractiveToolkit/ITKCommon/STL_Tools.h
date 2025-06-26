@@ -137,10 +137,25 @@ namespace STL_Tools
     template <int _id_>
     using placeholder = typename index_to_placeholder<_id_>::type;
 
-    template <typename _base_type, typename... _param_args>
+    template <typename _base_type, typename... _param_args,
+              typename std::enable_if<
+                  !std::is_array<_base_type>::value //
+                  ,
+                  bool>::type = true>
     ITK_INLINE std::unique_ptr<_base_type> make_unique(_param_args &&...args)
     {
         return std::unique_ptr<_base_type>(new _base_type(std::forward<_param_args>(args)...));
+    }
+
+    // Array specialization for make_unique
+    template <typename _base_type,
+              typename std::enable_if<
+                  std::is_array<_base_type>::value //
+                  ,
+                  bool>::type = true>
+    ITK_INLINE std::unique_ptr<_base_type> make_unique(size_t size)
+    {
+        return std::unique_ptr<_base_type>(new typename std::remove_extent<_base_type>::type[size]);
     }
 
     template <template <typename, typename> class ContainerT, typename ValueT, typename AllocatorT>

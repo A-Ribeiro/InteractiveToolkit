@@ -86,11 +86,11 @@ namespace AlgorithmCore
                 using pointer = T *;
                 using reference = T &;
 
-                ITK_INLINE iterator(FastRemovalCyclicVector *vec, uint32_t idx)
-                    : vec(vec), idx(idx), size(vec->m_size) {}
+                ITK_INLINE iterator(FastRemovalCyclicVector &vec, uint32_t idx, uint32_t count)
+                    : vec(vec), idx(idx), item_count(count) {}
 
-                ITK_INLINE reference operator*() const { return vec->indices[idx].data; }
-                ITK_INLINE pointer operator->() const { return &vec->indices[idx].data; }
+                ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
+                ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 // Prefix increment
                 ITK_INLINE iterator operator++()
@@ -103,35 +103,36 @@ namespace AlgorithmCore
                 // Postfix increment
                 ITK_INLINE iterator &operator++(int)
                 {
-                    if (size == 0)
+                    item_count--;
+                    if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
                     {
-                        idx = (uint32_t)vec->indices.size(); // end
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
                         return *this;
                     }
-                    size--;
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE reference element_back() const
                 {
-                    return vec->indices[vec->indices[idx].prev].data;
+                    return vec.indices[vec.indices[idx].prev].data;
                 }
 
                 ITK_INLINE reference element_next() const
                 {
-                    return vec->indices[vec->indices[idx].next].data;
+                    return vec.indices[vec.indices[idx].next].data;
                 }
 
                 ITK_INLINE iterator &cyclic_increment()
                 {
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE constexpr bool operator==(const iterator &other) const
                 {
-                    return idx == other.idx && vec == other.vec;
+                    return idx == other.idx && &vec == &other.vec;
                 }
                 ITK_INLINE constexpr bool operator!=(const iterator &other) const
                 {
@@ -139,9 +140,9 @@ namespace AlgorithmCore
                 }
 
             private:
-                FastRemovalCyclicVector *vec;
+                FastRemovalCyclicVector &vec;
                 uint32_t idx;
-                uint32_t size;
+                uint32_t item_count;
 
                 friend class FastRemovalCyclicVector<T>;
             };
@@ -154,11 +155,11 @@ namespace AlgorithmCore
                 using pointer = const T *;
                 using reference = const T &;
 
-                ITK_INLINE const_iterator(const FastRemovalCyclicVector *vec, uint32_t idx)
-                    : vec(vec), idx(idx), size(vec->m_size) {}
+                ITK_INLINE const_iterator(const FastRemovalCyclicVector &vec, uint32_t idx, uint32_t count)
+                    : vec(vec), idx(idx), item_count(count) {}
 
-                ITK_INLINE reference operator*() const { return vec->indices[idx].data; }
-                ITK_INLINE pointer operator->() const { return &vec->indices[idx].data; }
+                ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
+                ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 // Prefix increment
                 ITK_INLINE const_iterator operator++()
@@ -171,35 +172,36 @@ namespace AlgorithmCore
                 // Postfix increment
                 ITK_INLINE const_iterator &operator++(int)
                 {
-                    if (size == 0)
+                    item_count--;
+                    if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
                     {
-                        idx = vec->indices.size(); // end
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
                         return *this;
                     }
-                    size--;
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE reference element_back() const
                 {
-                    return vec->indices[vec->indices[idx].prev].data;
+                    return vec.indices[vec.indices[idx].prev].data;
                 }
 
                 ITK_INLINE reference element_next() const
                 {
-                    return vec->indices[vec->indices[idx].next].data;
+                    return vec.indices[vec.indices[idx].next].data;
                 }
 
                 ITK_INLINE const_iterator &cyclic_increment()
                 {
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE constexpr bool operator==(const const_iterator &other) const
                 {
-                    return idx == other.idx && vec == other.vec;
+                    return idx == other.idx && &vec == &other.vec;
                 }
                 ITK_INLINE constexpr bool operator!=(const const_iterator &other) const
                 {
@@ -207,17 +209,17 @@ namespace AlgorithmCore
                 }
 
             private:
-                const FastRemovalCyclicVector *vec;
+                const FastRemovalCyclicVector &vec;
                 uint32_t idx;
-                uint32_t size;
+                uint32_t item_count;
 
                 friend class FastRemovalCyclicVector<T>;
             };
 
-            ITK_INLINE iterator begin() { return iterator(this, start_idx); }
-            ITK_INLINE iterator end() { return iterator(this, (uint32_t)indices.size()); }
-            ITK_INLINE const_iterator begin() const { return const_iterator(this, start_idx); }
-            ITK_INLINE const_iterator end() const { return const_iterator(this, (uint32_t)indices.size()); }
+            ITK_INLINE iterator begin() { return iterator(*this, start_idx, m_size); }
+            ITK_INLINE iterator end() { return iterator(*this, (uint32_t)indices.size(), 0); }
+            ITK_INLINE const_iterator begin() const { return const_iterator(*this, start_idx, m_size); }
+            ITK_INLINE const_iterator end() const { return const_iterator(*this, (uint32_t)indices.size(), 0); }
             ITK_INLINE const_iterator cbegin() const { return begin(); }
             ITK_INLINE const_iterator cend() const { return end(); }
 
@@ -310,11 +312,11 @@ namespace AlgorithmCore
                 // using pointer = T *;
                 // using reference = T &;
 
-                ITK_INLINE iterator(FastRemovalCyclicVector_OnlyIndex_Uint32 *vec, uint32_t idx)
-                    : vec(vec), idx(idx), size(vec->m_size) {}
+                ITK_INLINE iterator(FastRemovalCyclicVector_OnlyIndex_Uint32 &vec, uint32_t idx)
+                    : vec(vec), idx(idx), item_count(vec.m_size) {}
 
-                // ITK_INLINE reference operator*() const { return vec->indices[idx].data; }
-                // ITK_INLINE pointer operator->() const { return &vec->indices[idx].data; }
+                // ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
+                // ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 ITK_INLINE value_type operator*() const { return idx; }
 
@@ -329,19 +331,20 @@ namespace AlgorithmCore
                 // Postfix increment
                 ITK_INLINE iterator &operator++(int)
                 {
-                    if (size == 0)
+                    item_count--;
+                    if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
                     {
-                        idx = (uint32_t)vec->indices.size(); // end
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
                         return *this;
                     }
-                    size--;
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE value_type element_back() const
                 {
-                    return vec->indices[idx].prev;
+                    return vec.indices[idx].prev;
                 }
 
                 ITK_INLINE value_type element_current() const
@@ -351,18 +354,18 @@ namespace AlgorithmCore
 
                 ITK_INLINE value_type element_next() const
                 {
-                    return vec->indices[idx].next;
+                    return vec.indices[idx].next;
                 }
 
                 ITK_INLINE iterator &cyclic_increment()
                 {
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE constexpr bool operator==(const iterator &other) const
                 {
-                    return idx == other.idx && vec == other.vec;
+                    return idx == other.idx && &vec == &other.vec;
                 }
                 ITK_INLINE constexpr bool operator!=(const iterator &other) const
                 {
@@ -370,9 +373,9 @@ namespace AlgorithmCore
                 }
 
             private:
-                FastRemovalCyclicVector_OnlyIndex_Uint32 *vec;
+                FastRemovalCyclicVector_OnlyIndex_Uint32 &vec;
                 uint32_t idx;
-                uint32_t size;
+                uint32_t item_count;
 
                 friend class FastRemovalCyclicVector_OnlyIndex_Uint32;
             };
@@ -385,11 +388,11 @@ namespace AlgorithmCore
                 // using pointer = const T *;
                 // using reference = const T &;
 
-                ITK_INLINE const_iterator(const FastRemovalCyclicVector_OnlyIndex_Uint32 *vec, uint32_t idx)
-                    : vec(vec), idx(idx), size(vec->m_size) {}
+                ITK_INLINE const_iterator(const FastRemovalCyclicVector_OnlyIndex_Uint32 &vec, uint32_t idx)
+                    : vec(vec), idx(idx), item_count(vec.m_size) {}
 
-                // ITK_INLINE reference operator*() const { return vec->indices[idx].data; }
-                // ITK_INLINE pointer operator->() const { return &vec->indices[idx].data; }
+                // ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
+                // ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
 
                 ITK_INLINE value_type operator*() const { return idx; }
 
@@ -404,19 +407,20 @@ namespace AlgorithmCore
                 // Postfix increment
                 ITK_INLINE const_iterator &operator++(int)
                 {
-                    if (size == 0)
+                    item_count--;
+                    if (item_count == 0 || item_count > (uint32_t)vec.indices.size())
                     {
-                        idx = vec->indices.size(); // end
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
                         return *this;
                     }
-                    size--;
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE value_type element_back() const
                 {
-                    return vec->indices[idx].prev;
+                    return vec.indices[idx].prev;
                 }
 
                 ITK_INLINE value_type element_current() const
@@ -426,18 +430,18 @@ namespace AlgorithmCore
 
                 ITK_INLINE value_type element_next() const
                 {
-                    return vec->indices[idx].next;
+                    return vec.indices[idx].next;
                 }
 
                 ITK_INLINE const_iterator &cyclic_increment()
                 {
-                    idx = vec->indices[idx].next;
+                    idx = vec.indices[idx].next;
                     return *this;
                 }
 
                 ITK_INLINE constexpr bool operator==(const const_iterator &other) const
                 {
-                    return idx == other.idx && vec == other.vec;
+                    return idx == other.idx && &vec == &other.vec;
                 }
                 ITK_INLINE constexpr bool operator!=(const const_iterator &other) const
                 {
@@ -445,17 +449,17 @@ namespace AlgorithmCore
                 }
 
             private:
-                const FastRemovalCyclicVector_OnlyIndex_Uint32 *vec;
+                const FastRemovalCyclicVector_OnlyIndex_Uint32 &vec;
                 uint32_t idx;
-                uint32_t size;
+                uint32_t item_count;
 
                 friend class FastRemovalCyclicVector_OnlyIndex_Uint32;
             };
 
-            ITK_INLINE iterator begin() { return iterator(this, start_idx); }
-            ITK_INLINE iterator end() { return iterator(this, (uint32_t)indices.size()); }
-            ITK_INLINE const_iterator begin() const { return const_iterator(this, start_idx); }
-            ITK_INLINE const_iterator end() const { return const_iterator(this, (uint32_t)indices.size()); }
+            ITK_INLINE iterator begin() { return iterator(*this, start_idx); }
+            ITK_INLINE iterator end() { return iterator(*this, (uint32_t)indices.size()); }
+            ITK_INLINE const_iterator begin() const { return const_iterator(*this, start_idx); }
+            ITK_INLINE const_iterator end() const { return const_iterator(*this, (uint32_t)indices.size()); }
             ITK_INLINE const_iterator cbegin() const { return begin(); }
             ITK_INLINE const_iterator cend() const { return end(); }
 

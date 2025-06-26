@@ -5,6 +5,7 @@
 #include "Core/ObjectBuffer.h"
 #include "Core/ObjectPool.h"
 #include "Core/ObjectQueue.h"
+#include "Core/SmartVector.h"
 
 #include "AutoLock.h"
 #include "Mutex.h"
