@@ -59,6 +59,12 @@ namespace Platform {
 
             while (available.size() > 0) {
                 ObjectPoolElement element = available.dequeue(nullptr,true);
+
+                // there is an issue on libasan
+                // it cannot call destructor of non constructed object
+                // so we need to call the placement constructor first
+                // and after that call the real destructor 
+                // (not the placement construct/destruct)
                 if (!element.ignore_placement_new_delete)
                     new (element.data) T();
                 delete element.data;

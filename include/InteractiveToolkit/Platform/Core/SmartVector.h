@@ -12,7 +12,7 @@
 namespace Platform
 {
 
-    template <typename T, int MIN_CAPACITY = 8>
+    template <typename T, size_t MIN_CAPACITY = 8>
     class SmartVector
     {
 
@@ -131,7 +131,7 @@ namespace Platform
                     }
                     if (idx == vec->m_capacity)
                         idx = vec->_end;
-                    idx += offset;
+                    idx -= abs_offset;
                     if (idx > vec->m_capacity)
                         idx += vec->m_capacity; // wrap around
                 }
@@ -318,7 +318,7 @@ namespace Platform
                     }
                     if (idx == vec->m_capacity)
                         idx = vec->_end;
-                    idx += offset;
+                    idx -= abs_offset;
                     if (idx > vec->m_capacity)
                         idx += vec->m_capacity; // wrap around
                 }
@@ -648,6 +648,7 @@ namespace Platform
         }
         ITK_INLINE SmartVector(const SmartVector &other) noexcept
         {
+            m_capacity = 0;
             if (other.internal_size > m_capacity || cyclic_block_array == nullptr)
             {
                 m_capacity = other.internal_size;
@@ -678,7 +679,7 @@ namespace Platform
                     size_t first_part_size = other.m_capacity - other._start;
                     for (size_t i = 0; i < first_part_size; i++)
                         cyclic_block_array[i] = other.cyclic_block_array[other._start + i];
-                    for (size_t i = 0; i < _end; i++)
+                    for (size_t i = 0; i < other._end; i++)
                         cyclic_block_array[first_part_size + i] = other.cyclic_block_array[i];
                 }
             }
@@ -729,7 +730,7 @@ namespace Platform
                         size_t first_part_size = other.m_capacity - other._start;
                         for (size_t i = 0; i < first_part_size; i++)
                             cyclic_block_array[i] = other.cyclic_block_array[other._start + i];
-                        for (size_t i = 0; i < _end; i++)
+                        for (size_t i = 0; i < other._end; i++)
                             cyclic_block_array[first_part_size + i] = other.cyclic_block_array[i];
                     }
                 }
@@ -910,445 +911,5 @@ namespace Platform
             erase(internal_size - it.item_count, force_moves_from_end);
         }
     };
-
-    // enum class QueueOrder : uint8_t
-    // {
-    //     None,
-    //     Ascending,
-    //     Descending
-    // };
-
-    // template <typename T>
-    // class ObjectQueue
-    // {
-    //     Platform::Mutex mutex;
-    //     Platform::Semaphore semaphore;
-    //     bool blocking;
-
-    //     QueueOrder order;
-
-    //     // std::list<T> list;
-
-    //     std::vector<T> cyclic_block_array;
-    //     size_t _start;
-    //     size_t _end;
-    //     size_t internal_size;
-
-    // public:
-    //     // deleted copy constructor and assign operator, to avoid copy...
-    //     ObjectQueue(const ObjectQueue &v) = delete;
-    //     ObjectQueue &operator=(const ObjectQueue &v) = delete;
-
-    //     ObjectQueue(bool blocking = true) : semaphore(0), cyclic_block_array(10)
-    //     {
-    //         this->blocking = blocking;
-    //         order = QueueOrder::None;
-    //         _start = 0;
-    //         _end = 0;
-    //         internal_size = 0;
-    //     }
-
-    //     QueueOrder getOrder()
-    //     {
-    //         return order;
-    //     }
-
-    //     T removeInOrder(const T &v, bool *removed = nullptr, bool ignoreSignal = false)
-    //     {
-    //         if (removed != nullptr)
-    //             *removed = false;
-
-    //         ITK_ABORT(
-    //             order != QueueOrder::Ascending && internal_size != 0,
-    //             "Trying to dequeue an in-order element of a non-ordered queue.\n");
-
-    //         bool blockinAquireSuccess = false;
-    //         if (blocking)
-    //         {
-    //             blockinAquireSuccess = semaphore.blockingAcquire();
-    //             if (semaphore.isSignaled() && !ignoreSignal)
-    //                 return T();
-    //         }
-
-    //         Platform::AutoLock autoLock(&mutex);
-    //         if (internal_size == 0)
-    //         {
-    //             // not found the data to remove...
-    //             // incr semaphore for another thread
-    //             if (blockinAquireSuccess)
-    //                 semaphore.release();
-    //             return T();
-    //         }
-    //         else
-    //         {
-    //             {
-    //                 const T &begin = front();
-    //                 if (begin == v)
-    //                 {
-    //                     T result = pop_front();
-    //                     if (blockinAquireSuccess)
-    //                         semaphore.release();
-    //                     return result;
-    //                 }
-    //                 else if (v < begin)
-    //                 {
-    //                     // not found the data to remove...
-    //                     // incr semaphore for another thread
-    //                     if (blockinAquireSuccess)
-    //                         semaphore.release();
-    //                     return T();
-    //                 }
-
-    //                 const T &end = back();
-    //                 if (end == v)
-    //                 {
-    //                     T result = pop_back();
-    //                     if (blockinAquireSuccess)
-    //                         semaphore.release();
-    //                     return result;
-    //                 }
-    //                 else if (v > end)
-    //                 {
-    //                     // not found the data to remove...
-    //                     // incr semaphore for another thread
-    //                     if (blockinAquireSuccess)
-    //                         semaphore.release();
-    //                     return T();
-    //                 }
-    //             }
-
-    //             // binary search
-    //             int size = internal_size;
-    //             size_t aux;
-    //             size_t it = _start;
-    //             while (true)
-    //             {
-    //                 int half_size = size / 2;
-
-    //                 if (half_size == 0)
-    //                 {
-    //                     if (!(cyclic_block_array[it] == v))
-    //                     {
-    //                         it++;
-    //                         if (it >= capacity)
-    //                             it = 0;
-    //                     }
-    //                     const T &result = cyclic_block_array[it];
-    //                     if (result == v)
-    //                     {
-    //                         erase(it);
-    //                         if (removed != nullptr)
-    //                             *removed = true;
-    //                         if (blockinAquireSuccess)
-    //                             semaphore.release();
-    //                         return result;
-    //                     }
-
-    //                     if (blockinAquireSuccess)
-    //                         semaphore.release();
-    //                     return T();
-    //                 }
-
-    //                 aux = it;
-    //                 // std::advance(aux, half_size);
-    //                 aux += half_size;
-    //                 if (aux >= capacity)
-    //                     aux -= capacity;
-
-    //                 if (v < cyclic_block_array[aux])
-    //                 {
-    //                     size = half_size;
-    //                 }
-    //                 else if (v > cyclic_block_array[aux])
-    //                 {
-    //                     it = aux;
-    //                     size = size - half_size;
-    //                 }
-    //                 else
-    //                 {
-    //                     if (cyclic_block_array[aux] == v)
-    //                     {
-    //                         T result = cyclic_block_array[aux];
-    //                         erase(aux);
-    //                         if (removed != nullptr)
-    //                             *removed = true;
-    //                         if (blockinAquireSuccess)
-    //                             semaphore.release();
-    //                         return result;
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //         // not found the data to remove...
-    //         // incr semaphore for another thread
-    //         if (blockinAquireSuccess)
-    //             semaphore.release();
-    //         return T();
-    //     }
-
-    //     void enqueueInOrder(const T &v)
-    //     {
-    //         mutex.lock();
-
-    //         ITK_ABORT(
-    //             order != QueueOrder::Ascending && internal_size != 0,
-    //             "Trying to enqueue element in a non-ordered queue.\n");
-
-    //         order = QueueOrder::Ascending;
-
-    //         if (internal_size == 0)
-    //         {
-    //             push_back(v);
-    //         }
-    //         else
-    //         {
-    //             const auto &_front = this->front();
-    //             bool compareResult_it_less_equal = (v < _front) ? true : (!(v > _front) ? true : false);
-    //             if (compareResult_it_less_equal)
-    //             {
-    //                 push_front(v);
-
-    //                 mutex.unlock();
-    //                 if (blocking)
-    //                     semaphore.release();
-    //                 return;
-    //             }
-    //             const auto &_back = this->back();
-    //             bool compareResult_it_greated_last = (v > _back) ? true : (!(v < _back) ? true : false);
-    //             if (compareResult_it_greated_last)
-    //             {
-    //                 push_back(v);
-
-    //                 mutex.unlock();
-    //                 if (blocking)
-    //                     semaphore.release();
-    //                 return;
-    //             }
-
-    //             // binary search
-    //             int size = internal_size;
-    //             size_t aux;
-    //             size_t it = _start;
-    //             while (true)
-    //             {
-    //                 int half_size = size / 2;
-
-    //                 if (half_size == 0)
-    //                 {
-    //                     it++;
-    //                     if (it >= capacity)
-    //                         it = 0;
-    //                     insert(it, v);
-    //                     break;
-    //                 }
-
-    //                 aux = it;
-    //                 // std::advance(aux, half_size);
-    //                 aux += half_size;
-    //                 if (aux >= capacity)
-    //                     aux -= capacity;
-
-    //                 if (v < cyclic_block_array[aux])
-    //                 {
-    //                     size = half_size;
-    //                 }
-    //                 else if (v > cyclic_block_array[aux])
-    //                 {
-    //                     it = aux;
-    //                     size = size - half_size;
-    //                 }
-    //                 else
-    //                 {
-    //                     insert(aux, v);
-    //                     break;
-    //                 }
-    //             }
-    //         }
-
-    //         mutex.unlock();
-    //         if (blocking)
-    //             semaphore.release();
-    //     }
-
-    //     void enqueueInOrderReverse(const T &v)
-    //     {
-    //         mutex.lock();
-
-    //         ITK_ABORT(
-    //             order != QueueOrder::Descending && internal_size != 0,
-    //             "Trying to enqueue element in a non-ordered queue.\n");
-
-    //         order = QueueOrder::Descending;
-
-    //         if (internal_size == 0)
-    //         {
-    //             push_back(v);
-    //         }
-    //         else
-    //         {
-    //             const auto &_front = this->front();
-    //             bool compareResult_it_less_equal = (v > _front) ? true : (!(v < _front) ? true : false);
-    //             if (compareResult_it_less_equal)
-    //             {
-    //                 push_front(v);
-
-    //                 mutex.unlock();
-    //                 if (blocking)
-    //                     semaphore.release();
-    //                 return;
-    //             }
-    //             const auto &_back = this->back();
-    //             bool compareResult_it_greated_last = (v < _back) ? true : (!(v > _back) ? true : false);
-    //             if (compareResult_it_greated_last)
-    //             {
-    //                 push_back(v);
-
-    //                 mutex.unlock();
-    //                 if (blocking)
-    //                     semaphore.release();
-    //                 return;
-    //             }
-
-    //             // binary search
-    //             int size = internal_size;
-    //             size_t aux;
-    //             size_t it = _start;
-    //             while (true)
-    //             {
-    //                 int half_size = size / 2;
-
-    //                 if (half_size == 0)
-    //                 {
-    //                     it++;
-    //                     if (it >= capacity)
-    //                         it = 0;
-    //                     insert(it, v);
-    //                     break;
-    //                 }
-
-    //                 aux = it;
-    //                 // std::advance(aux, half_size);
-    //                 aux += half_size;
-    //                 if (aux >= capacity)
-    //                     aux -= capacity;
-
-    //                 if (v > cyclic_block_array[aux])
-    //                 {
-    //                     size = half_size;
-    //                 }
-    //                 else if (v < cyclic_block_array[aux])
-    //                 {
-    //                     it = aux;
-    //                     size = size - half_size;
-    //                 }
-    //                 else
-    //                 {
-    //                     insert(aux, v);
-    //                     break;
-    //                 }
-    //             }
-    //         }
-
-    //         mutex.unlock();
-    //         if (blocking)
-    //             semaphore.release();
-    //     }
-
-    //     void enqueue(const T &v)
-    //     {
-    //         mutex.lock();
-
-    //         order = QueueOrder::None;
-
-    //         push_back(v);
-    //         mutex.unlock();
-
-    //         if (blocking)
-    //             semaphore.release();
-    //     }
-
-    //     uint32_t size()
-    //     {
-    //         Platform::AutoLock autoLock(&mutex);
-    //         return (uint32_t)internal_size;
-    //     }
-
-    //     T peek()
-    //     {
-    //         Platform::AutoLock autoLock(&mutex);
-    //         // if (list.size() > 0)
-    //         //     return list.front();
-    //         if (internal_size == 0)
-    //             return T();
-    //         return cyclic_block_array[_start];
-    //     }
-
-    //     T dequeue(bool *isSignaled = nullptr, bool ignoreSignal = false)
-    //     {
-
-    //         if (blocking)
-    //         {
-    //             if (!semaphore.blockingAcquire() && !ignoreSignal)
-    //             {
-    //                 if (isSignaled != nullptr)
-    //                     *isSignaled = true;
-    //                 return T();
-    //             }
-
-    //             mutex.lock();
-    //             T result = pop_front();
-    //             mutex.unlock();
-
-    //             if (isSignaled != nullptr)
-    //                 *isSignaled = false;
-    //             return result;
-    //         }
-
-    //         mutex.lock();
-    //         T result = pop_front();
-    //         mutex.unlock();
-
-    //         if (isSignaled != nullptr)
-    //             *isSignaled = false;
-
-    //         return result;
-    //     }
-
-    //     T rdequeue(bool *isSignaled = nullptr, bool ignoreSignal = false)
-    //     {
-
-    //         if (blocking)
-    //         {
-    //             if (!semaphore.blockingAcquire() && !ignoreSignal)
-    //             {
-    //                 if (isSignaled != nullptr)
-    //                     *isSignaled = true;
-    //                 return T();
-    //             }
-
-    //             mutex.lock();
-    //             T result = pop_back();
-    //             mutex.unlock();
-
-    //             if (isSignaled != nullptr)
-    //                 *isSignaled = false;
-    //             return result;
-    //         }
-
-    //         mutex.lock();
-    //         T result = pop_back();
-    //         mutex.unlock();
-
-    //         if (isSignaled != nullptr)
-    //             *isSignaled = false;
-    //         return result;
-    //     }
-
-    //     bool isSignaledFromCurrentThread()
-    //     {
-    //         return semaphore.isSignaled();
-    //     }
-    // };
 
 }
