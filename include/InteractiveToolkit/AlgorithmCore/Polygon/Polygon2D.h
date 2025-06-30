@@ -13,6 +13,9 @@ namespace AlgorithmCore
             /// \brief Check if a point is inside a polygon
             ///
             /// This function checks if a point is inside a polygon using the ray-casting algorithm.
+            /// 1. Casting a horizontal ray from the test point to the right
+            /// 1. Counting how many polygon edges the ray crosses
+            /// 1. If the count is odd, the point is inside; if even, it's outside
             ///
             /// \param point The point to check.
             /// \param polygon The polygon represented as a vector of points.
@@ -35,14 +38,28 @@ namespace AlgorithmCore
                     // check if the point is within the y-bounds of the polygon edge
                     if ((pt_curr.y > point.y) != (pt_prev.y > point.y))
                     {
-                        PointType curr_to_prev = pt_prev - pt_curr;
-                        PointType curr_to_point = point - pt_curr;
-                        // Calculate the x-coordinate of the intersection point
-                        float_type inclination = curr_to_prev.x / curr_to_prev.y;
-                        float_type x = pt_curr.x + curr_to_point.y * inclination;
-                        // Check if the point is to the left of the intersection point
-                        if (point.x < x)
-                            inside = !inside; // Toggle the inside state
+                        if (pt_curr.x > point.x && pt_prev.x > point.x)
+                        {
+                            // both points are to the right of the point
+                            // the edge is always to the right of the point
+                            inside = !inside;
+                        } else {
+                            // if pt_curr is at bottom
+                            // if side is positive, the point is to the left of the edge (edge is at right)
+                            // if side is negative, the point is to the right of the edge (edge is at left)
+
+                            // if pt_prev is at bottom
+                            // if side will be reversed
+                            float_type side = MathCore::OP<PointType>::orientation(pt_curr, pt_prev, point);
+
+                            // if prev is at bottom
+                            // flip the side
+                            if (pt_prev.y < pt_curr.y)
+                                side = -side;
+
+                            if (side > 0)
+                                inside = !inside;
+                        }
                     }
                     prev_i = i;
                 }
