@@ -49,7 +49,7 @@ namespace AlgorithmCore
                             // if side is negative, the point is to the right of the edge (edge is at left)
 
                             // if pt_prev is at bottom
-                            // if side will be reversed
+                            // the side will be reversed
                             float_type side = MathCore::OP<PointType>::orientation(pt_curr, pt_prev, point);
 
                             // if prev is at bottom
