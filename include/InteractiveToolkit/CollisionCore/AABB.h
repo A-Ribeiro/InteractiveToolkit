@@ -47,6 +47,9 @@ namespace CollisionCore
         /// \author Alessandro Ribeiro
         ///
         inline AABB();
+
+        inline void makeEmpty();
+        inline bool isEmpty() const;
         //--------------------------------------------------------------------------
         /// \brief Constructs a new bidimensional AABB class
         ///

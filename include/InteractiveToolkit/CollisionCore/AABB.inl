@@ -72,7 +72,19 @@ namespace CollisionCore
     template <typename T>
     inline AABB<T, _CHKE_>::AABB()
     {
-        min_box = max_box = T();
+        min_box = T( MathCore::FloatTypeInfo<float_type>::max );
+        max_box = T( -MathCore::FloatTypeInfo<float_type>::max );
+    }
+
+    template <typename T>
+    inline void AABB<T, _CHKE_>::makeEmpty() {
+        min_box = T( MathCore::FloatTypeInfo<float_type>::max );
+        max_box = T( -MathCore::FloatTypeInfo<float_type>::max );
+    }
+
+    template <typename T>
+    inline bool AABB<T, _CHKE_>::isEmpty() const {
+        return (min_box.x > max_box.x || min_box.y > max_box.y || min_box.z > max_box.z);
     }
     //--------------------------------------------------------------------------
     /*
