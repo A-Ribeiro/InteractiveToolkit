@@ -607,6 +607,7 @@ namespace Platform
                 _end--;
                 if (_end >= m_capacity)
                     _end = m_capacity - 1;
+                cyclic_block_array[_end] = T(); // clear the value
             }
             else
             {
@@ -629,6 +630,7 @@ namespace Platform
                     count++;
                 }
 
+                cyclic_block_array[_start] = T(); // clear the value
                 _start++;
                 if (_start >= m_capacity)
                     _start = 0;
@@ -791,6 +793,8 @@ namespace Platform
 
         ITK_INLINE void clear() noexcept
         {
+            for(auto &item : *this)
+                item = T(); // clear the value
             internal_size = 0;
             _start = _end = 0;
         }
@@ -824,6 +828,7 @@ namespace Platform
         {
             if (internal_size == 0)
                 return;
+            cyclic_block_array[_start] = T(); // clear the value
             _start++;
             if (_start >= m_capacity)
                 _start = 0;
@@ -837,6 +842,7 @@ namespace Platform
             _end--;
             if (_end >= m_capacity)
                 _end = m_capacity - 1;
+            cyclic_block_array[_end] = T(); // clear the value
             internal_size--;
         }
         ITK_INLINE const T &front() const noexcept
