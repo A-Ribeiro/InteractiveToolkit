@@ -8,6 +8,8 @@
 
 // #include "../../ITKCommon/ITKAbort.h"
 // #include "../../ITKCommon/Memory.h"
+#include "../../ITKCommon/STL_Tools.h"
+
 
 namespace Platform
 {
