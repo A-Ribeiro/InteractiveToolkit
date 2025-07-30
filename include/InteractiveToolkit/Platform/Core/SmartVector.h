@@ -962,6 +962,30 @@ namespace Platform
         {
             erase(internal_size - it.item_count, force_moves_from_end);
         }
+
+        // assign methods for std::assign compatibility
+        ITK_INLINE void assign(size_t count, const T& value) noexcept
+        {
+            clear();
+            resize(count);
+            for (size_t i = 0; i < count; ++i)
+                (*this)[i] = value;
+        }
+
+        template<class InputIt>
+        ITK_INLINE void assign(InputIt first, InputIt last) noexcept
+        {
+            clear();
+            for (auto it = first; it != last; ++it)
+                push_back(*it);
+        }
+
+        ITK_INLINE void assign(std::initializer_list<T> ilist) noexcept
+        {
+            clear();
+            for (const auto& item : ilist)
+                push_back(item);
+        }
     };
 
 }
