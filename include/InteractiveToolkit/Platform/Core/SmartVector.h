@@ -405,9 +405,9 @@ namespace Platform
             friend class SmartVector<T>;
         };
 
-        ITK_INLINE iterator begin() noexcept { return iterator(this, _start, internal_size); }
+        ITK_INLINE iterator begin() noexcept { return iterator(this, (internal_size)?_start:m_capacity, internal_size); }
         ITK_INLINE iterator end() noexcept { return iterator(this, m_capacity, 0); }
-        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(this, _start, internal_size); }
+        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(this, (internal_size)?_start:m_capacity, internal_size); }
         ITK_INLINE const_iterator end() const noexcept { return const_iterator(this, m_capacity, 0); }
         ITK_INLINE const_iterator cbegin() const noexcept { return begin(); }
         ITK_INLINE const_iterator cend() const noexcept { return end(); }

@@ -217,9 +217,9 @@ namespace AlgorithmCore
                 friend class FastRemovalCyclicVector<T>;
             };
 
-            ITK_INLINE iterator begin() { return iterator(*this, start_idx, m_size); }
+            ITK_INLINE iterator begin() { return iterator(*this, (m_size) ? start_idx : (uint32_t)indices.size(), m_size); }
             ITK_INLINE iterator end() { return iterator(*this, (uint32_t)indices.size(), 0); }
-            ITK_INLINE const_iterator begin() const { return const_iterator(*this, start_idx, m_size); }
+            ITK_INLINE const_iterator begin() const { return const_iterator(*this, m_size ? start_idx : (uint32_t)indices.size(), m_size); }
             ITK_INLINE const_iterator end() const { return const_iterator(*this, (uint32_t)indices.size(), 0); }
             ITK_INLINE const_iterator cbegin() const { return begin(); }
             ITK_INLINE const_iterator cend() const { return end(); }
