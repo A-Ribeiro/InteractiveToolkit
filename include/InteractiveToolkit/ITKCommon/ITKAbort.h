@@ -71,11 +71,11 @@ namespace ITKCommon
         }
     };
 
+    static inline std::string GenerateDebugStrFnc(const char *file, int line, const char *format, ...)
+    {
 
-    static inline std::string GenerateDebugStrFnc(const char *file, int line, const char *format, ...){
-        
         std::vector<char> char_buffer;
-        
+
         va_list args;
 
         va_start(args, format);
@@ -88,13 +88,27 @@ namespace ITKCommon
 
         std::vector<char> final_str;
 
-        final_str.resize(snprintf(nullptr,0,"[%s:%i]\n%s", file, line, char_buffer.data()) + 1);
+        final_str.resize(snprintf(nullptr, 0, "[%s:%i]\n%s", file, line, char_buffer.data()) + 1);
 
-        snprintf(final_str.data(),final_str.size(),
-            "[%s:%i]\n%s", 
-            file, line, char_buffer.data());
+        snprintf(final_str.data(), final_str.size(),
+                 "[%s:%i]\n%s",
+                 file, line, char_buffer.data());
 
         return final_str.data();
+    }
+}
+
+namespace ITKCommon
+{
+    namespace Internal
+    {
+        static void event_triggerAbort(const char *file, int line, const char *format, ...)
+        {
+            va_list args;
+            va_start(args, format);
+            ITKAbort::Instance()->triggeredAbort(file, line, format, args);
+            va_end(args);
+        }
     }
 }
 
@@ -106,18 +120,20 @@ namespace ITKCommon
     if (bool_exp)                               \
         ITKCommon::ITKAbort::Instance()->triggeredAbort(file, line, __VA_ARGS__);
 
-#define ON_COND_SET_ERRORSTR_RETURN(cond, ret, ...) \
-    if (cond) { \
-        if (errorStr != nullptr) \
-            *errorStr = ITKCommon::GenerateDebugStrFnc(__FILE__, __LINE__,__VA_ARGS__); \
-        return ret; \
+#define ON_COND_SET_ERRORSTR_RETURN(cond, ret, ...)                                      \
+    if (cond)                                                                            \
+    {                                                                                    \
+        if (errorStr != nullptr)                                                         \
+            *errorStr = ITKCommon::GenerateDebugStrFnc(__FILE__, __LINE__, __VA_ARGS__); \
+        return ret;                                                                      \
     }
 
-#define ON_COND_SET_ERRORSTR_RETURN_FL(file,line,cond, ret, ...) \
-    if (cond) { \
-        if (errorStr != nullptr) \
-            *errorStr = ITKCommon::GenerateDebugStrFnc(file,line,__VA_ARGS__); \
-        return ret; \
+#define ON_COND_SET_ERRORSTR_RETURN_FL(file, line, cond, ret, ...)               \
+    if (cond)                                                                    \
+    {                                                                            \
+        if (errorStr != nullptr)                                                 \
+            *errorStr = ITKCommon::GenerateDebugStrFnc(file, line, __VA_ARGS__); \
+        return ret;                                                              \
     }
 
 #include "../Platform/Mutex.inl"

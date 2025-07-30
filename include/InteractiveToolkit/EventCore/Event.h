@@ -11,12 +11,22 @@
 #include "HandleCallback.h"
 #include "../ITKCommon/STL_Tools.h"
 
+#include "../Platform/Core/SmartVector.h"
+
 #include "Callback.h"
 
 #if defined(_WIN32)
 #pragma warning(push)
 #pragma warning(disable : 4407)
 #endif
+
+namespace ITKCommon
+{
+    namespace Internal
+    {
+        static void event_triggerAbort(const char *file, int line, const char *format, ...);
+    }
+}
 
 namespace EventCore
 {
@@ -39,7 +49,7 @@ namespace EventCore
 
         // using std_function_class_member = typename std::function<_RetType(_BaseClassType*, _ArgsType...)>;
         using ptr_class_member = _RetType (_BaseClassType::*)(_ArgsType...);
-        using ptr_class_member_functor = _RetType(*)(_BaseClassType*, _ArgsType...);
+        using ptr_class_member_functor = _RetType (*)(_BaseClassType *, _ArgsType...);
 
         using compatible_callback = Callback<_RetType(_ArgsType...), _BaseClassType>;
 
@@ -60,7 +70,7 @@ namespace EventCore
             // - void(_ClassType::*ptr_class_member)(args)
 #if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
             ptr_class_member_functor _ptr_class_member;
-#else 
+#else
             ptr_class_member _ptr_class_member;
 #endif
             // - ptr_instance*
@@ -72,8 +82,8 @@ namespace EventCore
             int op;
         };
 
-        std::vector<__internal> fncs;
-        std::vector<__internal> op_fncs;
+        Platform::SmartVector<__internal> fncs;
+        Platform::SmartVector<__internal> op_fncs;
         bool _runtime_inside_call;
 
         std::recursive_mutex mtx;
@@ -90,7 +100,6 @@ namespace EventCore
             }
             else
                 fncs.push_back(std::move(struct_));
-
         }
         void _remove(__internal &&struct_)
         {
@@ -134,7 +143,7 @@ namespace EventCore
 
                 // avoid recursive callback...
                 if (_runtime_inside_call)
-                    return;
+                    ITKCommon::Internal::event_triggerAbort(__FILE__, __LINE__, "Recursive event call detected");
                 _runtime_inside_call = true;
             }
             for (const __internal &_i_struct : fncs)
@@ -153,13 +162,14 @@ namespace EventCore
                 case CallType::Functor:
                     _i_struct._ptr_functor(_arg...);
                     break;
-                default:
+                case CallType::STDFunction:
                     _i_struct._std_function_functor(_arg...);
                     break;
+                default:
+                    // assert(false && "Unknown CallType in Event::operator()!");
+                    ITKCommon::Internal::event_triggerAbort(__FILE__, __LINE__, "Unknown CallType in Event::operator()!");
                 }
 
-                
-                
                 //_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
                 // if (_i_struct._std_function_functor != nullptr)
                 // 	_i_struct._std_function_functor(std::forward<_ArgsType>(_arg)...);
@@ -257,7 +267,7 @@ namespace EventCore
             fncs = std::move(_v.fncs);
             op_fncs = std::move(_v.op_fncs);
         }
-        self_type& operator=(self_type &&_v)
+        self_type &operator=(self_type &&_v)
         {
             std::lock_guard<decltype(mtx)> lock_self(mtx);
             std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
@@ -274,7 +284,7 @@ namespace EventCore
             _runtime_inside_call = false;
         }
 
-        self_type& operator=(nullptr_t)
+        self_type &operator=(nullptr_t)
         {
             clear();
             return *this;
@@ -449,7 +459,6 @@ namespace EventCore
 
             struct_.mCallType = CallType::STDFunction;
 
-
             _add(std::move(struct_));
         }
 
@@ -478,13 +487,13 @@ namespace EventCore
         template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
         void add(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
         {
-            specialAdd(class_member, (_ClassTypeA*)instance, Indices());
+            specialAdd(class_member, (_ClassTypeA *)instance, Indices());
         }
 
-        template <typename _ClassTypeA,typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
         void add(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
         {
-            specialAdd((_RetType(_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA*)instance, Indices());
+            specialAdd((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, Indices());
         }
 
     private:
@@ -514,9 +523,9 @@ namespace EventCore
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 #if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
-            struct_._ptr_class_member = *(ptr_class_member_functor*)&class_member;
+            struct_._ptr_class_member = *(ptr_class_member_functor *)&class_member;
 #else
-            struct_._ptr_class_member = *(ptr_class_member*)&class_member;
+            struct_._ptr_class_member = *(ptr_class_member *)&class_member;
 #endif
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
@@ -590,22 +599,21 @@ namespace EventCore
             _remove(std::move(struct_));
         }
 
-
         template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
-        void remove(_RetType(_ClassTypeA::* class_member)(_ArgsType...), _ClassTypeB* instance)
+        void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
         {
-            specialRemove(class_member, (_ClassTypeA*)instance, Indices());
+            specialRemove(class_member, (_ClassTypeA *)instance, Indices());
         }
 
         template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
-        void remove(_RetType(_ClassTypeA::* class_member)(_ArgsType...) const, _ClassTypeB* instance)
+        void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
         {
-            specialRemove((_RetType(_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA*)instance, Indices());
+            specialRemove((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, Indices());
         }
 
-        private:
+    private:
         template <typename _ClassType, std::size_t... I>
-        void specialRemove(_RetType(_ClassType::* class_member)(_ArgsType...), _ClassType* instance, STL_Tools::index_sequence<I...>)
+        void specialRemove(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassType *instance, STL_Tools::index_sequence<I...>)
         {
 
             //
@@ -629,9 +637,9 @@ namespace EventCore
             // object
             struct_._ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 #if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
-            struct_._ptr_class_member = *(ptr_class_member_functor*)&class_member;
+            struct_._ptr_class_member = *(ptr_class_member_functor *)&class_member;
 #else
-            struct_._ptr_class_member = *(ptr_class_member*)&class_member;
+            struct_._ptr_class_member = *(ptr_class_member *)&class_member;
 #endif
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
@@ -640,8 +648,7 @@ namespace EventCore
             _remove(std::move(struct_));
         }
 
-        public:
-
+    public:
         void clear()
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
@@ -658,6 +665,12 @@ namespace EventCore
                 fncs.clear();
                 op_fncs.clear();
             }
+        }
+
+        size_t size()
+        {
+            std::lock_guard<decltype(mtx)> lock(mtx);
+            return fncs.size();
         }
     };
 
@@ -692,6 +705,8 @@ namespace EventCore
     }
 
 }
+
+#include "../ITKCommon/ITKAbort.h"
 
 #if defined(_WIN32)
 #pragma warning(pop)

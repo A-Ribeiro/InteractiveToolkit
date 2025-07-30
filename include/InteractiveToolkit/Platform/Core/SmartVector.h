@@ -2,12 +2,12 @@
 
 // #include "../platform_common.h"
 #include "../../common.h"
-#include "../Mutex.h"
-#include "../AutoLock.h"
-#include "../Semaphore.h"
+// #include "../Mutex.h"
+// #include "../AutoLock.h"
+// #include "../Semaphore.h"
 
-#include "../../ITKCommon/ITKAbort.h"
-#include "../../ITKCommon/Memory.h"
+// #include "../../ITKCommon/ITKAbort.h"
+// #include "../../ITKCommon/Memory.h"
 
 namespace Platform
 {
@@ -405,9 +405,9 @@ namespace Platform
             friend class SmartVector<T>;
         };
 
-        ITK_INLINE iterator begin() noexcept { return iterator(this, (internal_size)?_start:m_capacity, internal_size); }
+        ITK_INLINE iterator begin() noexcept { return iterator(this, (internal_size) ? _start : m_capacity, internal_size); }
         ITK_INLINE iterator end() noexcept { return iterator(this, m_capacity, 0); }
-        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(this, (internal_size)?_start:m_capacity, internal_size); }
+        ITK_INLINE const_iterator begin() const noexcept { return const_iterator(this, (internal_size) ? _start : m_capacity, internal_size); }
         ITK_INLINE const_iterator end() const noexcept { return const_iterator(this, m_capacity, 0); }
         ITK_INLINE const_iterator cbegin() const noexcept { return begin(); }
         ITK_INLINE const_iterator cend() const noexcept { return end(); }
@@ -431,16 +431,16 @@ namespace Platform
                     {
                         // Normal case, no wrap around
                         for (size_t i = 0; i < internal_size; i++)
-                            new_cyclic_block_array[i] = cyclic_block_array[_start + i];
+                            new_cyclic_block_array[i] = std::move(cyclic_block_array[_start + i]);
                     }
                     else
                     {
                         // Wrap around case
                         size_t first_part_size = m_capacity - _start;
                         for (size_t i = 0; i < first_part_size; i++)
-                            new_cyclic_block_array[i] = cyclic_block_array[_start + i];
+                            new_cyclic_block_array[i] = std::move(cyclic_block_array[_start + i]);
                         for (size_t i = 0; i < _end; i++)
-                            new_cyclic_block_array[first_part_size + i] = cyclic_block_array[i];
+                            new_cyclic_block_array[first_part_size + i] = std::move(cyclic_block_array[i]);
                     }
                 }
 
@@ -793,7 +793,7 @@ namespace Platform
 
         ITK_INLINE void clear() noexcept
         {
-            for(auto &item : *this)
+            for (auto &item : *this)
                 item = T(); // clear the value
             internal_size = 0;
             _start = _end = 0;
@@ -811,6 +811,18 @@ namespace Platform
             internal_size = new_size;
         }
 
+        ITK_INLINE void push_back(T &&v) noexcept
+        {
+            size_t new_size = internal_size + 1;
+            expand_capacity(new_size);
+
+            cyclic_block_array[_end] = std::move(v);
+            _end++;
+            if (_end >= m_capacity)
+                _end = 0;
+            internal_size = new_size;
+        }
+
         ITK_INLINE void push_front(const T &v) noexcept
         {
             size_t new_size = internal_size + 1;
@@ -821,6 +833,19 @@ namespace Platform
                 _start = m_capacity - 1;
 
             cyclic_block_array[_start] = v;
+            internal_size = new_size;
+        }
+
+        ITK_INLINE void push_front(T &&v) noexcept
+        {
+            size_t new_size = internal_size + 1;
+            expand_capacity(new_size);
+
+            _start--;
+            if (_start >= m_capacity)
+                _start = m_capacity - 1;
+
+            cyclic_block_array[_start] = std::move(v);
             internal_size = new_size;
         }
 
@@ -849,6 +874,10 @@ namespace Platform
         {
             return cyclic_block_array[_start];
         }
+        ITK_INLINE T &front() noexcept
+        {
+            return cyclic_block_array[_start];
+        }
 
         ITK_INLINE const T &back() const noexcept
         {
@@ -857,6 +886,23 @@ namespace Platform
                 idx = m_capacity - 1;
             return cyclic_block_array[idx];
         }
+        ITK_INLINE T &back() noexcept
+        {
+            size_t idx = _end - 1;
+            if (idx >= m_capacity)
+                idx = m_capacity - 1;
+            return cyclic_block_array[idx];
+        }
+        
+        ITK_INLINE void swap(SmartVector &other) noexcept
+        {
+            std::swap(m_capacity, other.m_capacity);
+            std::swap(_start, other._start);
+            std::swap(_end, other._end);
+            std::swap(internal_size, other.internal_size);
+            cyclic_block_array.swap(other.cyclic_block_array);
+        }
+
         ITK_INLINE void insert(size_t pos, const T &v) noexcept
         {
             if (pos >= internal_size)
