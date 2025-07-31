@@ -1171,7 +1171,7 @@ namespace Platform
         }
 
         template <class... Args>
-        ITK_INLINE iterator emplace(iterator pos, Args &&...args) noexcept
+        ITK_INLINE iterator emplace(const iterator &pos, Args &&...args) noexcept
         {
             size_t index = internal_size - pos.item_count;
             if (index >= internal_size)
@@ -1197,7 +1197,7 @@ namespace Platform
         }
 
         template <class... Args>
-        ITK_INLINE iterator emplace(const_iterator pos, Args &&...args) noexcept
+        ITK_INLINE iterator emplace(const const_iterator &pos, Args &&...args) noexcept
         {
             size_t index = internal_size - pos.item_count;
             if (index >= internal_size)
