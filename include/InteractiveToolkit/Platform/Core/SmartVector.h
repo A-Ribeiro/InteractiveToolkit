@@ -1532,7 +1532,7 @@ namespace Platform
             return iterator(this, internal_pos, internal_size - index);
         }
 
-        ITK_INLINE void erase(size_t pos, size_t erase_count, bool force_moves_from_end = false) noexcept
+        ITK_INLINE void erase(size_t pos, size_t erase_count = 1, bool force_moves_from_end = false) noexcept
         {
             if (pos >= internal_size)
                 return;
