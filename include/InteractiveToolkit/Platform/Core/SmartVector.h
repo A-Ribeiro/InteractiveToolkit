@@ -9,7 +9,13 @@
 // #include "../../ITKCommon/ITKAbort.h"
 // #include "../../ITKCommon/Memory.h"
 #include "../../ITKCommon/STL_Tools.h"
-
+#include <initializer_list>
+#include <utility>
+#include <new>
+#include <iterator>
+#include <limits>
+#include <algorithm>
+#include <type_traits>
 
 namespace Platform
 {
@@ -17,7 +23,17 @@ namespace Platform
     template <typename T, size_t MIN_CAPACITY = 8>
     class SmartVector
     {
+    public:
+        // STL-compatible type aliases
+        using value_type = T;
+        using size_type = size_t;
+        using difference_type = std::ptrdiff_t;
+        using reference = T &;
+        using const_reference = const T &;
+        using pointer = T *;
+        using const_pointer = const T *;
 
+    private:
         std::unique_ptr<T[]> cyclic_block_array;
         size_t m_capacity;
 
@@ -43,6 +59,11 @@ namespace Platform
             ITK_INLINE iterator(SmartVector *vec, size_t idx, size_t count) noexcept
                 : vec(vec), idx(idx), item_count(count)
             {
+                if (item_count == 0)
+                {
+                    item_count = 0;
+                    idx = vec->m_capacity; // end
+                }
             }
 
             ITK_INLINE reference operator*() const noexcept { return vec->cyclic_block_array[idx]; }
@@ -230,7 +251,14 @@ namespace Platform
             using reference = const T &;
 
             ITK_INLINE const_iterator(const SmartVector *vec, size_t idx, size_t count) noexcept
-                : vec(vec), idx(idx), item_count(count) {}
+                : vec(vec), idx(idx), item_count(count)
+            {
+                if (item_count == 0)
+                {
+                    item_count = 0;
+                    idx = vec->m_capacity; // end
+                }
+            }
 
             ITK_INLINE reference operator*() const noexcept { return vec->cyclic_block_array[idx]; }
             ITK_INLINE pointer operator->() const noexcept { return &vec->cyclic_block_array[idx]; }
@@ -414,6 +442,20 @@ namespace Platform
         ITK_INLINE const_iterator cbegin() const noexcept { return begin(); }
         ITK_INLINE const_iterator cend() const noexcept { return end(); }
 
+        // Additional STL-compatible iterator type aliases
+        using iterator_type = iterator;
+        using const_iterator_type = const_iterator;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+        // Reverse iterator support
+        ITK_INLINE reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+        ITK_INLINE reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+        ITK_INLINE const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+        ITK_INLINE const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+        ITK_INLINE const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+        ITK_INLINE const_reverse_iterator crend() const noexcept { return rend(); }
+
     private:
         void expand_capacity(size_t new_size)
         {
@@ -453,32 +495,41 @@ namespace Platform
             }
         }
 
-        ITK_INLINE void internal_insert(size_t pos, const T &v) noexcept
+        // returns the relative_position in the cyclic block array
+        ITK_INLINE size_t internal_insert_reserve_empty(size_t abs_pos, size_t increase_count) noexcept
         {
-            size_t new_size = internal_size + 1;
-            size_t start_beforeExpansion = _start;
+            size_t new_size = internal_size + increase_count;
             expand_capacity(new_size);
-            if (start_beforeExpansion != _start)
-            {
-                // the cyclic block array was expanded, so we need to adjust the position
-                pos += (_start - start_beforeExpansion);
-            }
 
-            // this point _end will never be equal to _start,
-            // so we can use it as a reference point,
-            // unless the vector is empty, then _start == _end == 0
+            size_t pos = abs_pos + _start;
+            if (pos >= m_capacity)
+                pos -= m_capacity;
 
             if (pos == _end)
             {
                 // insert at the end
-                push_back(v);
-                return;
+                // push_back(v);
+                _end += increase_count;
+                if (_end >= m_capacity)
+                    _end -= m_capacity;
+                internal_size = new_size;
+                return pos;
             }
             else if (pos == _start)
             {
                 // insert at the start
-                push_front(v);
-                return;
+                // push_front(v);
+                _start -= increase_count;
+                if (_start >= m_capacity)
+                    _start += m_capacity;
+                internal_size = new_size;
+
+                // as start change its reference, we need to adjust the internal position
+                pos = abs_pos + _start;
+                if (pos >= m_capacity)
+                    pos -= m_capacity;
+
+                return pos;
             }
 
             int64_t distance_to_start = pos - _start;
@@ -488,157 +539,293 @@ namespace Platform
             if (distance_to_end > 0)
                 distance_to_end -= m_capacity;
             distance_to_end = -distance_to_end; // make it positive
-
-            // printf("distance_to_start: %zi, distance_to_end: %zi, pos: %zu, _start: %zu, _end: %zu arr_size: %zu\n",
-            //        distance_to_start, distance_to_end, pos, _start, _end, capacity);
 
             if (distance_to_end <= distance_to_start)
             {
                 // printf("inserting from end\n");
                 // near end, will make less moves inserting from the end
                 // move content using end as reference until the position
-                size_t _last_insert = _end;
-                size_t _before_element = _last_insert;
+
+                size_t _last_insert = _end + increase_count - 1;
+                if (_last_insert >= m_capacity)
+                    _last_insert -= m_capacity;
+
+                size_t _before_element = _end;
                 size_t count = 0;
+
+                size_t pos_stop_iteration = pos + increase_count - 1;
+                if (pos_stop_iteration >= m_capacity)
+                    pos_stop_iteration -= m_capacity;
+
                 while (count < internal_size)
                 {
-                    if (_last_insert == pos)
+                    if (_last_insert == pos_stop_iteration)
                     {
-                        cyclic_block_array[_last_insert] = v;
+                        // cyclic_block_array[_last_insert] = v;
                         break;
                     }
                     _before_element--;
                     if (_before_element >= m_capacity)
                         _before_element = m_capacity - 1;
 
-                    cyclic_block_array[_last_insert] = cyclic_block_array[_before_element];
+                    cyclic_block_array[_last_insert] = std::move(cyclic_block_array[_before_element]);
+                    // printf("\n  copying -> %i \n", cyclic_block_array[_before_element]);
 
-                    _last_insert = _before_element;
+                    //_last_insert = _before_element;
+                    _last_insert--;
+                    if (_last_insert >= m_capacity)
+                        _last_insert = m_capacity - 1;
                     count++;
                 }
-                _end++;
+                _end += increase_count;
                 if (_end >= m_capacity)
-                    _end = 0;
+                    _end -= m_capacity;
             }
             else
             {
                 // printf("inserting from start\n");
                 // near start, will make less moves inserting from the start
                 // move content using start as reference from the position to the end
-                size_t _before_element = _start;
-                _before_element--;
+                size_t _before_element = _start - increase_count;
+                // _before_element--;
                 if (_before_element >= m_capacity)
-                    _before_element = m_capacity - 1;
+                    _before_element += m_capacity;
                 size_t _last_insert = _start;
                 size_t count = 0;
                 while (count < internal_size)
                 {
                     if (_last_insert == pos)
                     {
-                        cyclic_block_array[_before_element] = v;
+                        // cyclic_block_array[_before_element] = v;
                         break;
                     }
-                    cyclic_block_array[_before_element] = cyclic_block_array[_last_insert];
-                    _before_element = _last_insert;
+                    cyclic_block_array[_before_element] = std::move(cyclic_block_array[_last_insert]);
+                    // printf("\n  copying -> %i \n", cyclic_block_array[_before_element]);
+
+                    //_before_element = _last_insert;
+                    _before_element++;
+                    if (_before_element >= m_capacity)
+                        _before_element = 0;
                     _last_insert++;
                     if (_last_insert >= m_capacity)
                         _last_insert = 0;
                     count++;
                 }
-                _start--;
+                _start -= increase_count;
                 if (_start >= m_capacity)
-                    _start = m_capacity - 1;
+                    _start += m_capacity;
+
+                // as start change its reference, we need to adjust the internal position
+                pos = abs_pos + _start;
+                if (pos >= m_capacity)
+                    pos -= m_capacity;
             }
 
             internal_size = new_size;
+
+            return pos;
         }
 
-        ITK_INLINE void internal_erase(size_t pos, bool force_moves_from_end) noexcept
+        // ITK_INLINE void internal_insert_old(size_t pos, const T &v) noexcept
+        // {
+        //     size_t new_size = internal_size + 1;
+        //     size_t start_beforeExpansion = _start;
+        //     expand_capacity(new_size);
+        //     if (start_beforeExpansion != _start)
+        //     {
+        //         // the cyclic block array was expanded, so we need to adjust the position
+        //         pos += (_start - start_beforeExpansion);
+        //     }
+
+        //     // this point _end will never be equal to _start,
+        //     // so we can use it as a reference point,
+        //     // unless the vector is empty, then _start == _end == 0
+
+        //     if (pos == _end)
+        //     {
+        //         // insert at the end
+        //         push_back(v);
+        //         return;
+        //     }
+        //     else if (pos == _start)
+        //     {
+        //         // insert at the start
+        //         push_front(v);
+        //         return;
+        //     }
+
+        //     int64_t distance_to_start = pos - _start;
+        //     int64_t distance_to_end = pos - _end;
+        //     if (distance_to_start < 0)
+        //         distance_to_start += m_capacity;
+        //     if (distance_to_end > 0)
+        //         distance_to_end -= m_capacity;
+        //     distance_to_end = -distance_to_end; // make it positive
+
+        //     // printf("distance_to_start: %zi, distance_to_end: %zi, pos: %zu, _start: %zu, _end: %zu arr_size: %zu\n",
+        //     //        distance_to_start, distance_to_end, pos, _start, _end, capacity);
+
+        //     if (distance_to_end <= distance_to_start)
+        //     {
+        //         // printf("inserting from end\n");
+        //         // near end, will make less moves inserting from the end
+        //         // move content using end as reference until the position
+        //         size_t _last_insert = _end;
+        //         size_t _before_element = _last_insert;
+        //         size_t count = 0;
+        //         while (count < internal_size)
+        //         {
+        //             if (_last_insert == pos)
+        //             {
+        //                 cyclic_block_array[_last_insert] = v;
+        //                 break;
+        //             }
+        //             _before_element--;
+        //             if (_before_element >= m_capacity)
+        //                 _before_element = m_capacity - 1;
+
+        //             cyclic_block_array[_last_insert] = std::move(cyclic_block_array[_before_element]);
+
+        //             _last_insert = _before_element;
+        //             count++;
+        //         }
+        //         _end++;
+        //         if (_end >= m_capacity)
+        //             _end = 0;
+        //     }
+        //     else
+        //     {
+        //         // printf("inserting from start\n");
+        //         // near start, will make less moves inserting from the start
+        //         // move content using start as reference from the position to the end
+        //         size_t _before_element = _start;
+        //         _before_element--;
+        //         if (_before_element >= m_capacity)
+        //             _before_element = m_capacity - 1;
+        //         size_t _last_insert = _start;
+        //         size_t count = 0;
+        //         while (count < internal_size)
+        //         {
+        //             if (_last_insert == pos)
+        //             {
+        //                 cyclic_block_array[_before_element] = v;
+        //                 break;
+        //             }
+        //             cyclic_block_array[_before_element] = std::move(cyclic_block_array[_last_insert]);
+        //             _before_element = _last_insert;
+        //             _last_insert++;
+        //             if (_last_insert >= m_capacity)
+        //                 _last_insert = 0;
+        //             count++;
+        //         }
+        //         _start--;
+        //         if (_start >= m_capacity)
+        //             _start = m_capacity - 1;
+        //     }
+
+        //     internal_size = new_size;
+        // }
+
+        ITK_INLINE void internal_erase_v2(size_t abs_pos, size_t erase_count, bool force_moves_from_end) noexcept
         {
+            size_t pos = _start + abs_pos;
+            if (pos >= m_capacity)
+                pos -= m_capacity;
+
+            size_t abs_target_pos = abs_pos + erase_count;
+            if (abs_target_pos >= internal_size)
+                abs_target_pos = internal_size;
+
+            size_t abs_real_count = abs_target_pos - abs_pos;
+
+            size_t target_pos = _start + abs_target_pos;
+            if (target_pos >= m_capacity)
+                target_pos -= m_capacity;
+
             if (internal_size == 0)
                 return;
             else if (pos == _start)
             {
-                pop_front();
+                if (force_moves_from_end)
+                {
+                    size_t _start_write = pos;
+                    size_t elements_count = internal_size - abs_target_pos;
+
+                    for (size_t i = 0; i < elements_count; i++)
+                    {
+                        cyclic_block_array[_start_write] = std::move(cyclic_block_array[target_pos]);
+
+                        _start_write++;
+                        if (_start_write >= m_capacity)
+                            _start_write = 0;
+
+                        target_pos++;
+                        if (target_pos >= m_capacity)
+                            target_pos = 0;
+                    }
+                    for (size_t i = 0; i < abs_real_count; i++)
+                        pop_back();
+                }
+                else
+                {
+                    for (size_t i = 0; i < abs_real_count; i++)
+                        pop_front();
+                }
                 return;
             }
             else
             {
-                size_t last_element = _end - 1;
-                if (last_element >= m_capacity)
-                    last_element = m_capacity - 1;
-
-                if (pos == last_element)
+                if (abs_target_pos == internal_size)
                 {
-                    pop_back();
+                    for (size_t i = 0; i < abs_real_count; i++)
+                        pop_back();
                     return;
                 }
             }
 
-            int64_t distance_to_start = pos - _start;
-            int64_t distance_to_end = pos - _end;
-            if (distance_to_start < 0)
-                distance_to_start += m_capacity;
-            if (distance_to_end > 0)
-                distance_to_end -= m_capacity;
-            distance_to_end = -distance_to_end; // make it positive
+            // 0|----<pos>xxxxxxx<target_pos>----|internal_size
+            size_t moves_from_start = abs_pos;
+            size_t moves_from_end = internal_size - abs_target_pos;
 
-            if (force_moves_from_end || distance_to_end <= distance_to_start)
+            if (force_moves_from_end || moves_from_end <= moves_from_start || true)
             {
-                // near end, will make less moves removing from the end
-
-                // printf("removing from end\n");
-
-                size_t _next = pos;
-                _next++;
-                if (_next >= m_capacity)
-                    _next = 0;
-
-                size_t count = 0;
-                while (count < internal_size && pos != _end && _next != _end)
+                size_t _start_write = pos;
+                for (size_t i = 0; i < moves_from_end; i++)
                 {
-                    cyclic_block_array[pos] = cyclic_block_array[_next];
-                    pos = _next;
+                    cyclic_block_array[_start_write] = std::move(cyclic_block_array[target_pos]);
 
-                    _next++;
-                    if (_next >= m_capacity)
-                        _next = 0;
-                    count++;
+                    _start_write++;
+                    if (_start_write >= m_capacity)
+                        _start_write = 0;
+
+                    target_pos++;
+                    if (target_pos >= m_capacity)
+                        target_pos = 0;
                 }
 
-                _end--;
-                if (_end >= m_capacity)
-                    _end = m_capacity - 1;
-                cyclic_block_array[_end] = T(); // clear the value
+                for (size_t i = 0; i < abs_real_count; i++)
+                    pop_back();
             }
             else
             {
-                // start end, will make less moves removing from the start
-
-                // printf("removing from start\n");
-                size_t _prev = pos;
-                _prev--;
-                if (_prev >= m_capacity)
-                    _prev = m_capacity - 1;
-
-                size_t count = 0;
-                while (count < internal_size && pos != _start)
+                // 0|----<pos>xxxxxxx<target_pos>----|internal_size
+                size_t _start_write = target_pos;
+                for (size_t i = 0; i < moves_from_start; i++)
                 {
-                    cyclic_block_array[pos] = cyclic_block_array[_prev];
-                    pos = _prev;
-                    _prev--;
-                    if (_prev >= m_capacity)
-                        _prev = m_capacity - 1;
-                    count++;
+                    pos--;
+                    if (pos >= m_capacity)
+                        pos = m_capacity - 1;
+
+                    _start_write--;
+                    if (_start_write >= m_capacity)
+                        _start_write = m_capacity - 1;
+
+                    cyclic_block_array[_start_write] = std::move(cyclic_block_array[pos]);
                 }
 
-                cyclic_block_array[_start] = T(); // clear the value
-                _start++;
-                if (_start >= m_capacity)
-                    _start = 0;
+                for (size_t i = 0; i < abs_real_count; i++)
+                    pop_front();
             }
-
-            internal_size--;
         }
 
     public:
@@ -699,6 +886,19 @@ namespace Platform
             other._start = 0;
             other._end = 0;
             other.internal_size = 0;
+        }
+        ITK_INLINE SmartVector(std::initializer_list<T> ilist) noexcept
+        {
+            m_capacity = 0;
+            _start = 0;
+            _end = 0;
+            internal_size = 0;
+            resize(ilist.size());
+            size_t i = 0;
+            for (const auto &item : ilist)
+            {
+                (*this)[i++] = item;
+            }
         }
         ITK_INLINE SmartVector &operator=(const SmartVector &other) noexcept
         {
@@ -784,13 +984,94 @@ namespace Platform
             return m_capacity;
         }
 
+        ITK_INLINE bool empty() const noexcept
+        {
+            return internal_size == 0;
+        }
+
+        ITK_INLINE size_t max_size() const noexcept
+        {
+            return (std::numeric_limits<size_t>::max)() / sizeof(T);
+        }
+
+        ITK_INLINE void reserve(size_t new_capacity) noexcept
+        {
+            if (new_capacity > m_capacity)
+                expand_capacity(new_capacity);
+        }
+
+        ITK_INLINE void shrink_to_fit() noexcept
+        {
+            if (internal_size < m_capacity)
+            {
+                size_t new_capacity = internal_size;
+                if (new_capacity < MIN_CAPACITY)
+                    new_capacity = MIN_CAPACITY;
+
+                if (new_capacity < m_capacity)
+                {
+                    auto new_cyclic_block_array = STL_Tools::make_unique<T[]>(new_capacity);
+
+                    if (internal_size > 0)
+                    {
+                        if (_start < _end)
+                        {
+                            // Normal case, no wrap around
+                            for (size_t i = 0; i < internal_size; i++)
+                                new_cyclic_block_array[i] = std::move(cyclic_block_array[_start + i]);
+                        }
+                        else
+                        {
+                            // Wrap around case
+                            size_t first_part_size = m_capacity - _start;
+                            for (size_t i = 0; i < first_part_size; i++)
+                                new_cyclic_block_array[i] = std::move(cyclic_block_array[_start + i]);
+                            for (size_t i = 0; i < _end; i++)
+                                new_cyclic_block_array[first_part_size + i] = std::move(cyclic_block_array[i]);
+                        }
+                    }
+
+                    cyclic_block_array = std::move(new_cyclic_block_array);
+                    m_capacity = new_capacity;
+                    _start = 0;
+                    _end = internal_size;
+                }
+            }
+        }
+
         ITK_INLINE void resize(size_t new_size) noexcept
         {
-            expand_capacity(new_size);
-            internal_size = new_size;
-            _end = _start + internal_size;
-            if (_end >= m_capacity)
-                _end -= m_capacity;
+            resize(new_size, T{});
+        }
+
+        ITK_INLINE void resize(size_t new_size, const T &value) noexcept
+        {
+            if (new_size > internal_size)
+            {
+                expand_capacity(new_size);
+                // Fill new elements with the specified value
+                size_t old_size = internal_size;
+                internal_size = new_size;
+                _end = _start + internal_size;
+                if (_end >= m_capacity)
+                    _end -= m_capacity;
+
+                // Initialize new elements
+                for (size_t i = old_size; i < new_size; ++i)
+                    (*this)[i] = value;
+            }
+            else if (new_size < internal_size)
+            {
+                // Clear elements that will be removed
+                for (size_t i = new_size; i < internal_size; ++i)
+                    (*this)[i] = T{};
+
+                internal_size = new_size;
+                _end = _start + internal_size;
+                if (_end >= m_capacity)
+                    _end -= m_capacity;
+            }
+            // If new_size == internal_size, do nothing
         }
 
         ITK_INLINE void clear() noexcept
@@ -851,6 +1132,98 @@ namespace Platform
             internal_size = new_size;
         }
 
+        // Emplace methods for efficient in-place construction
+        template <class... Args>
+        ITK_INLINE T &emplace_back(Args &&...args) noexcept
+        {
+            size_t new_size = internal_size + 1;
+            expand_capacity(new_size);
+
+            new (&cyclic_block_array[_end]) T(std::forward<Args>(args)...);
+
+            _end++;
+            if (_end >= m_capacity)
+                _end = 0;
+            internal_size = new_size;
+
+            // Return reference to the newly constructed element
+            size_t last_idx = _end - 1;
+            if (last_idx >= m_capacity)
+                last_idx = m_capacity - 1;
+            return cyclic_block_array[last_idx];
+        }
+
+        template <class... Args>
+        ITK_INLINE T &emplace_front(Args &&...args) noexcept
+        {
+            size_t new_size = internal_size + 1;
+            expand_capacity(new_size);
+
+            _start--;
+            if (_start >= m_capacity)
+                _start = m_capacity - 1;
+
+            new (&cyclic_block_array[_start]) T(std::forward<Args>(args)...);
+
+            internal_size = new_size;
+
+            return cyclic_block_array[_start];
+        }
+
+        template <class... Args>
+        ITK_INLINE iterator emplace(iterator pos, Args &&...args) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+            if (index >= internal_size)
+            {
+                emplace_back(std::forward<Args>(args)...);
+                return iterator(this, (_start + internal_size - 1) % m_capacity, 1);
+            }
+            else if (index == 0)
+            {
+                emplace_front(std::forward<Args>(args)...);
+                return iterator(this, _start, internal_size);
+            }
+
+            // size_t internal_pos = _start + index;
+            // if (internal_pos >= m_capacity)
+            //     internal_pos -= m_capacity;
+
+            // internal_insert(internal_pos, temp);
+            size_t internal_pos = internal_insert_reserve_empty(index, 1);
+            new (&cyclic_block_array[internal_pos]) T(std::forward<Args>(args)...);
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        template <class... Args>
+        ITK_INLINE iterator emplace(const_iterator pos, Args &&...args) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+            if (index >= internal_size)
+            {
+                emplace_back(std::forward<Args>(args)...);
+                return iterator(this, (_start + internal_size - 1) % m_capacity, 1);
+            }
+            else if (index == 0)
+            {
+                emplace_front(std::forward<Args>(args)...);
+                return iterator(this, _start, internal_size);
+            }
+
+            // size_t internal_pos = _start + index;
+            // if (internal_pos >= m_capacity)
+            //     internal_pos -= m_capacity;
+
+            // For simplicity, use existing insert mechanism with temporary object
+            // T temp(std::forward<Args>(args)...);
+            // internal_insert(internal_pos, temp);
+            size_t internal_pos = internal_insert_reserve_empty(index, 1);
+            new (&cyclic_block_array[internal_pos]) T(std::forward<Args>(args)...);
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
         ITK_INLINE void pop_front() noexcept
         {
             if (internal_size == 0)
@@ -895,7 +1268,7 @@ namespace Platform
                 idx = m_capacity - 1;
             return cyclic_block_array[idx];
         }
-        
+
         ITK_INLINE void swap(SmartVector &other) noexcept
         {
             std::swap(m_capacity, other.m_capacity);
@@ -903,6 +1276,45 @@ namespace Platform
             std::swap(_end, other._end);
             std::swap(internal_size, other.internal_size);
             cyclic_block_array.swap(other.cyclic_block_array);
+        }
+
+        // STL-compatible comparison operators
+        ITK_INLINE bool operator==(const SmartVector &other) const noexcept
+        {
+            if (internal_size != other.internal_size)
+                return false;
+
+            for (size_t i = 0; i < internal_size; ++i)
+            {
+                if ((*this)[i] != other[i])
+                    return false;
+            }
+            return true;
+        }
+
+        ITK_INLINE bool operator!=(const SmartVector &other) const noexcept
+        {
+            return !(*this == other);
+        }
+
+        ITK_INLINE bool operator<(const SmartVector &other) const noexcept
+        {
+            return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
+        }
+
+        ITK_INLINE bool operator<=(const SmartVector &other) const noexcept
+        {
+            return !(other < *this);
+        }
+
+        ITK_INLINE bool operator>(const SmartVector &other) const noexcept
+        {
+            return other < *this;
+        }
+
+        ITK_INLINE bool operator>=(const SmartVector &other) const noexcept
+        {
+            return !(*this < other);
         }
 
         ITK_INLINE void insert(size_t pos, const T &v) noexcept
@@ -918,76 +1330,388 @@ namespace Platform
                 return;
             }
 
-            size_t internal_pos = _start + pos;
+            size_t internal_pos = internal_insert_reserve_empty(pos, 1);
+            cyclic_block_array[internal_pos] = v;
+        }
+
+        // ITK_INLINE void insert(const iterator &it, const T &v) noexcept
+        // {
+        //     insert(internal_size - it.item_count, v);
+        // }
+        // ITK_INLINE void insert(const const_iterator &it, const T &v) noexcept
+        // {
+        //     insert(internal_size - it.item_count, v);
+        // }
+
+        // Standard library compatible insert overloads
+        ITK_INLINE iterator insert(const iterator &pos, const T &value) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+            insert(index, value);
+            size_t internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        ITK_INLINE iterator insert(const const_iterator &pos, const T &value) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+            insert(index, value);
+            size_t internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        ITK_INLINE iterator insert(const iterator &pos, size_t count, const T &value) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = value;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
             if (internal_pos >= m_capacity)
                 internal_pos -= m_capacity;
 
-            internal_insert(internal_pos, v);
+            return iterator(this, internal_pos, internal_size - index);
         }
 
-        ITK_INLINE void insert(const iterator &it, const T &v) noexcept
+        ITK_INLINE iterator insert(const const_iterator &pos, size_t count, const T &value) noexcept
         {
-            insert(internal_size - it.item_count, v);
-        }
-        ITK_INLINE void insert(const const_iterator &it, const T &v) noexcept
-        {
-            insert(internal_size - it.item_count, v);
+            size_t index = internal_size - pos.item_count;
+
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = value;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
         }
 
-        ITK_INLINE void erase(size_t pos, bool force_moves_from_end = false) noexcept
+        template <class InputIt>
+        ITK_INLINE typename std::enable_if<!std::is_integral<InputIt>::value, iterator>::type
+        insert(const iterator &pos, const InputIt &firstp, const InputIt &last) noexcept
+        {
+            auto first = firstp;
+
+            size_t index = internal_size - pos.item_count;
+
+            size_t count = std::distance(first, last);
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = *first;
+                ++first;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        template <class InputIt>
+        ITK_INLINE typename std::enable_if<!std::is_integral<InputIt>::value, iterator>::type
+        insert(const const_iterator &pos, const InputIt &firstp, const InputIt &last) noexcept
+        {
+            auto first = firstp;
+
+            size_t index = internal_size - pos.item_count;
+
+            size_t count = std::distance(first, last);
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = *first;
+                ++first;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        template <class InputIt>
+        ITK_INLINE iterator insert(const const_iterator &pos, const InputIt &firstp, const InputIt &last) noexcept
+        {
+            auto first = firstp;
+
+            size_t index = internal_size - pos.item_count;
+
+            size_t count = std::distance(first, last);
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = *first;
+                ++first;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        ITK_INLINE iterator insert(const iterator &pos, const std::initializer_list<T> &ilist) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+
+            size_t count = ilist.size();
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+
+            auto first = ilist.begin();
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = *first;
+                ++first;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        ITK_INLINE iterator insert(const const_iterator &pos, const std::initializer_list<T> &ilist) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+
+            size_t count = ilist.size();
+            size_t internal_pos = internal_insert_reserve_empty(index, count);
+
+            auto first = ilist.begin();
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[internal_pos] = *first;
+                ++first;
+                internal_pos++;
+                if (internal_pos >= m_capacity)
+                    internal_pos = 0;
+            }
+
+            internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
+        }
+
+        ITK_INLINE void erase(size_t pos, size_t erase_count, bool force_moves_from_end = false) noexcept
         {
             if (pos >= internal_size)
                 return;
-            else if (pos == internal_size - 1)
-            {
-                pop_back();
-                return;
-            }
-            else if (pos == 0)
-            {
-                pop_front();
-                return;
-            }
+            // else if (pos == internal_size - 1 && erase_count == 1)
+            // {
+            //     pop_back();
+            //     return;
+            // }
+            // else if (pos == 0)
+            // {
+            //     for (size_t i = 0; i < erase_count && internal_size > 0; ++i)
+            //         pop_front();
+            //     return;
+            // }
 
-            size_t internal_pos = _start + pos;
+            internal_erase_v2(pos, erase_count, force_moves_from_end);
+        }
+
+        // ITK_INLINE void erase(const iterator &it, bool force_moves_from_end = false) noexcept
+        // {
+        //     erase(internal_size - it.item_count, force_moves_from_end);
+        // }
+        // ITK_INLINE void erase(const const_iterator &it, bool force_moves_from_end = false) noexcept
+        // {
+        //     erase(internal_size - it.item_count, force_moves_from_end);
+        // }
+
+        // Standard library compatible erase overloads
+        ITK_INLINE iterator erase(const iterator &pos) noexcept
+        {
+            size_t index = internal_size - pos.item_count;
+            if (index >= internal_size)
+                return end();
+
+            erase(index, 1);
+
+            // Return iterator to the element after the erased one
+            if (index >= internal_size)
+                return end();
+
+            size_t internal_pos = _start + index;
             if (internal_pos >= m_capacity)
                 internal_pos -= m_capacity;
 
-            internal_erase(internal_pos, force_moves_from_end);
+            return iterator(this, internal_pos, internal_size - index);
         }
 
-        ITK_INLINE void erase(const iterator &it, bool force_moves_from_end = false) noexcept
+        ITK_INLINE iterator erase(const const_iterator &pos) noexcept
         {
-            erase(internal_size - it.item_count, force_moves_from_end);
+            size_t index = internal_size - pos.item_count;
+            if (index >= internal_size)
+                return end();
+
+            erase(index, 1);
+
+            // Return iterator to the element after the erased one
+            if (index >= internal_size)
+                return end();
+
+            size_t internal_pos = _start + index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - index);
         }
-        ITK_INLINE void erase(const const_iterator &it, bool force_moves_from_end = false) noexcept
+
+        ITK_INLINE iterator erase(const iterator &first, const iterator &last) noexcept
         {
-            erase(internal_size - it.item_count, force_moves_from_end);
+            if (first == last)
+                return last;
+
+            size_t first_index = internal_size - first.item_count;
+            size_t last_index = internal_size - last.item_count;
+
+            if (first_index >= internal_size)
+                return end();
+            if (last_index > internal_size)
+                last_index = internal_size;
+
+            // Erase from back to front to maintain indices
+            // for (size_t i = last_index; i > first_index; --i)
+            //     erase(i - 1);
+            erase(first_index, last_index - first_index);
+
+            // Return iterator to the element after the last erased one
+            if (first_index >= internal_size)
+                return end();
+
+            size_t internal_pos = _start + first_index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - first_index);
+        }
+
+        ITK_INLINE iterator erase(const const_iterator &first, const const_iterator &last) noexcept
+        {
+            if (first == last)
+                return iterator(this, last.idx, last.item_count);
+
+            size_t first_index = internal_size - first.item_count;
+            size_t last_index = internal_size - last.item_count;
+
+            if (first_index >= internal_size)
+                return end();
+            if (last_index > internal_size)
+                last_index = internal_size;
+
+            // Erase from back to front to maintain indices
+            // for (size_t i = last_index; i > first_index; --i)
+            //     erase(i - 1);
+            erase(first_index, last_index - first_index);
+
+            // Return iterator to the element after the last erased one
+            if (first_index >= internal_size)
+                return end();
+
+            size_t internal_pos = _start + first_index;
+            if (internal_pos >= m_capacity)
+                internal_pos -= m_capacity;
+
+            return iterator(this, internal_pos, internal_size - first_index);
         }
 
         // assign methods for std::assign compatibility
-        ITK_INLINE void assign(size_t count, const T& value) noexcept
+        ITK_INLINE void assign(size_t count, const T &value) noexcept
         {
-            clear();
+            // clear();
             resize(count);
             for (size_t i = 0; i < count; ++i)
                 (*this)[i] = value;
         }
 
-        template<class InputIt>
-        ITK_INLINE void assign(InputIt first, InputIt last) noexcept
+        template <class InputIt>
+        ITK_INLINE void assign(const InputIt &firstp, const InputIt &last) noexcept
         {
-            clear();
-            for (auto it = first; it != last; ++it)
-                push_back(*it);
+            size_t count = std::distance(firstp, last);
+            resize(count);
+            // clear();
+            //  for (auto it = first; it != last; ++it)
+            //      push_back(*it);
+
+            auto first = firstp;
+            size_t idx = this->_start;
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[idx] = *first;
+                ++first;
+                idx++;
+                if (idx >= m_capacity)
+                    idx = 0;
+            }
         }
 
-        ITK_INLINE void assign(std::initializer_list<T> ilist) noexcept
+        ITK_INLINE void assign(const std::initializer_list<T> &ilist) noexcept
         {
-            clear();
-            for (const auto& item : ilist)
-                push_back(item);
+            size_t count = ilist.size();
+            resize(count);
+            // clear();
+            //  for (const auto &item : ilist)
+            //      push_back(item);
+            auto first = ilist.begin();
+            size_t idx = this->_start;
+            for (size_t i = 0; i < count; ++i)
+            {
+                cyclic_block_array[idx] = *first;
+                ++first;
+                idx++;
+                if (idx >= m_capacity)
+                    idx = 0;
+            }
         }
     };
+
+    // Global swap function for STL compatibility
+    template <typename T, size_t MIN_CAPACITY>
+    ITK_INLINE void swap(SmartVector<T, MIN_CAPACITY> &lhs, SmartVector<T, MIN_CAPACITY> &rhs) noexcept
+    {
+        lhs.swap(rhs);
+    }
 
 }
