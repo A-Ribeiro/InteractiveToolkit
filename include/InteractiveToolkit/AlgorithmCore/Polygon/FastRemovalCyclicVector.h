@@ -88,7 +88,14 @@ namespace AlgorithmCore
                 using reference = T &;
 
                 ITK_INLINE iterator(FastRemovalCyclicVector &vec, uint32_t idx, uint32_t count)
-                    : vec(vec), idx(idx), item_count(count) {}
+                    : vec(vec), idx(idx), item_count(count)
+                {
+                    if (item_count == 0)
+                    {
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
+                    }
+                }
 
                 ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
                 ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
@@ -157,7 +164,14 @@ namespace AlgorithmCore
                 using reference = const T &;
 
                 ITK_INLINE const_iterator(const FastRemovalCyclicVector &vec, uint32_t idx, uint32_t count)
-                    : vec(vec), idx(idx), item_count(count) {}
+                    : vec(vec), idx(idx), item_count(count)
+                {
+                    if (item_count == 0)
+                    {
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
+                    }
+                }
 
                 ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
                 ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
@@ -314,7 +328,15 @@ namespace AlgorithmCore
                 // using reference = T &;
 
                 ITK_INLINE iterator(FastRemovalCyclicVector_OnlyIndex_Uint32 &vec, uint32_t idx)
-                    : vec(vec), idx(idx), item_count(vec.m_size) {}
+                    : vec(vec), idx(idx), item_count(vec.m_size)
+                {
+
+                    if (item_count == 0)
+                    {
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
+                    }
+                }
 
                 // ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
                 // ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
@@ -390,7 +412,14 @@ namespace AlgorithmCore
                 // using reference = const T &;
 
                 ITK_INLINE const_iterator(const FastRemovalCyclicVector_OnlyIndex_Uint32 &vec, uint32_t idx)
-                    : vec(vec), idx(idx), item_count(vec.m_size) {}
+                    : vec(vec), idx(idx), item_count(vec.m_size)
+                {
+                    if (item_count == 0)
+                    {
+                        item_count = 0;
+                        idx = (uint32_t)vec.indices.size(); // end
+                    }
+                }
 
                 // ITK_INLINE reference operator*() const { return vec.indices[idx].data; }
                 // ITK_INLINE pointer operator->() const { return &vec.indices[idx].data; }
