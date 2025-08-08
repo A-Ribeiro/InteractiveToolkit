@@ -295,6 +295,19 @@ namespace Platform
             deltaTime = (T)(sec * (double)timeScale);
         }
 
+        ITK_INLINE void rollback_and_set_zero() 
+        {
+            unscaledDeltaTime = 0;
+            deltaTime = 0;
+            deltaTimeMicro = 0;
+#if defined(_WIN32)
+            win32_counter.UndoReset();
+#else
+            unix_counter.UndoReset();
+#endif
+        }
+
+
         /// \brief Force this time counter to reset all fields (deltaTime,unscaledDeltaTime,deltaTimeMicro)
         ///
         /// can be called when load some resource, to avoid cutout image sequences.
