@@ -248,7 +248,7 @@ namespace Platform
                     SinkStdFD(STDERR_FILENO);
                 else
                 {
-                    pipe_stderr->aliasReadAs(STDERR_FILENO);
+                    pipe_stderr->aliasWriteAs(STDERR_FILENO);
                     pipe_stderr->close();
                 }
 
