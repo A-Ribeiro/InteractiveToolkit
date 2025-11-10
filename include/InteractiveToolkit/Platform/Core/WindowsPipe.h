@@ -11,9 +11,8 @@
 // #define PIPE_READ_FD 0
 // #define PIPE_WRITE_FD 1
 
-#pragma warning( push )
-#pragma warning( disable : 4996)
-
+#pragma warning(push)
+#pragma warning(disable : 4996)
 
 namespace Platform
 {
@@ -34,7 +33,7 @@ namespace Platform
             static uint64_t uid = 0;
             Platform::AutoLock autoLock(&mutex);
             char aux[64];
-            snprintf(aux, 64, "\\\\.\\pipe\\%" PRIu64, uid++);
+            snprintf(aux, 64, "\\\\.\\pipe\\%lu_%lu_%" PRIu64, (uint32_t)GetCurrentProcessId(), (uint32_t)GetCurrentThreadId(), uid++);
             return aux;
         }
 
@@ -412,4 +411,4 @@ namespace Platform
 
 }
 
-#pragma warning( pop )
+#pragma warning(pop)
