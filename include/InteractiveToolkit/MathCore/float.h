@@ -10,8 +10,8 @@ namespace MathCore
     //
     template <typename _type>
     struct CONSTANT<_type,
-        typename std::enable_if<
-        std::is_floating_point<_type>::value>::type>
+                    typename std::enable_if<
+                        std::is_floating_point<_type>::value>::type>
     {
         static constexpr _type PI = (_type)3.1415926535897932384626433832795;
         static constexpr _type _PI_180 = (_type)0.0174532925199432957692222222222222;
@@ -97,34 +97,32 @@ namespace MathCore
     // OP<float|double>
     //
 
-
     template <typename _type, typename _Algorithm>
     struct OP<_type,
-        typename std::enable_if<
-        std::is_same<_type, float>::value
-        >::type,
-        _Algorithm>
+              typename std::enable_if<
+                  std::is_same<_type, float>::value>::type,
+              _Algorithm>
     {
         using type = _type;
         using self_type = OP<_type>;
 
-        static constexpr ITK_INLINE _type rad_2_deg(const _type& v) noexcept
+        static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_180_PI;
         }
-        static constexpr ITK_INLINE _type deg_2_rad(const _type& v) noexcept
+        static constexpr ITK_INLINE _type deg_2_rad(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_PI_180;
         }
 
         // optimized instructions
-        static ITK_INLINE _type abs(const _type& a) noexcept
+        static ITK_INLINE _type abs(const _type &a) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint*)&a));
-            return *((_type*)&result);
+            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
+            return *((_type *)&result);
 
             // return (a < (_type)0) ? -a : a;
 
@@ -155,7 +153,7 @@ namespace MathCore
         /// \param b The Second vector
         /// \return The squared distance between a and b
         ///
-        static ITK_INLINE _type sqrDistance(const _type& a, const _type& b) noexcept
+        static ITK_INLINE _type sqrDistance(const _type &a, const _type &b) noexcept
         {
             _type ab = b - a;
             return ab * ab;
@@ -185,7 +183,7 @@ namespace MathCore
         /// \param b The Second vector
         /// \return The distance between a and b
         ///
-        static ITK_INLINE _type distance(const _type& a, const _type& b) noexcept
+        static ITK_INLINE _type distance(const _type &a, const _type &b) noexcept
         {
             _type ab = b - a;
             return self_type::abs(ab);
@@ -211,19 +209,17 @@ namespace MathCore
         /// \param b A value to test
         /// \return The maximum value of the parameters
         ///
-        static ITK_INLINE float maximum(const float& a, const float& b) noexcept
+        static ITK_INLINE float maximum(const float &a, const float &b) noexcept
         {
 #if defined(ITK_SSE2)
             return _mm_f32_read_0(_mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(ITK_NEON)
             float32x2_t max_neon = vmax_f32(vdup_n_f32(a), vdup_n_f32(b));
-            return vget_lane_f32(max_neon,0);
+            return vget_lane_f32(max_neon, 0);
 #else
             return (a > b) ? a : b;
 #endif
         }
-
-
 
         /// \brief Return the minimum between the two parameters
         ///
@@ -245,13 +241,13 @@ namespace MathCore
         /// \param b A value to test
         /// \return The minimum value of the parameters
         ///
-        static ITK_INLINE float minimum(const float& a, const float& b) noexcept
+        static ITK_INLINE float minimum(const float &a, const float &b) noexcept
         {
 #if defined(ITK_SSE2)
             return _mm_f32_read_0(_mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
 #elif defined(ITK_NEON)
             float32x2_t min_neon = vmin_f32(vdup_n_f32(a), vdup_n_f32(b));
-            return vget_lane_f32(min_neon,0);
+            return vget_lane_f32(min_neon, 0);
 #else
             return (a < b) ? a : b;
 #endif
@@ -285,7 +281,7 @@ namespace MathCore
         /// \param max The max threshold
         /// \return The evaluated value
         ///
-        static ITK_INLINE float clamp(const float& value, const float& min, const float& max) noexcept
+        static ITK_INLINE float clamp(const float &value, const float &min, const float &max) noexcept
         {
 #if defined(ITK_SSE2)
             __m128 maxStep = _mm_max_ss(_mm_set_ss(value), _mm_set_ss(min));
@@ -294,7 +290,7 @@ namespace MathCore
 #elif defined(ITK_NEON)
             float32x2_t max_neon = vmax_f32(vdup_n_f32(value), vdup_n_f32(min));
             float32x2_t min_neon = vmin_f32(max_neon, vdup_n_f32(max));
-            return vget_lane_f32(min_neon,0);
+            return vget_lane_f32(min_neon, 0);
 #else
             _type maxStep = OP<_type>::maximum(value, min);
             _type minStep = OP<_type>::minimum(maxStep, max);
@@ -302,7 +298,7 @@ namespace MathCore
             // return (value < min) ? min : ((value > max) ? max : value);
 #endif
         }
-        
+
         /// \brief Compute the sign of a float
         ///
         /// ```
@@ -327,7 +323,7 @@ namespace MathCore
         /// \param a The value to test
         /// \return The sign of a
         ///
-        static ITK_INLINE _type sign(const _type& a) noexcept
+        static ITK_INLINE _type sign(const _type &a) noexcept
         {
 
             // using type_info = FloatTypeInfo<_type>;
@@ -340,16 +336,16 @@ namespace MathCore
             return (a >= (_type)0) ? (_type)1 : (_type)-1;
         }
 
-        static ITK_INLINE _type copy_sign(const _type& value, const _type& signToCopy) noexcept
+        static ITK_INLINE _type copy_sign(const _type &value, const _type &signToCopy) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint& value_int = *(compatible_uint*)(&value);
-            compatible_uint& sign_int = *(compatible_uint*)(&signToCopy);
+            compatible_uint &value_int = *(compatible_uint *)(&value);
+            compatible_uint &sign_int = *(compatible_uint *)(&signToCopy);
 
             _type result_f;
-            compatible_uint& result = *(compatible_uint*)(&result_f);
+            compatible_uint &result = *(compatible_uint *)(&result_f);
             result = (sign_int & type_info::sign_bit) | (value_int & ~type_info::sign_bit);
 
             return result_f;
@@ -380,7 +376,7 @@ namespace MathCore
         /// \param factor The amount (%) to leave the Origin to the Target.
         /// \return The interpolation result
         ///
-        static ITK_INLINE _type lerp(const _type& a, const _type& b, const _type& factor) noexcept
+        static ITK_INLINE _type lerp(const _type &a, const _type &b, const _type &factor) noexcept
         {
             return a * ((_type)1 - factor) + (b * factor);
         }
@@ -418,7 +414,7 @@ namespace MathCore
         /// \param maxDistanceVariation The max amount the current can be modified to reach target
         /// \return the lerp from current to target according max variation
         ///
-        static ITK_INLINE float move(const float& current, const float& target, const float& maxDistanceVariation) noexcept
+        static ITK_INLINE float move(const float &current, const float &target, const float &maxDistanceVariation) noexcept
         {
             // const float EPSILON = 1e-6f; high precision epsilon
             float deltaDistance = self_type::distance(current, target);
@@ -436,10 +432,10 @@ namespace MathCore
         }
 
         template <typename Algorithm = _Algorithm,
-            typename std::enable_if<
-            std::is_same<Algorithm, RSQRT::NORMAL>::value,
-            bool>::type = true>
-        static ITK_INLINE float rsqrt(const float& v) noexcept
+                  typename std::enable_if<
+                      std::is_same<Algorithm, RSQRT::NORMAL>::value,
+                      bool>::type = true>
+        static ITK_INLINE float rsqrt(const float &v) noexcept
         {
             // printf("float normal\n");
 
@@ -449,10 +445,10 @@ namespace MathCore
         }
 
         template <typename Algorithm = _Algorithm,
-            typename std::enable_if<
-            std::is_same<Algorithm, RSQRT::SIMD>::value,
-            bool>::type = true>
-        static ITK_INLINE float rsqrt(const float& _x) noexcept
+                  typename std::enable_if<
+                      std::is_same<Algorithm, RSQRT::SIMD>::value,
+                      bool>::type = true>
+        static ITK_INLINE float rsqrt(const float &_x) noexcept
         {
             // printf("float simd\n");
 
@@ -484,10 +480,10 @@ namespace MathCore
 #endif
         }
         template <typename Algorithm = _Algorithm,
-            typename std::enable_if<
-            std::is_same<Algorithm, RSQRT::CARMACK>::value,
-            bool>::type = true>
-        static ITK_INLINE float rsqrt(const float& x) noexcept
+                  typename std::enable_if<
+                      std::is_same<Algorithm, RSQRT::CARMACK>::value,
+                      bool>::type = true>
+        static ITK_INLINE float rsqrt(const float &x) noexcept
         {
             // printf("float carmack\n");
 
@@ -523,7 +519,7 @@ namespace MathCore
 
             // Parameters Optimized By Alessandro
             float y = x;
-            uint32_t& i = *(uint32_t*)&y;
+            uint32_t &i = *(uint32_t *)&y;
             i = 0x5F1FFFF9 - (i >> 1);
             y = y * (0.7005444765090942f * (2.396728873252868f - (x * y) * y)); // 1st iteration, first estimative
             y = y * (0.5f * (3.0f - (x * y) * y));                              // 2nd iteration
@@ -531,7 +527,7 @@ namespace MathCore
             return y;
         }
 
-        static ITK_INLINE _type step(const _type& threshould, const _type& v) noexcept
+        static ITK_INLINE _type step(const _type &threshould, const _type &v) noexcept
         {
             //_type _sub = v - threshould;
             //_type _sign = self_type::sign(_sub);
@@ -541,7 +537,7 @@ namespace MathCore
             return _sign;
         }
 
-        static ITK_INLINE _type smoothstep(const _type& edge0, const _type& edge1, const _type& x) noexcept
+        static ITK_INLINE _type smoothstep(const _type &edge0, const _type &edge1, const _type &x) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             _type div_factor = self_type::maximum((edge1 - edge0), type_info::min);
@@ -549,13 +545,12 @@ namespace MathCore
             return t * t * ((_type)3 - (_type)2 * t);
         }
 
-        static ITK_INLINE float sqrt(const float& v) noexcept
+        static ITK_INLINE float sqrt(const float &v) noexcept
         {
             return ::sqrtf(v);
         }
 
-
-        static ITK_INLINE float floor(const float& v) noexcept
+        static ITK_INLINE float floor(const float &v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
             return _mm_f32_read_0(_mm_floor_ps(_mm_set_ss(v)));
@@ -565,7 +560,7 @@ namespace MathCore
 
             // if (f < r) r -= 1;
             float _one = 1.f;
-            uint32_t& _one_uint = *(uint32_t*)&_one;
+            uint32_t &_one_uint = *(uint32_t *)&_one;
             uint32_t mask = -(int)(v < r);
             _one_uint = _one_uint & mask;
             r = r - _one;
@@ -577,31 +572,31 @@ namespace MathCore
             // and no decimal part
             //
             // if ((abs(f) > 2**31 )) r = f;
-            uint32_t& r_uint = *(uint32_t*)&r;
-            const uint32_t& f_uint = *(const uint32_t*)&v;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
             mask = -(int)(8388608.f > (v * f_sign));
             r_uint = (r_uint & mask) | (f_uint & ~mask);
 
             return r;
-            //return ::floorf(v);
+            // return ::floorf(v);
 #endif
         }
 
-        static ITK_INLINE float ceil(const float& v) noexcept
+        static ITK_INLINE float ceil(const float &v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
             return _mm_f32_read_0(_mm_ceil_ps(_mm_set_ss(v)));
 #else
             // floor(-fp) = -ceiling(fp)
             // ceiling(fp) = -floor(-fp)
-            //return -OP<float>::floor(-v);
+            // return -OP<float>::floor(-v);
 
             float f_sign = OP<float>::sign(v);
             float r = (float)(int)v;
 
             // if (f < r) r -= 1;
             float _one = -1.f;
-            uint32_t& _one_uint = *(uint32_t*)&_one;
+            uint32_t &_one_uint = *(uint32_t *)&_one;
             uint32_t mask = -(int)(v > r);
             _one_uint = _one_uint & mask;
             r = r - _one;
@@ -613,18 +608,18 @@ namespace MathCore
             // and no decimal part
             //
             // if ((abs(f) > 2**31 )) r = f;
-            uint32_t& r_uint = *(uint32_t*)&r;
-            const uint32_t& f_uint = *(const uint32_t*)&v;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
             mask = -(int)(8388608.f > (v * f_sign));
             r_uint = (r_uint & mask) | (f_uint & ~mask);
 
             return r;
 
-            //return ::ceilf(v);
+            // return ::ceilf(v);
 #endif
         }
 
-        static ITK_INLINE float round(const float& v) noexcept
+        static ITK_INLINE float round(const float &v) noexcept
         {
 #if defined(ITK_SSE2) && !defined(ITK_SSE_SKIP_SSE41)
             return _mm_f32_read_0(_mm_round_ps(_mm_set_ss(v), _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
@@ -642,41 +637,40 @@ namespace MathCore
             // and no decimal part
             //
             // if ((abs(f) > 2**31 )) r = f;
-            uint32_t& r_uint = *(uint32_t*)&r;
-            const uint32_t& f_uint = *(const uint32_t*)&v;
+            uint32_t &r_uint = *(uint32_t *)&r;
+            const uint32_t &f_uint = *(const uint32_t *)&v;
             uint32_t mask = -(int)(8388608.f > (v * f_sign));
             r_uint = (r_uint & mask) | (f_uint & ~mask);
 
             return r;
-            //return ::roundf(v);
+            // return ::roundf(v);
 #endif
         }
 
-        static ITK_INLINE float cos(const float& v) noexcept;
+        static ITK_INLINE float cos(const float &v) noexcept;
 
+        static ITK_INLINE float acos(const float &v) noexcept;
 
-        static ITK_INLINE float acos(const float& v) noexcept;
+        static ITK_INLINE float sin(const float &v) noexcept;
 
-        static ITK_INLINE float sin(const float& v) noexcept;
+        static ITK_INLINE float asin(const float &v) noexcept;
 
-        static ITK_INLINE float asin(const float& v) noexcept;
-
-        static ITK_INLINE float tan(const float& v) noexcept
+        static ITK_INLINE float tan(const float &v) noexcept
         {
             return ::tanf(v);
         }
 
-        static ITK_INLINE float atan(const float& v) noexcept
+        static ITK_INLINE float atan(const float &v) noexcept
         {
             return ::atanf(v);
         }
 
-        static ITK_INLINE float atan2(const float& y, const float& x) noexcept
+        static ITK_INLINE float atan2(const float &y, const float &x) noexcept
         {
             return ::atan2f(y, x);
         }
 
-        static ITK_INLINE float fmod(const float& a, const float& b) noexcept
+        static ITK_INLINE float fmod(const float &a, const float &b) noexcept
         {
             float f = (a / b);
             float r = (float)(int)f;
@@ -687,57 +681,60 @@ namespace MathCore
             // Any value greater than this, will have integral mantissa...
             // and no decimal part
             //
-            uint32_t& r_uint = *(uint32_t*)&r;
+            uint32_t &r_uint = *(uint32_t *)&r;
             uint32_t mask = -(int)(8388608.f > OP<float>::abs(f));
             r_uint = r_uint & mask;
 
             return a - r * b;
 
-            //return ::fmodf(a, b);
+            // return ::fmodf(a, b);
         }
 
-        static ITK_INLINE float pow(const float& a, const float& b) noexcept
+        static ITK_INLINE float pow(const float &a, const float &b) noexcept
         {
             return ::powf(a, b);
         }
 
-
-        static ITK_INLINE bool compare_almost_equal(const _type& af, const _type& bf) noexcept
+        static ITK_INLINE bool compare_almost_equal(const _type &af, const _type &bf) noexcept
         {
+#if defined(ITK_FLOAT_ALMOST_EQUAL_EXACT)
+            return (af == bf);
+#elif defined(ITK_FLOAT_ALMOST_EQUAL_USE_ONLY_RELATIVE) || defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
             float tolerance_scaled = self_type::maximum(self_type::abs(af), self_type::abs(bf)) * EPSILON<_type>::low_precision;
+#if defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
             tolerance_scaled = self_type::maximum(tolerance_scaled, EPSILON<_type>::high_precision);
+#endif
             return (self_type::abs(af - bf) <= tolerance_scaled);
+#endif
         }
-
     };
 
     template <typename _type, typename _Algorithm>
     struct OP<_type,
-        typename std::enable_if<
-        std::is_same<_type, double>::value
-        >::type,
-        _Algorithm>
+              typename std::enable_if<
+                  std::is_same<_type, double>::value>::type,
+              _Algorithm>
     {
         using type = _type;
         using self_type = OP<_type>;
 
-        static constexpr ITK_INLINE _type rad_2_deg(const _type& v) noexcept
+        static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_180_PI;
         }
-        static constexpr ITK_INLINE _type deg_2_rad(const _type& v) noexcept
+        static constexpr ITK_INLINE _type deg_2_rad(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_PI_180;
         }
 
         // optimized instructions
-        static ITK_INLINE _type abs(const _type& a) noexcept
+        static ITK_INLINE _type abs(const _type &a) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint*)&a));
-            return *((_type*)&result);
+            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
+            return *((_type *)&result);
 
             // return (a < (_type)0) ? -a : a;
 
@@ -768,7 +765,7 @@ namespace MathCore
         /// \param b The Second vector
         /// \return The squared distance between a and b
         ///
-        static ITK_INLINE _type sqrDistance(const _type& a, const _type& b) noexcept
+        static ITK_INLINE _type sqrDistance(const _type &a, const _type &b) noexcept
         {
             _type ab = b - a;
             return ab * ab;
@@ -798,7 +795,7 @@ namespace MathCore
         /// \param b The Second vector
         /// \return The distance between a and b
         ///
-        static ITK_INLINE _type distance(const _type& a, const _type& b) noexcept
+        static ITK_INLINE _type distance(const _type &a, const _type &b) noexcept
         {
             _type ab = b - a;
             return self_type::abs(ab);
@@ -824,12 +821,10 @@ namespace MathCore
         /// \param b A value to test
         /// \return The maximum value of the parameters
         ///
-        static ITK_INLINE double maximum(const double& a, const double& b) noexcept
+        static ITK_INLINE double maximum(const double &a, const double &b) noexcept
         {
             return (a > b) ? a : b;
         }
-
-
 
         /// \brief Return the minimum between the two parameters
         ///
@@ -851,7 +846,7 @@ namespace MathCore
         /// \param b A value to test
         /// \return The minimum value of the parameters
         ///
-        static ITK_INLINE double minimum(const double& a, const double& b) noexcept
+        static ITK_INLINE double minimum(const double &a, const double &b) noexcept
         {
             return (a < b) ? a : b;
         }
@@ -884,7 +879,7 @@ namespace MathCore
         /// \param max The max threshold
         /// \return The evaluated value
         ///
-        static ITK_INLINE double clamp(const double& value, const double& min, const double& max) noexcept
+        static ITK_INLINE double clamp(const double &value, const double &min, const double &max) noexcept
         {
             _type maxStep = OP<_type>::maximum(value, min);
             _type minStep = OP<_type>::minimum(maxStep, max);
@@ -916,7 +911,7 @@ namespace MathCore
         /// \param a The value to test
         /// \return The sign of a
         ///
-        static ITK_INLINE _type sign(const _type& a) noexcept
+        static ITK_INLINE _type sign(const _type &a) noexcept
         {
 
             // using type_info = FloatTypeInfo<_type>;
@@ -929,16 +924,16 @@ namespace MathCore
             return (a >= (_type)0) ? (_type)1 : (_type)-1;
         }
 
-        static ITK_INLINE _type copy_sign(const _type& value, const _type& signToCopy) noexcept
+        static ITK_INLINE _type copy_sign(const _type &value, const _type &signToCopy) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint& value_int = *(compatible_uint*)(&value);
-            compatible_uint& sign_int = *(compatible_uint*)(&signToCopy);
+            compatible_uint &value_int = *(compatible_uint *)(&value);
+            compatible_uint &sign_int = *(compatible_uint *)(&signToCopy);
 
             _type result_f;
-            compatible_uint& result = *(compatible_uint*)(&result_f);
+            compatible_uint &result = *(compatible_uint *)(&result_f);
             result = (sign_int & type_info::sign_bit) | (value_int & ~type_info::sign_bit);
 
             return result_f;
@@ -969,7 +964,7 @@ namespace MathCore
         /// \param factor The amount (%) to leave the Origin to the Target.
         /// \return The interpolation result
         ///
-        static ITK_INLINE _type lerp(const _type& a, const _type& b, const _type& factor) noexcept
+        static ITK_INLINE _type lerp(const _type &a, const _type &b, const _type &factor) noexcept
         {
             return a * ((_type)1 - factor) + (b * factor);
         }
@@ -1007,7 +1002,7 @@ namespace MathCore
         /// \param maxDistanceVariation The max amount the current can be modified to reach target
         /// \return the lerp from current to target according max variation
         ///
-        static ITK_INLINE double move(const double& current, const double& target, const double& maxDistanceVariation) noexcept
+        static ITK_INLINE double move(const double &current, const double &target, const double &maxDistanceVariation) noexcept
         {
             // const float EPSILON = 1e-6f; high precision epsilon
             double deltaDistance = self_type::distance(current, target);
@@ -1024,12 +1019,11 @@ namespace MathCore
 #endif
         }
 
-
         template <typename Algorithm = _Algorithm,
-            typename std::enable_if<
-            (std::is_same<Algorithm, RSQRT::NORMAL>::value || std::is_same<Algorithm, RSQRT::SIMD>::value),
-            bool>::type = true>
-        static ITK_INLINE double rsqrt(const double& _x) noexcept
+                  typename std::enable_if<
+                      (std::is_same<Algorithm, RSQRT::NORMAL>::value || std::is_same<Algorithm, RSQRT::SIMD>::value),
+                      bool>::type = true>
+        static ITK_INLINE double rsqrt(const double &_x) noexcept
         {
             // printf("double\n");
 
@@ -1038,18 +1032,18 @@ namespace MathCore
             return 1.0 / sqrt(x);
         }
 
-        template <typename Algorithm = _Algorithm, 
-            typename std::enable_if<
-            std::is_same<Algorithm, RSQRT::CARMACK>::value,
-            bool>::type = true>
-        static ITK_INLINE double rsqrt(const double& x) noexcept
+        template <typename Algorithm = _Algorithm,
+                  typename std::enable_if<
+                      std::is_same<Algorithm, RSQRT::CARMACK>::value,
+                      bool>::type = true>
+        static ITK_INLINE double rsqrt(const double &x) noexcept
         {
 
             // Parameters Optimized By Alessandro
             const double _3_div_2 = 1.5;
             double x_div_2 = x * 0.5;
             double y = x;
-            uint64_t& i = *(uint64_t*)&y;
+            uint64_t &i = *(uint64_t *)&y;
             i = 0x5FE3FFFFFFFFFFF9 - (i >> 1);
             y = y * (0.749755859375 * (2.2899169921875 - (x * y) * y)); // 1st iteration, first estimative
             y = y * (_3_div_2 - (x_div_2 * y) * y);                     // 2nd iteration
@@ -1058,7 +1052,7 @@ namespace MathCore
             return y;
         }
 
-        static ITK_INLINE _type step(const _type& threshould, const _type& v) noexcept
+        static ITK_INLINE _type step(const _type &threshould, const _type &v) noexcept
         {
             //_type _sub = v - threshould;
             //_type _sign = self_type::sign(_sub);
@@ -1068,7 +1062,7 @@ namespace MathCore
             return _sign;
         }
 
-        static ITK_INLINE _type smoothstep(const _type& edge0, const _type& edge1, const _type& x) noexcept
+        static ITK_INLINE _type smoothstep(const _type &edge0, const _type &edge1, const _type &x) noexcept
         {
             using type_info = FloatTypeInfo<_type>;
             _type div_factor = self_type::maximum((edge1 - edge0), type_info::min);
@@ -1076,83 +1070,86 @@ namespace MathCore
             return t * t * ((_type)3 - (_type)2 * t);
         }
 
-        static ITK_INLINE double sqrt(const double& v) noexcept
+        static ITK_INLINE double sqrt(const double &v) noexcept
         {
             return ::sqrt(v);
         }
 
-        static ITK_INLINE double floor(const double& v) noexcept
+        static ITK_INLINE double floor(const double &v) noexcept
         {
             return ::floor(v);
         }
 
-        static ITK_INLINE double ceil(const double& v) noexcept
+        static ITK_INLINE double ceil(const double &v) noexcept
         {
             return ::ceil(v);
         }
 
-        static ITK_INLINE double round(const double& v) noexcept
+        static ITK_INLINE double round(const double &v) noexcept
         {
             return ::round(v);
         }
 
-        static ITK_INLINE double cos(const double& v) noexcept
+        static ITK_INLINE double cos(const double &v) noexcept
         {
             return ::cos(v);
         }
 
-        static ITK_INLINE double acos(const double& v) noexcept
+        static ITK_INLINE double acos(const double &v) noexcept
         {
             return ::acos(v);
         }
 
-        static ITK_INLINE double sin(const double& v) noexcept
+        static ITK_INLINE double sin(const double &v) noexcept
         {
             return ::sin(v);
         }
 
-        static ITK_INLINE double asin(const double& v) noexcept
+        static ITK_INLINE double asin(const double &v) noexcept
         {
             return ::asin(v);
         }
 
-        static ITK_INLINE double tan(const double& v) noexcept
+        static ITK_INLINE double tan(const double &v) noexcept
         {
             return ::tan(v);
         }
 
-        static ITK_INLINE double atan(const double& v) noexcept
+        static ITK_INLINE double atan(const double &v) noexcept
         {
             return ::atan(v);
         }
 
-        static ITK_INLINE double atan2(const double& y, const double& x) noexcept
+        static ITK_INLINE double atan2(const double &y, const double &x) noexcept
         {
             return ::atan2(y, x);
         }
 
-        static ITK_INLINE double fmod(const double& a, const double& b) noexcept
+        static ITK_INLINE double fmod(const double &a, const double &b) noexcept
         {
             return ::fmod(a, b);
         }
 
-        static ITK_INLINE double pow(const double& a, const double& b) noexcept
+        static ITK_INLINE double pow(const double &a, const double &b) noexcept
         {
             return ::pow(a, b);
         }
 
-        static ITK_INLINE bool compare_almost_equal(const _type& af, const _type& bf) noexcept
+        static ITK_INLINE bool compare_almost_equal(const _type &af, const _type &bf) noexcept
         {
+#if defined(ITK_FLOAT_ALMOST_EQUAL_EXACT)
+            return (af == bf);
+#elif defined(ITK_FLOAT_ALMOST_EQUAL_USE_ONLY_RELATIVE) || defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
             float tolerance_scaled = self_type::maximum(self_type::abs(af), self_type::abs(bf)) * EPSILON<_type>::low_precision;
+#if defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
             tolerance_scaled = self_type::maximum(tolerance_scaled, EPSILON<_type>::high_precision);
+#endif
             return (self_type::abs(af - bf) <= tolerance_scaled);
+#endif
         }
-
     };
 
-
 }
-
 
 //
 // Avoid ciclic importing
@@ -1166,111 +1163,108 @@ namespace MathCore
 {
 
 #if defined(ITK_TRIGONOMETRIC_FASTEST_MORE_MEMORY)
-    //static FastArc* fastArc = FastArc::Instance();
-    static FastCos* fastCos = FastCos::Instance();
+    // static FastArc* fastArc = FastArc::Instance();
+    static FastCos *fastCos = FastCos::Instance();
 
-
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::cos(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::cos(const float &v) noexcept
     {
         return fastCos->cos(v);
     }
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::sin(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::sin(const float &v) noexcept
     {
         return fastCos->sin(v);
     }
 
-    #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
-        #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
-    #endif
+#ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
+#define ITK_TRIGONOMETRIC_USE_FAST_ARCH
+#endif
 
 #elif defined(ITK_TRIGONOMETRIC_FAST_LESS_MEMORY)
 
-    //static FastArc* fastArc = FastArc::Instance();
-    static FastCosQuarter* fastCos = FastCosQuarter::Instance();
+    // static FastArc* fastArc = FastArc::Instance();
+    static FastCosQuarter *fastCos = FastCosQuarter::Instance();
 
-
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::cos(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::cos(const float &v) noexcept
     {
         return fastCos->cos(v);
     }
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::sin(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::sin(const float &v) noexcept
     {
         return fastCos->sin(v);
     }
 
-    #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
-        #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
-    #endif
+#ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
+#define ITK_TRIGONOMETRIC_USE_FAST_ARCH
+#endif
 
 #else
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::cos(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::cos(const float &v) noexcept
     {
         return ::cosf(v);
     }
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::sin(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::sin(const float &v) noexcept
     {
         return ::sinf(v);
     }
 
 #endif
 
-
 #if defined(ITK_TRIGONOMETRIC_USE_FAST_ARCH)
 
     static FastArc *fastArc = FastArc::Instance();
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::acos(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::acos(const float &v) noexcept
     {
         return fastArc->acos(v);
     }
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::asin(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::asin(const float &v) noexcept
     {
         return fastArc->asin(v);
     }
 
 #else
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::acos(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::acos(const float &v) noexcept
     {
         return ::acosf(v);
     }
 
-    template<typename _type, typename _Algorithm>
-    ITK_INLINE float OP<_type, 
-    typename std::enable_if<std::is_same<_type, float>::value>::type, 
-    _Algorithm>::asin(const float& v) noexcept
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::asin(const float &v) noexcept
     {
         return ::asinf(v);
     }

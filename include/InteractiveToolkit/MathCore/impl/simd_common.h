@@ -94,7 +94,7 @@ namespace MathCore
     const float32x4_t _vec4_minus_one = vset1(-1.0f);
     const float32x4_t _vec4_one = vset1(1.0f);
     const uint32x4_t _vec4_one_u = vreinterpretq_u32_f32(vset1(1.0f));
-    
+
     const uint32x2_t _vec2_one_u = vreinterpret_u32_f32(vset1_v2(1.0f));
 
     const int32x4_t _vec4_one_i = vreinterpretq_s32_f32(vset1(1.0f));
@@ -528,7 +528,12 @@ namespace MathCore
 
     ITK_INLINE __m128i compare_almost_eq_ps(const __m128 &a, const __m128 &b) noexcept
     {
-        const __m128 high_precision = _mm_set1_ps(EPSILON<float>::high_precision);
+#if defined(ITK_FLOAT_ALMOST_EQUAL_EXACT)
+        __m128 cmp = _mm_cmpeq_ps(a, b);
+        __m128i result_int = _mm_castps_si128(cmp);
+        return result_int;
+#elif defined(ITK_FLOAT_ALMOST_EQUAL_USE_ONLY_RELATIVE) || defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
+
         const __m128 low_precision = _mm_set1_ps(EPSILON<float>::low_precision);
 
         __m128 self_abs = _mm_andnot_ps(_vec4_sign_mask_sse, a);
@@ -538,16 +543,20 @@ namespace MathCore
 
         // relative precision comparison
         tolerance_scaled = _mm_mul_ps(tolerance_scaled, low_precision);
-        // fixed precision comparison
-        tolerance_scaled = _mm_max_ps(tolerance_scaled, high_precision);
 
+#if defined(ITK_FLOAT_ALMOST_EQUAL_USE_RELATIVE_PLUS_FIXED_DECIMAL)
+        // fixed precision comparison
+        const __m128 high_precision = _mm_set1_ps(EPSILON<float>::high_precision);
+        tolerance_scaled = _mm_max_ps(tolerance_scaled, high_precision);
+#endif
+s
         __m128 sub_abs = _mm_sub_ps(a, b);
         sub_abs = _mm_andnot_ps(_vec4_sign_mask_sse, sub_abs);
 
         __m128 result = _mm_cmple_ps(sub_abs, tolerance_scaled);
         __m128i result_int = _mm_castps_si128(result);
-
         return result_int;
+#endif
     }
 
 #elif defined(ITK_NEON)
