@@ -549,7 +549,7 @@ namespace MathCore
         const __m128 high_precision = _mm_set1_ps(EPSILON<float>::high_precision);
         tolerance_scaled = _mm_max_ps(tolerance_scaled, high_precision);
 #endif
-s
+
         __m128 sub_abs = _mm_sub_ps(a, b);
         sub_abs = _mm_andnot_ps(_vec4_sign_mask_sse, sub_abs);
 
