@@ -19,10 +19,10 @@ namespace ITKCommon
     class StringUtil
     {
     public:
-        //deleted copy constructor and assign operator, to avoid copy...
+        // deleted copy constructor and assign operator, to avoid copy...
         StringUtil(const StringUtil &v) = delete;
-        StringUtil& operator=(const StringUtil &v) = delete;
-        
+        StringUtil &operator=(const StringUtil &v) = delete;
+
         StringUtil() {}
 
         std::vector<char> char_buffer;     ///< Result of the use of the #StringUtil::printf method
@@ -189,6 +189,150 @@ namespace ITKCommon
             }
             return std::u32string(output.data(), output.size());
         }
+
+        struct utf8_to_utf32_iterator
+        {
+        public:
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = char32_t;
+            using difference_type = std::ptrdiff_t;
+            using pointer = const char32_t *;
+            using reference = const char32_t &;
+
+            utf8_to_utf32_iterator() : input_const_ptr(nullptr),
+                                       input_total_bytes(0),
+                                       total_bytes_readed(0),
+                                       current_char(0)
+            {
+            }
+
+            utf8_to_utf32_iterator(const utf8proc_uint8_t *input_const_ptr, utf8proc_ssize_t start_reading_from_bytes, utf8proc_ssize_t input_total_bytes)
+                : input_const_ptr(input_const_ptr),
+                  input_total_bytes(input_total_bytes),
+                  total_bytes_readed(start_reading_from_bytes),
+                  current_char(0)
+            {
+                // read first character
+                ++(*this);
+            }
+
+            // Postfix increment
+            utf8_to_utf32_iterator &operator++()
+            {
+                if (total_bytes_readed >= input_total_bytes)
+                {
+                    // force end...
+                    total_bytes_readed = input_total_bytes + 1;
+                    current_char = 0;
+                    return *this;
+                }
+
+                utf8proc_int32_t readed_char_utf32;
+                utf8proc_ssize_t readed_bytes;
+                while (total_bytes_readed < input_total_bytes)
+                {
+                    readed_bytes = utf8proc_iterate(
+                        input_const_ptr + total_bytes_readed,
+                        input_total_bytes - total_bytes_readed,
+                        &readed_char_utf32);
+                    if (readed_bytes <= 0)
+                    {
+                        // error occured on reading UTF8 Data
+                        fprintf(stderr, "[ITKCommon::StringUtil] error to read utf-8 data.\n");
+                        total_bytes_readed = input_total_bytes + 1;
+                        current_char = 0;
+                        return *this;
+                    }
+                    total_bytes_readed += readed_bytes;
+                    // valid codepoint readed
+                    if (readed_char_utf32 >= 0)
+                    {
+                        current_char = (char32_t)readed_char_utf32;
+                        return *this;
+                    }
+                }
+
+                current_char = 0;
+                return *this;
+            }
+
+            // Postfix increment
+            utf8_to_utf32_iterator operator++(int)
+            {
+                utf8_to_utf32_iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+
+            reference operator*() const
+            {
+                return current_char;
+            }
+
+            bool operator==(const utf8_to_utf32_iterator &other) const
+            {
+                if (input_const_ptr != other.input_const_ptr)
+                    return false;
+                bool self_is_end = total_bytes_readed > input_total_bytes;
+                bool other_is_end = other.total_bytes_readed > other.input_total_bytes;
+                if (!self_is_end && !other_is_end)
+                    return total_bytes_readed == other.total_bytes_readed;
+                return self_is_end == other_is_end;
+            }
+
+            bool operator!=(const utf8_to_utf32_iterator &other) const
+            {
+                if (input_const_ptr != other.input_const_ptr)
+                    return true;
+                bool self_is_end = total_bytes_readed > input_total_bytes;
+                bool other_is_end = other.total_bytes_readed > other.input_total_bytes;
+                if (!self_is_end && !other_is_end)
+                    return total_bytes_readed != other.total_bytes_readed;
+                return self_is_end != other_is_end;
+            }
+
+        private:
+            const utf8proc_uint8_t *input_const_ptr;
+            utf8proc_ssize_t input_total_bytes;
+            utf8proc_ssize_t total_bytes_readed;
+            value_type current_char;
+        };
+
+        class UTF32StringGenerateIteratorFromStringCopy
+        {
+        private:
+            std::string str;
+
+        public:
+            UTF32StringGenerateIteratorFromStringCopy(const std::string &str) : str(str) {}
+
+            utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
+            utf8_to_utf32_iterator end() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)str.length() + 1, (utf8proc_ssize_t)str.length()); }
+            utf8_to_utf32_iterator cbegin() const noexcept { return begin(); }
+            utf8_to_utf32_iterator cend() const noexcept { return end(); }
+
+            // Additional STL-compatible iterator type aliases
+            using iterator_type = utf8_to_utf32_iterator;
+            using const_iterator_type = utf8_to_utf32_iterator;
+        };
+
+        class UTF32StringGenerateIteratorFromStringReference
+        {
+        private:
+            const std::string &str;
+
+        public:
+            UTF32StringGenerateIteratorFromStringReference(const std::string &str) : str(str) {}
+
+            utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
+            utf8_to_utf32_iterator end() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)str.length() + 1, (utf8proc_ssize_t)str.length()); }
+            utf8_to_utf32_iterator cbegin() const noexcept { return begin(); }
+            utf8_to_utf32_iterator cend() const noexcept { return end(); }
+
+            // Additional STL-compatible iterator type aliases
+            using iterator_type = utf8_to_utf32_iterator;
+            using const_iterator_type = utf8_to_utf32_iterator;
+        };
 
         static ITK_INLINE std::string utf32_to_utf8(const std::u32string &str)
         {
@@ -405,7 +549,8 @@ namespace ITKCommon
                 start = index_of_delimiter + delimiter_size;
             }
 
-            if (start == input_size){
+            if (start == input_size)
+            {
                 result.push_back("");
             }
 
@@ -444,15 +589,13 @@ namespace ITKCommon
             std::u32string str_32 = StringUtil::utf8_to_utf32(_str);
 
             auto it = str_32.begin();
-            while (it != str_32.end() && 
-                (*it == U' ' || *it == U'\n' || *it == U'\r' || *it == U'\b' || *it == U'\t')
-            )
+            while (it != str_32.end() &&
+                   (*it == U' ' || *it == U'\n' || *it == U'\r' || *it == U'\b' || *it == U'\t'))
                 it++;
 
             auto rit = str_32.rbegin();
-            while (rit.base() != it && 
-                (*rit == U' ' || *rit == U'\n' || *rit == U'\r' || *rit == U'\b' || *rit == U'\t')
-            )
+            while (rit.base() != it &&
+                   (*rit == U' ' || *rit == U'\n' || *rit == U'\r' || *rit == U'\b' || *rit == U'\t'))
                 rit++;
 
             return StringUtil::utf32_to_utf8(std::u32string(it, rit.base()));
@@ -462,18 +605,19 @@ namespace ITKCommon
         {
             // return std::string("\"") + std::regex_replace(str, std::regex("[\\\\\"]"), "\\$&") + "\"";
             std::string result = str;
-            
-            if (result.length() >= 2) {
+
+            if (result.length() >= 2)
+            {
                 if (result[0] == '\"')
-                    result = result.substr(1,result.length()-1);
-                if (result[result.length()-1] == '\"')
-                    result = result.substr(0,result.length()-1);
+                    result = result.substr(1, result.length() - 1);
+                if (result[result.length() - 1] == '\"')
+                    result = result.substr(0, result.length() - 1);
             }
 
             StringUtil::replaceAll(&result, "\\\"", "\"");
             StringUtil::replaceAll(&result, "\\\\", "\\");
-            //result = std::string("\"") + result + "\"";
-            
+            // result = std::string("\"") + result + "\"";
+
             return result;
         }
 
@@ -512,7 +656,7 @@ namespace ITKCommon
                 char next_chr = cmd[i];
                 if (i < (int)cmd.size() - 1)
                     next_chr = cmd[i + 1];
-                else 
+                else
                     next_chr = 0;
 
                 if (state == normal_slash)
@@ -523,7 +667,7 @@ namespace ITKCommon
                 else if (state == normal && chr == '\\')
                 {
                     state = normal_slash;
-                    //aux += chr;
+                    // aux += chr;
                 }
                 else if (state == normal && chr == '"')
                 {
@@ -531,7 +675,7 @@ namespace ITKCommon
                     aux = trim(aux);
                     if (aux.size() > 0)
                     {
-                        //aux += chr;
+                        // aux += chr;
                         aux_string_concatenate = "";
                         aux_string_concatenate += chr;
                         state = enter_string_concatenate;
@@ -547,14 +691,15 @@ namespace ITKCommon
                 {
                     // one new command
                     aux = trim(aux);
-                    if (aux.size() > 0){
+                    if (aux.size() > 0)
+                    {
                         result.push_back(aux);
                         aux = "";
                     }
                 }
-                else if ((state == enter_string) && 
-                    ((chr == '\\' && next_chr == '"') ||
-                    (chr == '\\' && next_chr == '\\')))
+                else if ((state == enter_string) &&
+                         ((chr == '\\' && next_chr == '"') ||
+                          (chr == '\\' && next_chr == '\\')))
                 {
                     // skip slash for inner string
                     aux += chr;
@@ -566,9 +711,9 @@ namespace ITKCommon
                     state = enter_string;
                     aux += chr;
                 }
-                else if ((state == enter_string_concatenate) && 
-                    ((chr == '\\' && next_chr == '"') ||
-                    (chr == '\\' && next_chr == '\\')))
+                else if ((state == enter_string_concatenate) &&
+                         ((chr == '\\' && next_chr == '"') ||
+                          (chr == '\\' && next_chr == '\\')))
                 {
                     // skip slash for inner string
                     aux_string_concatenate += chr;
@@ -585,27 +730,29 @@ namespace ITKCommon
                     // exit string
                     state = normal;
                     aux += "\"";
-                    result.push_back( StringUtil::unquote_cmd(aux) );
+                    result.push_back(StringUtil::unquote_cmd(aux));
                     aux = "";
                 }
                 else if (state == enter_string_concatenate && chr == '"')
                 {
                     // exit string concatenate
-                    //aux += chr;
+                    // aux += chr;
                     aux_string_concatenate += chr;
 
                     aux += unquote_cmd(aux_string_concatenate);
 
                     state = normal;
 
-                    //aux = trim(aux);
-                    // result.push_back(aux);
-                    // aux = "";
+                    // aux = trim(aux);
+                    //  result.push_back(aux);
+                    //  aux = "";
                 }
                 else if (state == enter_string || state == normal)
                 {
                     aux += chr;
-                } else if (state == enter_string_concatenate){
+                }
+                else if (state == enter_string_concatenate)
+                {
                     aux_string_concatenate += chr;
                 }
             }
