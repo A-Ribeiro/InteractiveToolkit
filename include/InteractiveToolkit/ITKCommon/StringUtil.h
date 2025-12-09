@@ -304,6 +304,7 @@ namespace ITKCommon
             std::string str;
 
         public:
+            UTF32StringGenerateIteratorFromStringCopy() = default;
             UTF32StringGenerateIteratorFromStringCopy(const std::string &str) : str(str) {}
 
             utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
@@ -322,6 +323,7 @@ namespace ITKCommon
             const std::string &str;
 
         public:
+            UTF32StringGenerateIteratorFromStringReference() = default;
             UTF32StringGenerateIteratorFromStringReference(const std::string &str) : str(str) {}
 
             utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
