@@ -12,6 +12,8 @@
 
 namespace ITKCommon
 {
+    class StringUtil;
+
     /// \brief Common string operation for use with the font renderer and generic string tests
     ///
     /// \author Alessandro Ribeiro
@@ -19,6 +21,10 @@ namespace ITKCommon
     class StringUtil
     {
     public:
+        class UTF32StringGenerateIteratorFromStringCopy;
+        class UTF32StringGenerateIteratorFromStringReference;
+
+
         // deleted copy constructor and assign operator, to avoid copy...
         StringUtil(const StringUtil &v) = delete;
         StringUtil &operator=(const StringUtil &v) = delete;
@@ -296,6 +302,9 @@ namespace ITKCommon
             utf8proc_ssize_t input_total_bytes;
             utf8proc_ssize_t total_bytes_readed;
             value_type current_char;
+        public:
+            friend class ITKCommon::StringUtil::UTF32StringGenerateIteratorFromStringCopy;
+            friend class ITKCommon::StringUtil::UTF32StringGenerateIteratorFromStringReference;
         };
 
         class UTF32StringGenerateIteratorFromStringCopy
@@ -306,6 +315,23 @@ namespace ITKCommon
         public:
             UTF32StringGenerateIteratorFromStringCopy() = default;
             UTF32StringGenerateIteratorFromStringCopy(const std::string &str) : str(str) {}
+
+            //std::move assignment operator
+            UTF32StringGenerateIteratorFromStringCopy(std::string &&str) : str(std::move(str)) {}
+            UTF32StringGenerateIteratorFromStringCopy &operator=(std::string &&str)
+            {
+                this->str = std::move(str);
+                return *this;
+            }
+
+            utf8_to_utf32_iterator copyChangeRef(const utf8_to_utf32_iterator &base_it) const noexcept
+            {
+                auto result = base_it;
+                result.input_const_ptr = (const utf8proc_uint8_t *)&str[0];
+                // utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)base_it.total_bytes_readed, (utf8proc_ssize_t)str.length());
+                // result.current_char = base_it.current_char;
+                return result;  
+            }
 
             utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
             utf8_to_utf32_iterator end() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)str.length() + 1, (utf8proc_ssize_t)str.length()); }
@@ -325,6 +351,15 @@ namespace ITKCommon
         public:
             UTF32StringGenerateIteratorFromStringReference() = default;
             UTF32StringGenerateIteratorFromStringReference(const std::string &str) : str(str) {}
+
+            utf8_to_utf32_iterator copyChangeRef(const utf8_to_utf32_iterator &base_it) const noexcept
+            {
+                auto result = base_it;
+                result.input_const_ptr = (const utf8proc_uint8_t *)&str[0];
+                // utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)base_it.total_bytes_readed, (utf8proc_ssize_t)str.length());
+                // result.current_char = base_it.current_char;
+                return result;  
+            }
 
             utf8_to_utf32_iterator begin() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)0, (utf8proc_ssize_t)str.length()); }
             utf8_to_utf32_iterator end() const noexcept { return utf8_to_utf32_iterator((const utf8proc_uint8_t *)&str[0], (utf8proc_ssize_t)str.length() + 1, (utf8proc_ssize_t)str.length()); }
