@@ -88,9 +88,30 @@ namespace EventCore
 
         std::recursive_mutex mtx;
 
+        // add works as subscribe, only if not exists
         void _add(__internal &&struct_)
         {
             std::lock_guard<decltype(mtx)> lock(mtx);
+
+            auto rc = std::find_if(fncs.begin(), fncs.end(), [&struct_](const __internal &_c)
+                                   {
+                                       return
+
+                                           // functor
+                                           //(struct_._std_function_functor == nullptr) == (_c._std_function_functor == nullptr) &&
+                                           struct_._ptr_functor == _c._ptr_functor &&
+                                           // object
+                                           struct_._ptr_class_member == _c._ptr_class_member &&
+                                           struct_._ptr_instance == _c._ptr_instance &&
+                                           // check if has any ptr functor or class member...
+                                           (struct_._ptr_functor != nullptr || struct_._ptr_class_member != nullptr);
+
+                                       // struct_._ptr_functor == val._ptr_functor &&
+                                       // struct_._ptr_class_member == val._ptr_class_member &&
+                                       // struct_._ptr_instance == val._ptr_instance;
+                                   });
+            if (rc != fncs.end())
+                return;
 
             if (_runtime_inside_call)
             {

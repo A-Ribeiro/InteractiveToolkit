@@ -72,18 +72,20 @@ namespace CollisionCore
     template <typename T>
     inline AABB<T, _CHKE_>::AABB()
     {
-        min_box = T( MathCore::FloatTypeInfo<float_type>::max );
-        max_box = T( -MathCore::FloatTypeInfo<float_type>::max );
+        min_box = T(MathCore::FloatTypeInfo<float_type>::max);
+        max_box = T(-MathCore::FloatTypeInfo<float_type>::max);
     }
 
     template <typename T>
-    inline void AABB<T, _CHKE_>::makeEmpty() {
-        min_box = T( MathCore::FloatTypeInfo<float_type>::max );
-        max_box = T( -MathCore::FloatTypeInfo<float_type>::max );
+    inline void AABB<T, _CHKE_>::makeEmpty()
+    {
+        min_box = T(MathCore::FloatTypeInfo<float_type>::max);
+        max_box = T(-MathCore::FloatTypeInfo<float_type>::max);
     }
 
     template <typename T>
-    inline bool AABB<T, _CHKE_>::isEmpty() const {
+    inline bool AABB<T, _CHKE_>::isEmpty() const
+    {
         return (min_box.x > max_box.x || min_box.y > max_box.y || min_box.z > max_box.z);
     }
     //--------------------------------------------------------------------------
@@ -531,6 +533,18 @@ namespace CollisionCore
     inline bool AABB<T, _CHKE_>::obbOverlapsAABB(const OBB<T> &obb, const AABB<T> &aabb)
     {
         return OBB<T>::aabbOverlapsOBB(aabb, obb);
+    }
+
+    template <typename T>
+    inline bool AABB<T, _CHKE_>::operator==(const self_type &other) const
+    {
+        return (this->min_box == other.min_box) && (this->max_box == other.max_box);
+    }
+    
+    template <typename T>
+    inline bool AABB<T, _CHKE_>::operator!=(const self_type &other) const
+    {
+        return !((*this) == other);
     }
 
 }

@@ -664,6 +664,10 @@ namespace CollisionCore
         /// \return true, if the aabb overlaps the frustum
         ///
         static inline bool obbOverlapsAABB(const OBB<T> &obb, const AABB<T> &aabb);
+
+        // comparison operators
+        inline bool operator==(const self_type &other) const;
+        inline bool operator!=(const self_type &other) const;
     };
 
 }
