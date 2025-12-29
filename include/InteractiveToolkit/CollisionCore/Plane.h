@@ -404,5 +404,9 @@ namespace CollisionCore
         /// \return true, if the obb intersects the plane
         ///
         static inline bool obbIntersectsPlane(const OBB<T> &obb, const Plane<T> &plane);
-    };
+
+        static inline bool sphereIntersectsPlane(const vec3_type &center, const float_type &radius, const Plane<T> &plane, vec3_type *penetration);
+
+        static inline bool sphereIntersectsPlane(const Sphere<T> &sphere, const Plane<T> &plane, vec3_type *penetration);
+        };
 }

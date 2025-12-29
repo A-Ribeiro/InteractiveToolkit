@@ -259,6 +259,24 @@ namespace CollisionCore
     }
 
     template <typename T>
+    inline bool Sphere<T, _CHKE_>::planeIntersectsSphere(const Plane<T> &plane, const vec3_type &center, const float_type &radius, vec3_type *penetration)
+    {
+        bool result = Plane<T>::sphereIntersectsPlane(center, radius, plane, penetration);
+        if (result)
+            *penetration = -(*penetration);
+        return result;
+    }
+
+    template <typename T>
+    inline bool Sphere<T, _CHKE_>::planeIntersectsSphere(const Plane<T> &plane, const Sphere<T> &sphere, vec3_type *penetration)
+    {
+        bool result = Plane<T>::sphereIntersectsPlane(sphere.center, sphere.radius, plane, penetration);
+        if (result)
+            *penetration = -(*penetration);
+        return result;
+    }
+
+    template <typename T>
     inline Sphere<T> Sphere<T, _CHKE_>::from4Points(const vec3_type &a, const vec3_type &b, const vec3_type &c, const vec3_type &d)
     {
         using namespace MathCore;

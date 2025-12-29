@@ -201,4 +201,48 @@ namespace CollisionCore
         return OBB<T>::planeIntersectsOBB(plane, obb);
     }
 
+    template <typename T>
+    inline bool Plane<T, _CHKE_>::sphereIntersectsPlane(const vec3_type &center, const float_type &radius, const Plane<T> &plane, vec3_type *penetration)
+    {
+        using namespace MathCore;
+
+        float distance_to_plane = pointDistanceToPlane(center, plane);
+        float sphere_dst_to_plane_abs = MathCore::OP<float>::abs(distance_to_plane - radius);
+
+        if (sphere_dst_to_plane_abs > (float_type)0.004 && distance_to_plane < radius) // (float_type)0.00002
+        {
+            // EPSILON - to avoid process the same triangle again...
+            const float_type EPSILON = (float_type)0.002;
+            *penetration = -plane.normal * (sphere_dst_to_plane_abs + EPSILON);
+            return true;
+        }
+
+        // vec3_type closestPointInPlane = closestPointToPlane(center, plane);
+
+        // vec3_type SphereToPlane = closestPointInPlane - center;
+        // float_type sqrLength_SphereToPlane = OP<vec3_type>::dot(SphereToPlane, SphereToPlane);
+
+        // float_type Max_Radius_sqr = radius * radius;
+
+        // if (sqrLength_SphereToPlane > (float_type)0.00002 && sqrLength_SphereToPlane < Max_Radius_sqr)
+        // {
+
+        //     float_type Length_SphereToPlane = OP<float_type>::sqrt(sqrLength_SphereToPlane);
+        //     vec3_type SphereToPlaneNorm = SphereToPlane * ((float_type)1 / Length_SphereToPlane); // normalize(SphereToPlane);
+        //     // Vector3 triangleNormal = Vectormath::Aos::normalize( Vectormath::Aos::cross( p2-p1 , p3-p1 ) );
+
+        //     // EPSILON - to avoid process the same triangle again...
+        //     const float_type EPSILON = (float_type)0.002;
+        //     *penetration = SphereToPlaneNorm * (radius - Length_SphereToPlane + EPSILON);
+        //     return true;
+        // }
+        return false;
+    }
+
+    template <typename T>
+    inline bool Plane<T, _CHKE_>::sphereIntersectsPlane(const Sphere<T> &sphere, const Plane<T> &plane, vec3_type *penetration)
+    {
+        return sphereIntersectsPlane(sphere.center, sphere.radius, plane, penetration);
+    }
+
 }

@@ -664,6 +664,10 @@ namespace CollisionCore
         ///
         static inline bool obbOverlapsSphere(const OBB<T> &obb, const Sphere<T> &sphere, vec3_type *penetration);
 
+        static inline bool planeIntersectsSphere(const Plane<T> &plane, const vec3_type &center, const float_type &radius, vec3_type *penetration);
+
+        static inline bool planeIntersectsSphere(const Plane<T> &plane, const Sphere<T> &sphere, vec3_type *penetration);
+
         /// \brief Compute the minimum bounding sphere from four points (Tetrahedron)
         ///
         /// Details are in:
