@@ -252,7 +252,7 @@ namespace ITKCommon
                 return result;
             }
 
-            FILE *fopen(const char *mode, std::string *errorStr = nullptr)
+            FILE *fopen(const char *mode, std::string *errorStr = nullptr) const
             {
                 if (!isFile)
                 {
@@ -263,7 +263,7 @@ namespace ITKCommon
                 return File::fopen(full_path.c_str(), mode, errorStr);
             }
 
-            bool readContentToObjectBuffer(Platform::ObjectBuffer *output, std::string *errorStr = nullptr)
+            bool readContentToObjectBuffer(Platform::ObjectBuffer *output, std::string *errorStr = nullptr) const
             {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
@@ -326,7 +326,7 @@ namespace ITKCommon
                 return true;
             }
 
-            bool readContentToVector(std::vector<uint8_t> *output, std::string *errorStr = nullptr)
+            bool readContentToVector(std::vector<uint8_t> *output, std::string *errorStr = nullptr) const
             {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
@@ -391,7 +391,7 @@ namespace ITKCommon
             }
 
             // loads a nullptr-terminated string from the file`s content
-            bool readContentToString(std::string *output, std::string *errorStr = nullptr)
+            bool readContentToString(std::string *output, std::string *errorStr = nullptr) const
             {
                 std::vector<uint8_t> _tmp;
                 if (!readContentToVector(&_tmp, errorStr))
@@ -403,7 +403,7 @@ namespace ITKCommon
 
             // read the file size in bytes using fopen call
             // returns -1 in case of any error
-            int64_t readContentGetSizeSafe(std::string *errorStr = nullptr)
+            int64_t readContentGetSizeSafe(std::string *errorStr = nullptr) const
             {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
@@ -440,7 +440,7 @@ namespace ITKCommon
                 return _ftell;
             }
 
-            bool readContentToMemory(int64_t read_offset, uint8_t *output, int64_t output_size, std::string *errorStr = nullptr)
+            bool readContentToMemory(int64_t read_offset, uint8_t *output, int64_t output_size, std::string *errorStr = nullptr) const
             {
                 FILE *file = fopen("rb", errorStr);
                 if (!file)
@@ -482,17 +482,17 @@ namespace ITKCommon
                 return true;
             }
 
-            bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr)
+            bool writeContentFromObjectBuffer(const Platform::ObjectBuffer *input, bool append = false, std::string *errorStr = nullptr) const
             {
                 return writeContentFromBinary(input->data, (int64_t)input->size, append, errorStr);
             }
 
-            bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr)
+            bool writeContentFromVector(const std::vector<uint8_t> *input, bool append = false, std::string *errorStr = nullptr) const
             {
                 return writeContentFromBinary(input->data(), (int64_t)input->size(), append, errorStr);
             }
 
-            bool writeContentFromBinary(const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr)
+            bool writeContentFromBinary(const uint8_t *input, const int64_t _size, bool append = false, std::string *errorStr = nullptr) const
             {
                 return File::WriteContentFromBinary(this->full_path.c_str(), input, _size, append, errorStr);
             }
