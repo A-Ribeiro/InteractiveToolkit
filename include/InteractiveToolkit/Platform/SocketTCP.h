@@ -85,7 +85,7 @@ namespace Platform
         Platform::Mutex mutex;
 
     public:
-        //deleted copy constructor and assign operator, to avoid copy...
+        // deleted copy constructor and assign operator, to avoid copy...
         SocketTCP(const SocketTCP &v) = delete;
         SocketTCP &operator=(const SocketTCP &v) = delete;
 
@@ -433,7 +433,7 @@ namespace Platform
         }
 
         // this read is blocking...
-        bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr)
+        bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
         {
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
@@ -450,7 +450,7 @@ namespace Platform
 
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
-            while (current_pos < size)
+            while (current_pos < size && (only_returns_if_match_exact_size || current_pos == 0))
             {
 
 #if defined(_WIN32)
@@ -801,7 +801,7 @@ namespace Platform
         }
 
     public:
-        //deleted copy constructor and assign operator, to avoid copy...
+        // deleted copy constructor and assign operator, to avoid copy...
         SocketTCPAccept(const SocketTCPAccept &v) = delete;
         SocketTCPAccept &operator=(const SocketTCPAccept &v) = delete;
 
