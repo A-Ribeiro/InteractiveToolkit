@@ -143,6 +143,26 @@ namespace Platform
                 SocketUtils::getLastSocketErrorMessage().c_str());
         }
 
+        void setSendBufferSize(int size)
+        {
+            Platform::AutoLock auto_lock(&mutex);
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
+            ITK_ABORT(
+                ::setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *)&size, sizeof(int)) == -1,
+                "setsockopt SO_SNDBUF error. %s",
+                SocketUtils::getLastSocketErrorMessage().c_str());
+        }
+
+        void setReceiveBufferSize(int size)
+        {
+            Platform::AutoLock auto_lock(&mutex);
+            ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
+            ITK_ABORT(
+                ::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&size, sizeof(int)) == -1,
+                "setsockopt SO_RCVBUF error. %s",
+                SocketUtils::getLastSocketErrorMessage().c_str());
+        }
+
         void setReadTimeout(uint32_t timeout_ms)
         {
             read_timeout_ms = timeout_ms;
