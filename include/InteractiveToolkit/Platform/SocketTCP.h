@@ -26,6 +26,7 @@ namespace Platform
         struct sockaddr_in addr_out;
 
         bool signaled;
+        bool read_timedout;
 
         uint32_t read_timeout_ms;
         uint32_t write_timeout_ms;
@@ -66,6 +67,7 @@ namespace Platform
 #endif
 
             signaled = false;
+            read_timedout = false;
 
             // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
@@ -435,6 +437,8 @@ namespace Platform
         // this read is blocking...
         bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
         {
+            read_timedout = false;
+
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
                 if (read_feedback != nullptr)
@@ -474,9 +478,10 @@ namespace Platform
 
                 if (dwWaitResult == WAIT_TIMEOUT)
                 {
-                    signaled = true;
-                    if (read_feedback != nullptr)
-                        *read_feedback = 0;
+                    // signaled = true;
+                    read_timedout = true;
+                    // if (read_feedback != nullptr)
+                    //     *read_feedback = 0;
                     return false;
                 }
                 else
@@ -578,6 +583,14 @@ namespace Platform
                         // printf("not blocking read mode... retrying...\n");
                         // signaled = true;
                         // return false;
+                        if (iResult == -1){
+                            // timeout
+                            // signaled = true;
+                            read_timedout = true;
+                            // if (read_feedback != nullptr)
+                            //     *read_feedback = 0;
+                            return false;
+                        }
                         continue;
                     }
                     else
@@ -633,6 +646,11 @@ namespace Platform
             }
 
             return false;
+        }
+
+        bool isReadTimedout() const
+        {
+            return read_timedout;
         }
 
         bool isSignaled() const
