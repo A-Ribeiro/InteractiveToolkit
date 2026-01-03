@@ -276,9 +276,10 @@ namespace Platform
                             int error_code;
                             int error_code_size = sizeof(error_code);
                             if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&error_code, &error_code_size) == 0)
-                            {
                                 connected = (error_code == 0);
-                            }
+
+                            if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                                connected = false;
                         }
                         else if (NetworkEvents.lNetworkEvents & FD_CLOSE)
                         {
@@ -500,15 +501,17 @@ namespace Platform
 
                 DWORD dwWaitTime = INFINITE;
 
-                // if (read_timeout_ms != 0xffffffff)
-                //     dwWaitTime = read_timeout_ms;
+                if (read_timeout_ms != 0xffffffff)
+                    dwWaitTime = read_timeout_ms;
 
+                // printf("dwWaitResult = WaitForMultipleObjects\n");
                 dwWaitResult = WaitForMultipleObjects(
                     2,                           // number of handles in array
                     handles_threadInterrupt_sem, // array of thread handles
                     FALSE,                       // wait until all are signaled
                     dwWaitTime                   // INFINITE //INFINITE
                 );
+                // printf("done\n");
 
                 if (dwWaitResult == WAIT_TIMEOUT)
                 {
@@ -545,14 +548,22 @@ namespace Platform
 
                             // read event...
                             int iResult = recv(fd, (char *)&data[current_pos], size - current_pos, 0);
-                            if (iResult > 0)
+                            if (iResult > 0 && (NetworkEvents.lNetworkEvents & FD_READ))
                             {
                                 // received some quantity of bytes...
                                 current_pos += iResult;
                                 if (read_feedback != nullptr)
                                     *read_feedback = current_pos;
+
+                                if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                                {
+                                    // close connection
+                                    printf("(connection closed with reading data!!!)...\n");
+                                    signaled = true;
+                                    return true;
+                                }
                             }
-                            else if (iResult == 0)
+                            else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
                             {
                                 // close connection
                                 printf("recv read 0 bytes (connection closed)...\n");
@@ -1075,7 +1086,16 @@ namespace Platform
 
                     SOCKET client_sockfd = ::accept(fd, (struct sockaddr *)&client_addr, &addrlen);
 
-                    if (client_sockfd == INVALID_SOCKET)
+                    if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                    {
+                        printf("closed accept socket.\n");
+
+                        signaled = true;
+                        semaphore.release();
+
+                        return false;
+                    }
+                    else if (client_sockfd == INVALID_SOCKET)
                     {
                         printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
 
@@ -1083,10 +1103,16 @@ namespace Platform
                         semaphore.release();
                         return false;
                     }
-                    else
+                    else if (NetworkEvents.lNetworkEvents & FD_ACCEPT)
                     {
                         // valid client socket
                         result->initializeWithNewConnection(client_sockfd, client_addr);
+
+                        if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                        {
+                            printf("closed accept socket after accept.\n");
+                            signaled = true;
+                        }
 
                         semaphore.release();
                         return true;
