@@ -417,9 +417,12 @@ namespace Platform
 #endif
                 {
 
-                    //printf("not blocking write mode... retrying...\n");
-
+                    // printf("not blocking write mode... retrying...\n");
+#if defined(_WIN32)
+                    if (iResult == SOCKET_ERROR)
+#else
                     if (iResult == -1)
+#endif
                     {
                         write_timedout = true;
                         return false;
@@ -477,8 +480,8 @@ namespace Platform
 
                 DWORD dwWaitTime = INFINITE;
 
-                if (read_timeout_ms != 0xffffffff)
-                    dwWaitTime = read_timeout_ms;
+                // if (read_timeout_ms != 0xffffffff)
+                //     dwWaitTime = read_timeout_ms;
 
                 dwWaitResult = WaitForMultipleObjects(
                     2,                           // number of handles in array
@@ -542,6 +545,16 @@ namespace Platform
                                 // printf("not blocking read mode... retrying...\n");
                                 // signaled = true;
                                 // return false;
+                                if (iResult == SOCKET_ERROR)
+                                {
+                                    // timeout
+                                    // signaled = true;
+                                    read_timedout = true;
+                                    // if (read_feedback != nullptr)
+                                    //     *read_feedback = 0;
+                                    return false;
+                                }
+
                                 continue;
                             }
                             else
@@ -594,7 +607,8 @@ namespace Platform
                         // printf("not blocking read mode... retrying...\n");
                         // signaled = true;
                         // return false;
-                        if (iResult == -1){
+                        if (iResult == -1)
+                        {
                             // timeout
                             // signaled = true;
                             read_timedout = true;
