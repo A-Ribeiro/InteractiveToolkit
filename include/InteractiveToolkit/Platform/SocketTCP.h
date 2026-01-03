@@ -27,6 +27,7 @@ namespace Platform
 
         bool signaled;
         bool read_timedout;
+        bool write_timedout;
 
         uint32_t read_timeout_ms;
         uint32_t write_timeout_ms;
@@ -68,6 +69,7 @@ namespace Platform
 
             signaled = false;
             read_timedout = false;
+            write_timedout = false;
 
             // get ephemeral port info
             socklen_t len = sizeof(struct sockaddr_in);
@@ -349,6 +351,8 @@ namespace Platform
         // this write is blocking...
         bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
         {
+            write_timedout = false;
+
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
                 if (write_feedback != nullptr)
@@ -413,7 +417,14 @@ namespace Platform
 #endif
                 {
 
-                    printf("not blocking write mode... retrying...\n");
+                    //printf("not blocking write mode... retrying...\n");
+
+                    if (iResult == -1)
+                    {
+                        write_timedout = true;
+                        return false;
+                    }
+
                     // signaled = true;
                     // return false;
                     continue;
@@ -651,6 +662,11 @@ namespace Platform
         bool isReadTimedout() const
         {
             return read_timedout;
+        }
+
+        bool isWriteTimedout() const
+        {
+            return write_timedout;
         }
 
         bool isSignaled() const
