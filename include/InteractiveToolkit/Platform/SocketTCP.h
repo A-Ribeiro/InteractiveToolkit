@@ -953,7 +953,7 @@ namespace Platform
             close();
         }
 
-        bool bindAndListen(const std::string &address_ip, uint16_t port, int incoming_queue_size = 10)
+        bool bindAndListen(const std::string &address_ip, uint16_t port, int incoming_queue_size = SOMAXCONN)
         {
             bool aquired = semaphore.blockingAcquire();
 
