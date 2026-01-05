@@ -159,6 +159,17 @@ namespace Platform
             return result;
         }
 
+#if defined(__APPLE__)
+        static void osxDisableSigPipe(int fd)
+        {
+            int aux = 1;
+            ITK_ABORT(
+                ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, (char *)&aux, sizeof(int)) == -1,
+                "setsockopt SO_NOSIGPIPE error. %s",
+                SocketUtils::getLastSocketErrorMessage().c_str());
+        }
+#endif
+
         // Returns true on success, or false if there was an error
 #if defined(_WIN32)
         static bool SetSocketBlockingEnabled(const SOCKET &fd, bool blocking)

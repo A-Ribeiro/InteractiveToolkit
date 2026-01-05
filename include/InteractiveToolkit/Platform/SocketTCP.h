@@ -65,6 +65,8 @@ namespace Platform
                 ::WSAEventSelect(fd, wsa_read_event, FD_READ | FD_CLOSE) == SOCKET_ERROR, // FD_READ | FD_WRITE
                 "WSAEventSelect error. %s",
                 SocketUtils::getLastSocketErrorMessage().c_str());
+#elif defined(__APPLE__)
+            SocketUtils::osxDisableSigPipe(fd);
 #endif
 
             signaled = false;
@@ -341,6 +343,8 @@ namespace Platform
                 ::WSAEventSelect(fd, wsa_read_event, FD_READ | FD_CLOSE) == SOCKET_ERROR, // FD_READ | FD_WRITE
                 "WSAEventSelect error. %s",
                 SocketUtils::getLastSocketErrorMessage().c_str());
+#elif defined(__APPLE__)
+            SocketUtils::osxDisableSigPipe(fd);
 #endif
 
             signaled = false;
@@ -873,6 +877,8 @@ namespace Platform
                     "WSAEventSelect error. %s",
                     SocketUtils::getLastSocketErrorMessage().c_str());
             }
+#elif defined(__APPLE__)
+            SocketUtils::osxDisableSigPipe(fd);
 #endif
 
             if (aquired)
