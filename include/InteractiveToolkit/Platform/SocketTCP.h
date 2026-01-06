@@ -345,6 +345,7 @@ namespace Platform
                     write_semaphore.release();
 
                 setBlocking(true);
+
                 return false;
             }
 
@@ -445,9 +446,9 @@ namespace Platform
 #endif
 
 #if defined(_WIN32)
-                int iResult = ::send(fd, (char *)&data[current_pos], size, 0);
+                int iResult = ::send(fd, (char *)&data[current_pos], size - current_pos, 0);
 #else
-                ssize_t iResult = ::send(fd, (char *)&data[current_pos], size, MSG_NOSIGNAL);
+                ssize_t iResult = ::send(fd, (char *)&data[current_pos], size - current_pos, MSG_NOSIGNAL);
 #endif
 
 #if !defined(_WIN32)
@@ -465,6 +466,9 @@ namespace Platform
                 {
                     printf("send write 0 bytes (connection closed)...\n");
                     signaled = true;
+
+                    close(); // force close state
+
                     return false;
                 }
 #if defined(_WIN32)
@@ -596,6 +600,9 @@ namespace Platform
                                     // close connection
                                     printf("(connection closed with reading data!!!)...\n");
                                     signaled = true;
+
+                                    close(); // force close state
+
                                     return true;
                                 }
                             }
@@ -604,6 +611,9 @@ namespace Platform
                                 // close connection
                                 printf("recv read 0 bytes (connection closed)...\n");
                                 signaled = true;
+
+                                close(); // force close state
+
                                 return false;
                             }
                             else if (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -666,6 +676,9 @@ namespace Platform
                         // close connection
                         printf("recv read 0 bytes (connection closed)...\n");
                         signaled = true;
+
+                        close(); // force close state
+
                         return false;
                     }
                     else if (errno == EWOULDBLOCK || errno == EAGAIN)
@@ -718,6 +731,9 @@ namespace Platform
             {
                 printf("recv read 0 bytes (connection closed)...\n");
                 signaled = true;
+
+                close(); // force close state
+                
                 return false;
             }
 #if defined(_WIN32)
@@ -1131,6 +1147,7 @@ namespace Platform
                         signaled = true;
                         semaphore.release();
 
+                        close(); // force close state
                         return false;
                     }
                     else if (client_sockfd == INVALID_SOCKET)
@@ -1153,6 +1170,10 @@ namespace Platform
                         }
 
                         semaphore.release();
+
+                        if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                            close(); // force close state
+
                         return true;
                     }
                 }
