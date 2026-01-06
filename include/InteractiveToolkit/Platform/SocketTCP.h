@@ -54,8 +54,21 @@ namespace Platform
             // this->addr_in = _addr_in;
             this->addr_out = _addr_in;
 
-            read_timeout_ms = 0xffffffff;  // INFINITE;
-            write_timeout_ms = 0xffffffff; // INFINITE;
+            read_timeout_ms = 0;  // INFINITE;
+            write_timeout_ms = 0; // INFINITE;
+
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, &len) == 0)
+                    read_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, &len) == 0)
+                    write_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
 
 #if defined(_WIN32)
             wsa_read_event = WSACreateEvent();
@@ -132,8 +145,11 @@ namespace Platform
                 SocketUtils::getLastSocketErrorMessage().c_str());
         }
 
+        // 0 is infinite
         void setWriteTimeout(uint32_t timeout_ms)
         {
+            if (write_timeout_ms == timeout_ms)
+                return;
             write_timeout_ms = timeout_ms;
             Platform::AutoLock auto_lock(&mutex);
             struct timeval timeout;
@@ -165,8 +181,11 @@ namespace Platform
                 SocketUtils::getLastSocketErrorMessage().c_str());
         }
 
+        // 0 is infinite
         void setReadTimeout(uint32_t timeout_ms)
         {
+            if (read_timeout_ms == timeout_ms)
+                return;
             read_timeout_ms = timeout_ms;
             Platform::AutoLock auto_lock(&mutex);
             struct timeval timeout;
@@ -198,8 +217,21 @@ namespace Platform
             fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
             ITK_ABORT(fd == ITK_INVALID_SOCKET, "Error to create Socket. Message: %s", SocketUtils::getLastSocketErrorMessage().c_str());
 
-            read_timeout_ms = 0xffffffff;  // INFINITE;
-            write_timeout_ms = 0xffffffff; // INFINITE;
+            read_timeout_ms = 0;  // INFINITE;
+            write_timeout_ms = 0; // INFINITE;
+
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, &len) == 0)
+                    read_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, &len) == 0)
+                    write_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
 
             addr_out.sin_family = AF_INET;
             if (address_ip.size() == 0 || address_ip.compare("INADDR_ANY") == 0)
@@ -237,7 +269,7 @@ namespace Platform
             DWORD dwWaitTime = INFINITE;
 
             /*
-            if (read_timeout_ms != 0xffffffff)
+            if (read_timeout_ms != 0)
                 dwWaitTime = read_timeout_ms;
             */
 
@@ -505,7 +537,7 @@ namespace Platform
 
                 DWORD dwWaitTime = INFINITE;
 
-                if (read_timeout_ms != 0xffffffff)
+                if (read_timeout_ms != 0)
                     dwWaitTime = read_timeout_ms;
 
                 // printf("dwWaitResult = WaitForMultipleObjects\n");

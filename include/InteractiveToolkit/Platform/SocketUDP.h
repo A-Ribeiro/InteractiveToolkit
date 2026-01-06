@@ -53,8 +53,21 @@ namespace Platform
             setTTL(ttl);
             setSendBroadcast(true);
 
-            read_timeout_ms = 0xffffffff;  // INFINITE;
-            write_timeout_ms = 0xffffffff; // INFINITE;
+            read_timeout_ms = 0;  // INFINITE;
+            write_timeout_ms = 0; // INFINITE;
+
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, &len) == 0)
+                    read_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
+            {
+                struct timeval timeout;
+                socklen_t len = sizeof(struct timeval);
+                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, &len) == 0)
+                    write_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
+            }
 
 #if defined(_WIN32)
             wsa_read_event = WSACreateEvent();
@@ -68,11 +81,10 @@ namespace Platform
         }
 
     public:
-
-        //deleted copy constructor and assign operator, to avoid copy...
+        // deleted copy constructor and assign operator, to avoid copy...
         SocketUDP(const SocketUDP &v) = delete;
-        SocketUDP& operator=(const SocketUDP &v) = delete;
-        
+        SocketUDP &operator=(const SocketUDP &v) = delete;
+
         bool isSignaled() const
         {
             return Platform::Thread::isCurrentThreadInterrupted();
@@ -89,8 +101,8 @@ namespace Platform
             sendBroadcast = false;
             memset(&addr_in, 0, sizeof(struct sockaddr_in));
 
-            read_timeout_ms = 0xffffffff;  // INFINITE;
-            write_timeout_ms = 0xffffffff; // INFINITE;
+            read_timeout_ms = 0;  // INFINITE;
+            write_timeout_ms = 0; // INFINITE;
 
 #if defined(_WIN32)
             wsa_read_event = WSA_INVALID_EVENT;
@@ -184,6 +196,8 @@ namespace Platform
 
         void setWriteTimeout(uint32_t timeout_ms)
         {
+            if (write_timeout_ms == timeout_ms)
+                return;
             write_timeout_ms = timeout_ms;
             Platform::AutoLock auto_lock(&mutex);
             struct timeval timeout;
@@ -197,6 +211,8 @@ namespace Platform
 
         void setReadTimeout(uint32_t timeout_ms)
         {
+            if (read_timeout_ms == timeout_ms)
+                return;
             read_timeout_ms = timeout_ms;
             Platform::AutoLock auto_lock(&mutex);
             struct timeval timeout;
@@ -397,7 +413,7 @@ namespace Platform
 
                 DWORD dwWaitTime = INFINITE;
 
-                if (read_timeout_ms != 0xffffffff)
+                if (read_timeout_ms != 0)
                     dwWaitTime = read_timeout_ms;
 
                 dwWaitResult = WaitForMultipleObjects(
