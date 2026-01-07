@@ -160,18 +160,18 @@ namespace Platform
 
 #endif
 
-            if (__thread_priority == ThreadPriority::Normal)
-            {
-                printf("setGlobalThreadPriority -> ThreadPriority::Normal\n");
-            }
-            else if (__thread_priority == ThreadPriority::High)
-            {
-                printf("setGlobalThreadPriority -> ThreadPriority::High\n");
-            }
-            else if (__thread_priority == ThreadPriority::Realtime)
-            {
-                printf("setGlobalThreadPriority -> ThreadPriority::Realtime\n");
-            }
+            // if (__thread_priority == ThreadPriority::Normal)
+            // {
+            //     printf("setGlobalThreadPriority -> ThreadPriority::Normal\n");
+            // }
+            // else if (__thread_priority == ThreadPriority::High)
+            // {
+            //     printf("setGlobalThreadPriority -> ThreadPriority::High\n");
+            // }
+            // else if (__thread_priority == ThreadPriority::Realtime)
+            // {
+            //     printf("setGlobalThreadPriority -> ThreadPriority::Realtime\n");
+            // }
         }
 
         static ThreadDataSet *Instance()

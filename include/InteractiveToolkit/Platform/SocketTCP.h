@@ -400,10 +400,10 @@ namespace Platform
             if (write_aquired)
                 write_semaphore.release();
 
-            // print stats
-            printf("[SocketTCP] Connected\n");
-            printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr), ntohs(addr_in.sin_port));
-            printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr), ntohs(addr_out.sin_port));
+            // // print stats
+            // printf("[SocketTCP] Connected\n");
+            // printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr), ntohs(addr_in.sin_port));
+            // printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr), ntohs(addr_out.sin_port));
 
             return true;
         }
@@ -790,7 +790,7 @@ namespace Platform
 
             if (fd != ITK_INVALID_SOCKET)
             {
-                printf("PlatformTCPSocket Close...\n");
+                // printf("PlatformTCPSocket Close...\n");
 
                 ITK_ABORT(
                     ::closesocket(fd) != 0,
