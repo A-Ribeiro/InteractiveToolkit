@@ -71,6 +71,11 @@ namespace ITKCommon
             return nanoseconds / 1000000;
         }
 
+        inline uint32_t microseconds() const
+        {
+            return nanoseconds / 1000;
+        }
+
         std::string toString(bool convert_to_local = false) const
         {
             char result[64];
