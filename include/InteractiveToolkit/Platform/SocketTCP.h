@@ -412,8 +412,7 @@ namespace Platform
         Platform::Semaphore write_semaphore; // used to write complex data
 
         // this write is blocking...
-protected:
-        bool internal_write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
+        virtual bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
         {
             write_timedout = false;
 
@@ -514,15 +513,9 @@ protected:
             }
             return true;
         }
-public:
-        virtual bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
-        {
-            return internal_write_buffer(data, size, write_feedback);
-        }
 
         // this read is blocking...
-protected:
-        bool internal_read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
+        virtual bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
         {
             read_timedout = false;
 
@@ -723,11 +716,6 @@ protected:
             }
 
             return true;
-        }
-public:
-        virtual bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
-        {
-            return internal_read_buffer(data, size, read_feedback, only_returns_if_match_exact_size);
         }
 
         bool read_uint8(uint8_t *v, bool blocking = true)
