@@ -58,6 +58,11 @@ namespace Platform
             tasks.enqueue(task);
         }
 
+        uint32_t taskInQueue()
+        {
+            return tasks.size();
+        }
+
         void finish()
         {
             // printf("interrupting threads\n");
