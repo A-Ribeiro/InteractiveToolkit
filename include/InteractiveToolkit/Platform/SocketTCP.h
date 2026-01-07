@@ -9,6 +9,11 @@
 #include "Core/NetworkConstants.h"
 #include "Core/SocketUtils.h"
 
+namespace TLS
+{
+    class SSLContext;
+}
+
 namespace Platform
 {
 
@@ -407,7 +412,8 @@ namespace Platform
         Platform::Semaphore write_semaphore; // used to write complex data
 
         // this write is blocking...
-        bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
+protected:
+        bool internal_write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
         {
             write_timedout = false;
 
@@ -508,9 +514,15 @@ namespace Platform
             }
             return true;
         }
+public:
+        virtual bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
+        {
+            return internal_write_buffer(data, size, write_feedback);
+        }
 
         // this read is blocking...
-        bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
+protected:
+        bool internal_read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
         {
             read_timedout = false;
 
@@ -712,6 +724,11 @@ namespace Platform
 
             return true;
         }
+public:
+        virtual bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
+        {
+            return internal_read_buffer(data, size, read_feedback, only_returns_if_match_exact_size);
+        }
 
         bool read_uint8(uint8_t *v, bool blocking = true)
         {
@@ -776,7 +793,7 @@ namespace Platform
             return fd == ITK_INVALID_SOCKET;
         }
 
-        void close()
+        virtual void close()
         {
             Platform::AutoLock auto_lock(&mutex);
 
@@ -848,12 +865,13 @@ namespace Platform
 #endif
         }
 
-        ~SocketTCP()
+        virtual ~SocketTCP()
         {
             close();
         }
 
         friend class SocketTCPAccept;
+        friend class TLS::SSLContext;
     };
 
     class SocketTCPAccept
