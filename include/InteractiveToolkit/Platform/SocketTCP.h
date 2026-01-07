@@ -100,10 +100,10 @@ namespace Platform
             if (write_aquired)
                 write_semaphore.release();
 
-            // print stats
-            printf("[SocketTCP] Connected\n");
-            printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr), ntohs(addr_in.sin_port));
-            printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr), ntohs(addr_out.sin_port));
+            // // print stats
+            // printf("[SocketTCP] Connected\n");
+            // printf("              in_addr: %s:%u\n", inet_ntoa(addr_in.sin_addr), ntohs(addr_in.sin_port));
+            // printf("              out_addr: %s:%u\n", inet_ntoa(addr_out.sin_addr), ntohs(addr_out.sin_port));
         }
 
         Platform::Mutex mutex;
@@ -738,7 +738,7 @@ namespace Platform
                 signaled = true;
 
                 close(); // force close state
-                
+
                 return false;
             }
 #if defined(_WIN32)
@@ -981,7 +981,7 @@ namespace Platform
 
             if (fd != ITK_INVALID_SOCKET)
             {
-                printf("PlatformTCPAcceptSocket Close...\n");
+                // printf("PlatformTCPAcceptSocket Close...\n");
                 ITK_ABORT(
                     ::closesocket(fd) != 0,
                     "closesocket error. %s",
@@ -1065,10 +1065,10 @@ namespace Platform
             if (aquired)
                 semaphore.release();
 
-            // print stats
-            printf("[PlatformTCPAcceptSocket] Bind OK\n");
-            printf("          TCP Server Addr: %s\n", inet_ntoa(server_addr.sin_addr));
-            printf("                     Port: %u\n", ntohs(server_addr.sin_port));
+            // // print stats
+            // printf("[PlatformTCPAcceptSocket] Bind OK\n");
+            // printf("          TCP Server Addr: %s\n", inet_ntoa(server_addr.sin_addr));
+            // printf("                     Port: %u\n", ntohs(server_addr.sin_port));
 
             return true;
         }
@@ -1146,17 +1146,7 @@ namespace Platform
 
                     SOCKET client_sockfd = ::accept(fd, (struct sockaddr *)&client_addr, &addrlen);
 
-                    if (NetworkEvents.lNetworkEvents & FD_CLOSE)
-                    {
-                        printf("closed accept socket.\n");
-
-                        signaled = true;
-                        semaphore.release();
-
-                        close(); // force close state
-                        return false;
-                    }
-                    else if (client_sockfd == INVALID_SOCKET)
+                    if (client_sockfd == INVALID_SOCKET)
                     {
                         printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
 
@@ -1181,6 +1171,16 @@ namespace Platform
                             close(); // force close state
 
                         return true;
+                    }
+                    else if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                    {
+                        printf("closed accept socket.\n");
+
+                        signaled = true;
+                        semaphore.release();
+
+                        close(); // force close state
+                        return false;
                     }
                 }
             }
