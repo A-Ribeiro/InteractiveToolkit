@@ -233,33 +233,42 @@ namespace Platform
                     result.path = urlDecode(matches[4].str());
 
                 result.valid = true;
-                
+
                 return result;
             }
         };
 
         static inline std::string resolveHostname(const std::string &hostname_or_ip)
         {
+            SocketUtils::Instance()->InitSockets();
+
             // If it's already an IPv4 address, return as-is
             if (isIPv4Address(hostname_or_ip))
                 return hostname_or_ip;
 
-            // Use gethostbyname to resolve hostname to IP
-            struct hostent *host = gethostbyname(hostname_or_ip.c_str());
-            if (host == nullptr)
+            // Use getaddrinfo (modern, cross-platform API that works on both Windows and Linux)
+            struct addrinfo hints = {0};
+            hints.ai_family = AF_INET; // IPv4
+            hints.ai_socktype = SOCK_STREAM;
+
+            struct addrinfo *result = nullptr;
+            int status = getaddrinfo(hostname_or_ip.c_str(), nullptr, &hints, &result);
+
+            if (status != 0 || result == nullptr)
             {
                 printf("Failed to resolve hostname: %s\n", hostname_or_ip.c_str());
+                if (result != nullptr)
+                    freeaddrinfo(result);
                 return "";
             }
 
-            // Convert to dotted decimal notation
-            struct in_addr **addr_list = (struct in_addr **)host->h_addr_list;
-            if (addr_list[0] != nullptr)
-            {
-                return inet_ntoa(*addr_list[0]);
-            }
+            // Extract IP address from the first result
+            std::string ip_address;
+            struct sockaddr_in *sockaddr_ipv4 = (struct sockaddr_in *)result->ai_addr;
+            ip_address = inet_ntoa(sockaddr_ipv4->sin_addr);
 
-            return "";
+            freeaddrinfo(result);
+            return ip_address;
         }
     }
 }
