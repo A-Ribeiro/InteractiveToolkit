@@ -473,7 +473,7 @@ namespace Platform
                     printf("send write 0 bytes (connection closed)...\n");
                     signaled = true;
 
-                    close(); // force close state
+                    SocketTCP::close(); // force close state
 
                     return false;
                 }
@@ -607,7 +607,7 @@ namespace Platform
                                     printf("(connection closed with reading data!!!)...\n");
                                     signaled = true;
 
-                                    close(); // force close state
+                                    SocketTCP::close(); // force close state
 
                                     return true;
                                 }
@@ -618,7 +618,7 @@ namespace Platform
                                 printf("recv read 0 bytes (connection closed)...\n");
                                 signaled = true;
 
-                                close(); // force close state
+                                SocketTCP::close(); // force close state
 
                                 return false;
                             }
@@ -683,7 +683,7 @@ namespace Platform
                         printf("recv read 0 bytes (connection closed)...\n");
                         signaled = true;
 
-                        close(); // force close state
+                        SocketTCP::close(); // force close state
 
                         return false;
                     }
@@ -738,7 +738,7 @@ namespace Platform
                 printf("recv read 0 bytes (connection closed)...\n");
                 signaled = true;
 
-                close(); // force close state
+                SocketTCP::close(); // force close state
 
                 return false;
             }
