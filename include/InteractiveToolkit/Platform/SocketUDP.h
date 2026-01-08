@@ -8,6 +8,8 @@
 #include "AutoLock.h"
 #include "Core/NetworkConstants.h"
 #include "Core/SocketUtils.h"
+#include "Core/SocketTools.h"
+
 
 namespace Platform
 {
@@ -247,7 +249,7 @@ namespace Platform
 
             struct ip_mreq mreq;
 
-            mreq.imr_interface.s_addr = SocketUtils::ipv4_address_to_nl(interface_address_ip);
+            mreq.imr_interface.s_addr = SocketTools::ipv4_address_to_nl(interface_address_ip);
             mreq.imr_multiaddr.s_addr = inet_addr(multicast_address_ip.c_str());
 
             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) == -1)
@@ -268,7 +270,7 @@ namespace Platform
 
             struct ip_mreq mreq;
 
-            mreq.imr_interface.s_addr = SocketUtils::ipv4_address_to_nl(interface_address_ip);
+            mreq.imr_interface.s_addr = SocketTools::ipv4_address_to_nl(interface_address_ip);
             mreq.imr_multiaddr.s_addr = inet_addr(multicast_address_ip.c_str());
 
             if (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(struct ip_mreq)) == -1)
@@ -311,7 +313,7 @@ namespace Platform
             ITK_ABORT(this->fd == ITK_INVALID_SOCKET, "Socket not initialized.\n");
 
             addr_in.sin_family = AF_INET;
-            addr_in.sin_addr.s_addr = SocketUtils::ipv4_address_to_nl(address_ip);
+            addr_in.sin_addr.s_addr = SocketTools::ipv4_address_to_nl(address_ip);
             addr_in.sin_port = htons(port);
 
             if (::bind(fd, (struct sockaddr *)&addr_in, sizeof(struct sockaddr_in)) == -1)

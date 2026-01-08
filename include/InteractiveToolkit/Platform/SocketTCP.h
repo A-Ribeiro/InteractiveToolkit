@@ -8,6 +8,7 @@
 #include "AutoLock.h"
 #include "Core/NetworkConstants.h"
 #include "Core/SocketUtils.h"
+#include "Core/SocketTools.h"
 
 namespace TLS
 {

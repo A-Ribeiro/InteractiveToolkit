@@ -193,30 +193,6 @@ namespace Platform
 #endif
         }
 
-        static uint32_t ipv4_address_to_nl(const std::string &ip_address)
-        {
-            uint32_t result;
-
-            if (ip_address.size() == 0 || ip_address.compare("INADDR_ANY") == 0)
-                result = htonl(INADDR_ANY);
-            else if (ip_address.compare("INADDR_LOOPBACK") == 0)
-                result = htonl(INADDR_LOOPBACK);
-            else
-                result = inet_addr(ip_address.c_str());
-
-            return result;
-        }
-
-        static struct sockaddr_in mountAddress(const std::string &ip = "127.0.0.1", uint16_t port = NetworkConstants::PUBLIC_PORT_START)
-        {
-            struct sockaddr_in result = {0};
-
-            result.sin_family = AF_INET;
-            result.sin_addr.s_addr = SocketUtils::ipv4_address_to_nl(ip);
-            result.sin_port = htons(port);
-
-            return result;
-        }
     };
 
 }
