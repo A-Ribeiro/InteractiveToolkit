@@ -1,11 +1,25 @@
 #pragma once
 
-#include <InteractiveToolkit/Platform/Core/SocketUtils.h>
+#include "../../common.h"
+
+#include "SocketUtils.h"
 
 #include <regex>
 
+#if defined(_WIN32)
+
+// #elif defined(__linux__) || defined(__APPLE__)
+#else
+
 #include <netdb.h>
 #include <arpa/inet.h>
+
+#endif
+
+#if defined(_WIN32)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
 
 namespace Platform
 {
@@ -249,3 +263,7 @@ namespace Platform
         }
     }
 }
+
+#if defined(_WIN32)
+#pragma warning(pop)
+#endif

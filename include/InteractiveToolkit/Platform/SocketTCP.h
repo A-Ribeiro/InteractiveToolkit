@@ -66,13 +66,13 @@ namespace Platform
             {
                 struct timeval timeout;
                 socklen_t len = sizeof(struct timeval);
-                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, &len) == 0)
+                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, &len) == 0)
                     read_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
             }
             {
                 struct timeval timeout;
                 socklen_t len = sizeof(struct timeval);
-                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, &len) == 0)
+                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, &len) == 0)
                     write_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
             }
 
@@ -229,13 +229,13 @@ namespace Platform
             {
                 struct timeval timeout;
                 socklen_t len = sizeof(struct timeval);
-                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, &len) == 0)
+                if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, &len) == 0)
                     read_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
             }
             {
                 struct timeval timeout;
                 socklen_t len = sizeof(struct timeval);
-                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, &len) == 0)
+                if (getsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, &len) == 0)
                     write_timeout_ms = timeout.tv_sec * 1000 + timeout.tv_usec / 1000;
             }
 
