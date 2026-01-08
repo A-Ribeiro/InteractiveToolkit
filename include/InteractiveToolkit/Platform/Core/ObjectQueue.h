@@ -37,7 +37,7 @@ namespace Platform
         ObjectQueue(const ObjectQueue &v) = delete;
         ObjectQueue &operator=(const ObjectQueue &v) = delete;
 
-        ObjectQueue(bool blocking = true)  noexcept : semaphore(0)
+        ObjectQueue(bool blocking = true) noexcept : semaphore(0)
         {
             this->blocking = blocking;
             order = QueueOrder::None;
@@ -202,18 +202,27 @@ namespace Platform
             return result;
         }
 
-        T dequeue(bool *isSignaled = nullptr, bool ignoreSignal = false)
+        // @param isSignaled_or_ValueNotReaded if not null, will be set to true if the queue is signaled (in blocking mode) or if there is no value to read (in non-blocking mode)
+        // @param ignoreSignal if true, will ignore the signaled state of the queue (only in blocking mode)
+        T dequeue(bool *isSignaled_or_ValueNotReaded = nullptr, bool ignoreSignal = false)
         {
             if (blocking)
             {
                 if (!semaphore.blockingAcquire() && !ignoreSignal)
                 {
-                    if (isSignaled != nullptr)
-                        *isSignaled = true;
+                    if (isSignaled_or_ValueNotReaded != nullptr)
+                        *isSignaled_or_ValueNotReaded = true;
                     return T();
                 }
 
                 Platform::AutoLock autoLock(&mutex);
+
+                if (ignoreSignal && queue.size() == 0)
+                {
+                    if (isSignaled_or_ValueNotReaded != nullptr)
+                        *isSignaled_or_ValueNotReaded = true;
+                    return T();
+                }
 
                 ITK_ABORT(queue.size() == 0,
                           "Trying to dequeue an element from an empty queue.\n");
@@ -221,8 +230,8 @@ namespace Platform
                 T result = queue.front();
                 queue.pop_front();
 
-                if (isSignaled != nullptr)
-                    *isSignaled = false;
+                if (isSignaled_or_ValueNotReaded != nullptr)
+                    *isSignaled_or_ValueNotReaded = false;
                 return result;
             }
 
@@ -230,32 +239,41 @@ namespace Platform
 
             if (queue.size() == 0)
             {
-                if (isSignaled != nullptr)
-                    *isSignaled = false;
+                if (isSignaled_or_ValueNotReaded != nullptr)
+                    *isSignaled_or_ValueNotReaded = true;
                 return T();
             }
 
             T result = queue.front();
             queue.pop_front();
 
-            if (isSignaled != nullptr)
-                *isSignaled = false;
+            if (isSignaled_or_ValueNotReaded != nullptr)
+                *isSignaled_or_ValueNotReaded = false;
 
             return result;
         }
 
-        T rdequeue(bool *isSignaled = nullptr, bool ignoreSignal = false)
+        // @param isSignaled_or_ValueNotReaded if not null, will be set to true if the queue is signaled (in blocking mode) or if there is no value to read (in non-blocking mode)
+        // @param ignoreSignal if true, will ignore the signaled state of the queue (only in blocking mode)
+        T rdequeue(bool *isSignaled_or_ValueNotReaded = nullptr, bool ignoreSignal = false)
         {
             if (blocking)
             {
                 if (!semaphore.blockingAcquire() && !ignoreSignal)
                 {
-                    if (isSignaled != nullptr)
-                        *isSignaled = true;
+                    if (isSignaled_or_ValueNotReaded != nullptr)
+                        *isSignaled_or_ValueNotReaded = true;
                     return T();
                 }
 
                 Platform::AutoLock autoLock(&mutex);
+
+                if (ignoreSignal && queue.size() == 0)
+                {
+                    if (isSignaled_or_ValueNotReaded != nullptr)
+                        *isSignaled_or_ValueNotReaded = true;
+                    return T();
+                }
 
                 ITK_ABORT(queue.size() == 0,
                           "Trying to rdequeue an element from an empty queue.\n");
@@ -263,24 +281,24 @@ namespace Platform
                 T result = queue.back();
                 queue.pop_back();
 
-                if (isSignaled != nullptr)
-                    *isSignaled = false;
+                if (isSignaled_or_ValueNotReaded != nullptr)
+                    *isSignaled_or_ValueNotReaded = false;
                 return result;
             }
 
             Platform::AutoLock autoLock(&mutex);
             if (queue.size() == 0)
             {
-                if (isSignaled != nullptr)
-                    *isSignaled = false;
+                if (isSignaled_or_ValueNotReaded != nullptr)
+                    *isSignaled_or_ValueNotReaded = true;
                 return T();
             }
 
             T result = queue.back();
             queue.pop_back();
 
-            if (isSignaled != nullptr)
-                *isSignaled = false;
+            if (isSignaled_or_ValueNotReaded != nullptr)
+                *isSignaled_or_ValueNotReaded = false;
             return result;
         }
 
