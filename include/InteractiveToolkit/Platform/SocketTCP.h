@@ -413,7 +413,7 @@ namespace Platform
         Platform::Semaphore write_semaphore; // used to write complex data
 
         // this write is blocking...
-        virtual SocketResult write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
+        virtual SocketResult write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr, bool block_until_write_size = false)
         {
             write_timedout = false;
 
@@ -497,6 +497,13 @@ namespace Platform
 
                     // signaled = true;
                     // return false;
+
+                    if (block_until_write_size)
+                    {
+                        Platform::Sleep::millis(1); // avoid busy wait
+                        continue;
+                    }
+
                     return SOCKET_RESULT_WOULD_BLOCK;
                     // continue;
                 }
@@ -517,7 +524,7 @@ namespace Platform
         }
 
         // this read is blocking...
-        virtual SocketResult read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
+        virtual SocketResult read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool block_until_read_size = false)
         {
             read_timedout = false;
 
@@ -536,7 +543,7 @@ namespace Platform
 
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
-            while (current_pos < size && (only_returns_if_match_exact_size || current_pos == 0))
+            while (current_pos < size && (block_until_read_size || current_pos == 0))
             {
 
 #if defined(_WIN32)
@@ -641,6 +648,11 @@ namespace Platform
 
                                 // if (read_feedback != nullptr)
                                 //     *read_feedback = 0;
+                                if (block_until_read_size)
+                                {
+                                    Platform::Sleep::millis(1); // avoid busy wait
+                                    continue;
+                                }
                                 return SOCKET_RESULT_WOULD_BLOCK;
                                 // continue;
                             }
@@ -709,6 +721,11 @@ namespace Platform
 
                         // if (read_feedback != nullptr)
                         //     *read_feedback = 0;
+                        if (block_until_read_size)
+                        {
+                            Platform::Sleep::millis(1); // avoid busy wait
+                            continue;
+                        }
                         return SOCKET_RESULT_WOULD_BLOCK;
                         // continue;
                     }
