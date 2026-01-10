@@ -634,7 +634,7 @@ namespace Platform
 
                                 SocketTCP::close(); // force close state
 
-                                return SOCKET_RESULT_ERROR_CLOSED;
+                                return SOCKET_RESULT_CLOSED;
                             }
                             else if (WSAGetLastError() == WSAEWOULDBLOCK)
                             {
