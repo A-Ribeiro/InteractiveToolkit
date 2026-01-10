@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "../platform_common.h"
+// #include "../platform_common.h"
 #include "../../common.h"
 #include "../Mutex.h"
 #include "../Semaphore.h"
@@ -22,9 +22,22 @@
 #define ITK_SOCKET_SSIZE_T ssize_t
 #endif
 
-
 namespace Platform
 {
+    enum SocketResult
+    {
+        SOCKET_RESULT_WOULD_BLOCK = -5,
+        SOCKET_RESULT_TIMEOUT = -4,
+        SOCKET_RESULT_CLOSED = -3,
+
+        SOCKET_RESULT_ERROR_INTERRUPTED = -2,
+        SOCKET_RESULT_ERROR = -1,
+
+        SOCKET_RESULT_OK = 0,
+
+    };
+
+#define SOCKET_RESULT_IS_SUCCESS(x) ((x) >= 0)
 
     // Class used in windows to initialize and finalize sockets
     class SocketUtils
@@ -192,7 +205,6 @@ namespace Platform
             return (fcntl(fd, F_SETFL, flags) == 0) ? true : false;
 #endif
         }
-
     };
 
 }

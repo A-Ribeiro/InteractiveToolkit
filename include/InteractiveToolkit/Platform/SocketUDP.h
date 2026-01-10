@@ -33,6 +33,9 @@ namespace Platform
 
         struct sockaddr_in addr_in;
 
+        bool read_timedout;
+        bool write_timedout;
+
         Platform::Mutex mutex;
 
 #if defined(_WIN32)
@@ -79,12 +82,25 @@ namespace Platform
                 "WSAEventSelect error. %s",
                 SocketUtils::getLastSocketErrorMessage().c_str());
 #endif
+
+            read_timedout = false;
+            write_timedout = false;
         }
 
     public:
         // deleted copy constructor and assign operator, to avoid copy...
         SocketUDP(const SocketUDP &v) = delete;
         SocketUDP &operator=(const SocketUDP &v) = delete;
+
+        bool isReadTimedout() const
+        {
+            return read_timedout;
+        }
+
+        bool isWriteTimedout() const
+        {
+            return write_timedout;
+        }
 
         bool isSignaled() const
         {
@@ -333,17 +349,18 @@ namespace Platform
             return true;
         }
 
-        bool write_buffer(
+        SocketResult write_buffer(
             const struct sockaddr_in &target_address,
             const uint8_t *data, uint32_t size,
             uint32_t *write_feedback = nullptr)
         {
+            write_timedout = false;
 
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
                 if (write_feedback != nullptr)
                     *write_feedback = 0;
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
 
             ITK_SOCKET_SSIZE_T iResult = ::sendto(
@@ -359,7 +376,7 @@ namespace Platform
                 if (write_feedback != nullptr)
                     *write_feedback = static_cast<uint32_t>(iResult);
 
-                return true;
+                return SOCKET_RESULT_OK;
             }
             else
             {
@@ -376,7 +393,18 @@ namespace Platform
                     // non-blocking socket event
                     if (write_feedback != nullptr)
                         *write_feedback = 0;
-                    return false;
+
+#if defined(_WIN32)
+                    if (iResult == SOCKET_ERROR)
+#else
+                    if (iResult == -1)
+#endif
+                    {
+                        write_timedout = true;
+                        return SOCKET_RESULT_TIMEOUT;
+                    }
+
+                    return SOCKET_RESULT_WOULD_BLOCK;
                 }
                 else
                 {
@@ -384,21 +412,22 @@ namespace Platform
                     printf("sendto failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                     if (write_feedback != nullptr)
                         *write_feedback = 0;
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
 
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
         }
 
-        bool read_buffer(struct sockaddr_in *source_address, uint8_t *data, uint32_t size, uint32_t *read_feedback)
+        SocketResult read_buffer(struct sockaddr_in *source_address, uint8_t *data, uint32_t size, uint32_t *read_feedback)
         {
+            read_timedout = false;
 
             if (isSignaled() || fd == ITK_INVALID_SOCKET)
             {
                 if (read_feedback != nullptr)
                     *read_feedback = 0;
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
 
             if (blocking)
@@ -426,9 +455,10 @@ namespace Platform
 
                 if (dwWaitResult == WAIT_TIMEOUT)
                 {
+                    read_timedout = true;
                     if (read_feedback != nullptr)
                         *read_feedback = 0;
-                    return false;
+                    return SOCKET_RESULT_TIMEOUT;
                 }
                 else
 
@@ -438,7 +468,7 @@ namespace Platform
                         // signaled = true;
                         if (read_feedback != nullptr)
                             *read_feedback = 0;
-                        return false;
+                        return SOCKET_RESULT_ERROR_INTERRUPTED;
                     }
                     else
 
@@ -465,7 +495,7 @@ namespace Platform
                     // signaled = true;
                     currentThread->semaphoreUnLock();
 
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
                 else
                 {
@@ -491,7 +521,7 @@ namespace Platform
                                 if (read_feedback != nullptr)
                                     *read_feedback = static_cast<uint32_t>(iResult);
 
-                                return true;
+                                return SOCKET_RESULT_OK;
                             }
                             else
                             {
@@ -505,10 +535,17 @@ namespace Platform
 #endif
                                     // printf("non block receive skip\n");
 
+                                    if (iResult == -1)
+                                    {
+                                        if (read_feedback != nullptr)
+                                            *read_feedback = 0;
+                                        return SOCKET_RESULT_TIMEOUT;
+                                    }
+
                                     // non-blocking socket event
                                     if (read_feedback != nullptr)
                                         *read_feedback = 0;
-                                    return false;
+                                    return SOCKET_RESULT_WOULD_BLOCK;
                                 }
                                 else
                                 {
@@ -516,12 +553,12 @@ namespace Platform
                                     printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                                     if (read_feedback != nullptr)
                                         *read_feedback = 0;
-                                    return false;
+                                    return SOCKET_RESULT_ERROR;
                                 }
 
                                 if (read_feedback != nullptr)
                                     *read_feedback = 0;
-                                return false;
+                                return SOCKET_RESULT_ERROR;
                             }
 
                             // #if defined(_WIN32)
@@ -547,7 +584,7 @@ namespace Platform
                     if (read_feedback != nullptr)
                         *read_feedback = static_cast<uint32_t>(iResult);
 
-                    return true;
+                    return SOCKET_RESULT_OK;
                 }
                 else
                 {
@@ -564,7 +601,7 @@ namespace Platform
                         // non-blocking socket event
                         if (read_feedback != nullptr)
                             *read_feedback = 0;
-                        return false;
+                        return SOCKET_RESULT_WOULD_BLOCK;
                     }
                     else
                     {
@@ -572,18 +609,18 @@ namespace Platform
                         printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                         if (read_feedback != nullptr)
                             *read_feedback = 0;
-                        return false;
+                        return SOCKET_RESULT_ERROR;
                     }
 
                     if (read_feedback != nullptr)
                         *read_feedback = 0;
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
             }
 
             if (read_feedback != nullptr)
                 *read_feedback = 0;
-            return false;
+            return SOCKET_RESULT_ERROR;
         }
     };
 

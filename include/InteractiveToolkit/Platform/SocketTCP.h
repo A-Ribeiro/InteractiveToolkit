@@ -413,7 +413,7 @@ namespace Platform
         Platform::Semaphore write_semaphore; // used to write complex data
 
         // this write is blocking...
-        virtual bool write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
+        virtual SocketResult write_buffer(const uint8_t *data, uint32_t size, uint32_t *write_feedback = nullptr)
         {
             write_timedout = false;
 
@@ -421,7 +421,7 @@ namespace Platform
             {
                 if (write_feedback != nullptr)
                     *write_feedback = 0;
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
             uint32_t current_pos = 0;
             if (write_feedback != nullptr)
@@ -443,7 +443,7 @@ namespace Platform
                     // signaled = true;
                     currentThread->semaphoreUnLock();
 
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
                 // else
                 // {
@@ -475,7 +475,7 @@ namespace Platform
 
                     SocketTCP::close(); // force close state
 
-                    return false;
+                    return SOCKET_RESULT_CLOSED;
                 }
 #if defined(_WIN32)
                 else if (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -492,12 +492,13 @@ namespace Platform
 #endif
                     {
                         write_timedout = true;
-                        return false;
+                        return SOCKET_RESULT_TIMEOUT;
                     }
 
                     // signaled = true;
                     // return false;
-                    continue;
+                    return SOCKET_RESULT_WOULD_BLOCK;
+                    // continue;
                 }
                 else
                 {
@@ -505,18 +506,18 @@ namespace Platform
                     // some error occured...
                     printf("send failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                     signaled = true;
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
 
                 // #if !defined(_WIN32)
                 //                 }
                 // #endif
             }
-            return true;
+            return SOCKET_RESULT_OK;
         }
 
         // this read is blocking...
-        virtual bool read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
+        virtual SocketResult read_buffer(uint8_t *data, uint32_t size, uint32_t *read_feedback = nullptr, bool only_returns_if_match_exact_size = false)
         {
             read_timedout = false;
 
@@ -524,7 +525,7 @@ namespace Platform
             {
                 if (read_feedback != nullptr)
                     *read_feedback = 0;
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
 
             // printf("Start reading...\n");
@@ -565,7 +566,7 @@ namespace Platform
                     read_timedout = true;
                     // if (read_feedback != nullptr)
                     //     *read_feedback = 0;
-                    return false;
+                    return SOCKET_RESULT_TIMEOUT;
                 }
                 else
 
@@ -575,7 +576,7 @@ namespace Platform
                         // signaled = true;
                         if (read_feedback != nullptr)
                             *read_feedback = 0;
-                        return false;
+                        return SOCKET_RESULT_ERROR_INTERRUPTED;
                     }
                     else
 
@@ -609,7 +610,7 @@ namespace Platform
 
                                     SocketTCP::close(); // force close state
 
-                                    return true;
+                                    return SOCKET_RESULT_OK;
                                 }
                             }
                             else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
@@ -620,7 +621,7 @@ namespace Platform
 
                                 SocketTCP::close(); // force close state
 
-                                return false;
+                                return SOCKET_RESULT_ERROR_CLOSED;
                             }
                             else if (WSAGetLastError() == WSAEWOULDBLOCK)
                             {
@@ -635,17 +636,20 @@ namespace Platform
                                     read_timedout = true;
                                     // if (read_feedback != nullptr)
                                     //     *read_feedback = 0;
-                                    return false;
+                                    return SOCKET_RESULT_TIMEOUT;
                                 }
 
-                                continue;
+                                // if (read_feedback != nullptr)
+                                //     *read_feedback = 0;
+                                return SOCKET_RESULT_WOULD_BLOCK;
+                                // continue;
                             }
                             else
                             {
                                 // some error occured...
                                 printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                                 signaled = true;
-                                return false;
+                                return SOCKET_RESULT_ERROR;
                             }
                         }
 #else
@@ -658,7 +662,7 @@ namespace Platform
                     // signaled = true;
                     currentThread->semaphoreUnLock();
 
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
                 else
                 {
@@ -685,7 +689,7 @@ namespace Platform
 
                         SocketTCP::close(); // force close state
 
-                        return false;
+                        return SOCKET_RESULT_CLOSED;
                     }
                     else if (errno == EWOULDBLOCK || errno == EAGAIN)
                     {
@@ -700,29 +704,33 @@ namespace Platform
                             read_timedout = true;
                             // if (read_feedback != nullptr)
                             //     *read_feedback = 0;
-                            return false;
+                            return SOCKET_RESULT_TIMEOUT;
                         }
-                        continue;
+
+                        // if (read_feedback != nullptr)
+                        //     *read_feedback = 0;
+                        return SOCKET_RESULT_WOULD_BLOCK;
+                        // continue;
                     }
                     else
                     {
                         // some error occured...
                         printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                         signaled = true;
-                        return false;
+                        return SOCKET_RESULT_ERROR;
                     }
                 }
 
 #endif
             }
 
-            return true;
+            return SOCKET_RESULT_OK;
         }
 
-        bool read_uint8(uint8_t *v, bool blocking = true)
+        SocketResult read_uint8(uint8_t *v, bool blocking = true)
         {
             if (signaled || fd == ITK_INVALID_SOCKET)
-                return false;
+                return SOCKET_RESULT_ERROR;
             if (blocking)
                 return read_buffer(v, 1);
 
@@ -731,7 +739,7 @@ namespace Platform
             if (iResult == 1)
             {
                 recv(fd, (char *)v, 1, 0);
-                return true;
+                return SOCKET_RESULT_OK;
             }
             else if (iResult == 0)
             {
@@ -740,7 +748,7 @@ namespace Platform
 
                 SocketTCP::close(); // force close state
 
-                return false;
+                return SOCKET_RESULT_CLOSED;
             }
 #if defined(_WIN32)
             else if (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -749,17 +757,17 @@ namespace Platform
 #endif
             {
                 // non-blocking result
-                return false;
+                return SOCKET_RESULT_WOULD_BLOCK;
             }
             else
             {
                 // some error occured...
                 printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                 signaled = true;
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
 
-            return false;
+            return SOCKET_RESULT_ERROR;
         }
 
         bool isReadTimedout() const
@@ -1074,11 +1082,11 @@ namespace Platform
             return true;
         }
 
-        bool accept(SocketTCP *result)
+        SocketResult accept(SocketTCP *result)
         {
 
             if (blocking && !semaphore.blockingAcquire())
-                return false;
+                return SOCKET_RESULT_ERROR;
 
             if (!listen || fd == ITK_INVALID_SOCKET)
             {
@@ -1086,7 +1094,7 @@ namespace Platform
                 if (blocking)
                     semaphore.release();
 
-                return false;
+                return SOCKET_RESULT_ERROR;
             }
 
 #if defined(_WIN32)
@@ -1116,7 +1124,7 @@ namespace Platform
                 {
                     // signaled = true;
                     semaphore.release();
-                    return false;
+                    return SOCKET_RESULT_ERROR_INTERRUPTED;
                 }
 
                 // true if the socket is signaled (might have the interrupt or not...)
@@ -1153,7 +1161,7 @@ namespace Platform
 
                         // signaled = true;
                         semaphore.release();
-                        return false;
+                        return SOCKET_RESULT_ERROR;
                     }
                     else if (NetworkEvents.lNetworkEvents & FD_ACCEPT)
                     {
@@ -1171,7 +1179,7 @@ namespace Platform
                         if (NetworkEvents.lNetworkEvents & FD_CLOSE)
                             close(); // force close state
 
-                        return true;
+                        return SOCKET_RESULT_OK;
                     }
                     else if (NetworkEvents.lNetworkEvents & FD_CLOSE)
                     {
@@ -1181,7 +1189,7 @@ namespace Platform
                         semaphore.release();
 
                         close(); // force close state
-                        return false;
+                        return SOCKET_RESULT_CLOSED;
                     }
                 }
             }
@@ -1199,18 +1207,18 @@ namespace Platform
                     // valid client socket
                     result->initializeWithNewConnection(client_sockfd, client_addr);
 
-                    return true;
+                    return SOCKET_RESULT_OK;
                 }
                 else if (WSAGetLastError() == WSAEWOULDBLOCK)
                 {
                     // non-block result without any connection
 
-                    return false;
+                    return SOCKET_RESULT_WOULD_BLOCK;
                 }
                 else
                 {
                     printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
             }
 #else
@@ -1230,7 +1238,7 @@ namespace Platform
                     // signaled = true;
                     currentThread->semaphoreUnLock();
                     semaphore.release();
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
                 else
                 {
@@ -1246,19 +1254,19 @@ namespace Platform
                         // valid client socket
                         result->initializeWithNewConnection(client_sockfd, client_addr);
                         semaphore.release();
-                        return true;
+                        return SOCKET_RESULT_OK;
                     }
                     else if (errno == EWOULDBLOCK || errno == EAGAIN)
                     {
                         // non-block result without any connection
                         semaphore.release();
-                        return false;
+                        return SOCKET_RESULT_WOULD_BLOCK;
                     }
                     else
                     {
                         printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                         semaphore.release();
-                        return false;
+                        return SOCKET_RESULT_ERROR;
                     }
                 }
             }
@@ -1274,17 +1282,17 @@ namespace Platform
                 {
                     // valid client socket
                     result->initializeWithNewConnection(client_sockfd, client_addr);
-                    return true;
+                    return SOCKET_RESULT_OK;
                 }
                 else if (errno == EWOULDBLOCK || errno == EAGAIN)
                 {
                     // non-block result without any connection
-                    return false;
+                    return SOCKET_RESULT_WOULD_BLOCK;
                 }
                 else
                 {
                     printf("accept failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                    return false;
+                    return SOCKET_RESULT_ERROR;
                 }
             }
 
@@ -1293,7 +1301,7 @@ namespace Platform
             if (blocking)
                 semaphore.release();
 
-            return false;
+            return SOCKET_RESULT_ERROR;
         }
 
         bool isSignaled()
