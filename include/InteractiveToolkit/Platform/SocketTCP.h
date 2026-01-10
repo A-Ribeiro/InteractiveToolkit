@@ -426,6 +426,9 @@ namespace Platform
             uint32_t current_pos = 0;
             if (write_feedback != nullptr)
                 *write_feedback = current_pos;
+            
+            if (size == 0)
+                return SOCKET_RESULT_OK;
 
 #if !defined(_WIN32)
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
@@ -540,6 +543,9 @@ namespace Platform
             uint32_t current_pos = 0;
             if (read_feedback != nullptr)
                 *read_feedback = current_pos;
+            
+            if (size == 0)
+                return SOCKET_RESULT_OK;
 
             Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
