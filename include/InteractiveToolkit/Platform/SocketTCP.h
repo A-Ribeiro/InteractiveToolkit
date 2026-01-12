@@ -563,99 +563,43 @@ namespace Platform
             while (current_pos < size && (block_until_read_size || current_pos == 0))
             {
 
-#if defined(_WIN32)
-                bool break_continue = false;
-                while (true) // spurious wakeup loop
+                if (is_blocking)
                 {
-                    DWORD dwWaitResult;
-                    HANDLE handles_threadInterrupt_sem[2] = {
-                        wsa_read_event,                         // WAIT_OBJECT_0 + 0
-                        currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
-                    };
 
-                    DWORD dwWaitTime = INFINITE;
-
-                    if (read_timeout_ms != 0)
-                        dwWaitTime = read_timeout_ms;
-
-                    // printf("dwWaitResult = WaitForMultipleObjects\n");
-                    dwWaitResult = WaitForMultipleObjects(
-                        2,                           // number of handles in array
-                        handles_threadInterrupt_sem, // array of thread handles
-                        FALSE,                       // wait until all are signaled
-                        dwWaitTime                   // INFINITE //INFINITE
-                    );
-                    // printf("done\n");
-
-                    if (dwWaitResult == WAIT_TIMEOUT)
+#if defined(_WIN32)
+                    bool break_continue = false;
+                    while (true) // spurious wakeup loop
                     {
-                        // signaled = true;
-                        read_timedout = true;
-                        // if (read_feedback != nullptr)
-                        //     *read_feedback = 0;
-                        return SOCKET_RESULT_TIMEOUT;
-                    }
-                    else if (dwWaitResult == WAIT_OBJECT_0 + 1) // true if the interrupt is signaled (and only the interrupt...)
-                    {
-                        // signaled = true;
-                        if (read_feedback != nullptr)
-                            *read_feedback = 0;
-                        return SOCKET_RESULT_ERROR_INTERRUPTED;
-                    }
-                    else if (dwWaitResult == WAIT_OBJECT_0 + 0) // true if the socket is signaled (might have the interrupt or not...)
-                    {
+                        DWORD dwWaitResult;
+                        HANDLE handles_threadInterrupt_sem[2] = {
+                            wsa_read_event,                         // WAIT_OBJECT_0 + 0
+                            currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
+                        };
 
-                        WSANETWORKEVENTS NetworkEvents = {0};
-                        // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
-                        // if (nReturnCode==WSA_WAIT_FAILED)
-                        // throw MyException("WSA__WAIT_FAILED.\n");
-                        ITK_ABORT(
-                            WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
-                            "WSAEnumNetworkEvents error. %s",
-                            SocketUtils::getLastSocketErrorMessage().c_str());
+                        DWORD dwWaitTime = INFINITE;
 
-                        if (!(NetworkEvents.lNetworkEvents & (FD_READ | FD_CLOSE)))
+                        if (read_timeout_ms != 0)
+                            dwWaitTime = read_timeout_ms;
+
+                        if (!is_blocking)
+                            dwWaitTime = 0;
+
+                        // printf("dwWaitResult = WaitForMultipleObjects\n");
+                        dwWaitResult = WaitForMultipleObjects(
+                            2,                           // number of handles in array
+                            handles_threadInterrupt_sem, // array of thread handles
+                            FALSE,                       // wait until all are signaled
+                            dwWaitTime                   // INFINITE //INFINITE
+                        );
+                        // printf("done\n");
+
+                        if (dwWaitResult == WAIT_TIMEOUT)
                         {
-                            // Spurious wakeup
-                            // printf("[Spurious Wakeup] recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                            // if (read_feedback != nullptr)
-                            //     *read_feedback = 0;
-                            // return SOCKET_RESULT_ERROR;
-                            continue; // retry
-                        }
-
-                        // read event...
-                        int iResult = recv(fd, (char *)&data[current_pos], size - current_pos, 0);
-                        if (iResult > 0 && (NetworkEvents.lNetworkEvents & FD_READ))
-                        {
-                            // received some quantity of bytes...
-                            current_pos += iResult;
-                            if (read_feedback != nullptr)
-                                *read_feedback = current_pos;
-
-                            if (NetworkEvents.lNetworkEvents & FD_CLOSE)
-                            {
-                                // close connection
-                                printf("(connection closed with reading data!!!)...\n");
-                                signaled = true;
-
-                                SocketTCP::close(); // force close state
-
-                                return SOCKET_RESULT_OK;
-                            }
-                        }
-                        else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
-                        {
-                            // close connection
-                            printf("recv read 0 bytes (connection closed)...\n");
-                            signaled = true;
-
-                            SocketTCP::close(); // force close state
-
-                            return SOCKET_RESULT_CLOSED;
-                        }
-                        else if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
-                        {
+                            //// signaled = true;
+                            // read_timedout = true;
+                            //// if (read_feedback != nullptr)
+                            ////     *read_feedback = 0;
+                            // return SOCKET_RESULT_TIMEOUT;
 
                             if (block_until_read_size)
                             {
@@ -672,6 +616,156 @@ namespace Platform
 
                             return SOCKET_RESULT_WOULD_BLOCK;
                         }
+                        else if (dwWaitResult == WAIT_OBJECT_0 + 1) // true if the interrupt is signaled (and only the interrupt...)
+                        {
+                            // signaled = true;
+                            if (read_feedback != nullptr)
+                                *read_feedback = 0;
+                            return SOCKET_RESULT_ERROR_INTERRUPTED;
+                        }
+                        else if (dwWaitResult == WAIT_OBJECT_0 + 0) // true if the socket is signaled (might have the interrupt or not...)
+                        {
+
+                            WSANETWORKEVENTS NetworkEvents = {0};
+                            // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
+                            // if (nReturnCode==WSA_WAIT_FAILED)
+                            // throw MyException("WSA__WAIT_FAILED.\n");
+                            ITK_ABORT(
+                                WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
+                                "WSAEnumNetworkEvents error. %s",
+                                SocketUtils::getLastSocketErrorMessage().c_str());
+
+                            if (!(NetworkEvents.lNetworkEvents & (FD_READ | FD_CLOSE)))
+                            {
+                                // Spurious wakeup
+                                // printf("[Spurious Wakeup] recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                                // if (read_feedback != nullptr)
+                                //     *read_feedback = 0;
+                                // return SOCKET_RESULT_ERROR;
+                                continue; // retry
+                            }
+
+                            // read event...
+                            int iResult = recv(fd, (char *)&data[current_pos], size - current_pos, 0);
+                            if (iResult > 0 && (NetworkEvents.lNetworkEvents & FD_READ))
+                            {
+                                // received some quantity of bytes...
+                                current_pos += iResult;
+                                if (read_feedback != nullptr)
+                                    *read_feedback = current_pos;
+
+                                if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                                {
+                                    // close connection
+                                    printf("(connection closed with reading data!!!)...\n");
+                                    signaled = true;
+
+                                    SocketTCP::close(); // force close state
+
+                                    return SOCKET_RESULT_OK;
+                                }
+                            }
+                            else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
+                            {
+                                // close connection
+                                printf("recv read 0 bytes (connection closed)...\n");
+                                signaled = true;
+
+                                SocketTCP::close(); // force close state
+
+                                return SOCKET_RESULT_CLOSED;
+                            }
+                            else if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+                            {
+
+                                if (block_until_read_size)
+                                {
+                                    Platform::Sleep::millis(1); // avoid busy wait
+                                    break_continue = true;
+                                    break;
+                                }
+
+                                if (is_blocking)
+                                {
+                                    read_timedout = true;
+                                    return SOCKET_RESULT_TIMEOUT;
+                                }
+
+                                return SOCKET_RESULT_WOULD_BLOCK;
+                            }
+                            else
+                            {
+                                // some error occured...
+                                printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                                signaled = true;
+                                return SOCKET_RESULT_ERROR;
+                            }
+
+                        } // if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                        break; // spurious wakeup loop
+                    }
+
+                    if (break_continue)
+                        continue;
+
+#else
+
+                    // force count the socket as a semaphore
+                    //  per thread signal logic
+                    currentThread->semaphoreLock();
+                    if (isSignaled())
+                    {
+                        // signaled = true;
+                        currentThread->semaphoreUnLock();
+
+                        return SOCKET_RESULT_ERROR;
+                    }
+                    else
+                    {
+                        currentThread->semaphoreWaitBegin(nullptr);
+                        currentThread->semaphoreUnLock();
+
+                        ssize_t iResult = recv(fd, (char *)&data[current_pos],
+                                               static_cast<ssize_t>(size - current_pos), 0);
+
+                        // Save errno immediately to prevent it from being overwritten
+                        int saved_errno = errno;
+
+                        currentThread->semaphoreWaitDone(nullptr);
+
+                        if (iResult > 0)
+                        {
+                            // received some quantity of bytes...
+                            current_pos += static_cast<uint32_t>(iResult);
+                            if (read_feedback != nullptr)
+                                *read_feedback = current_pos;
+                        }
+                        else if (iResult == 0)
+                        {
+                            // close connection
+                            printf("recv read 0 bytes (connection closed)...\n");
+                            signaled = true;
+
+                            SocketTCP::close(); // force close state
+
+                            return SOCKET_RESULT_CLOSED;
+                        }
+                        else if (iResult == -1 && (saved_errno == EWOULDBLOCK || saved_errno == EAGAIN))
+                        {
+                            // Non-blocking socket would block
+                            if (block_until_read_size)
+                            {
+                                Platform::Sleep::millis(1); // avoid busy wait
+                                continue;
+                            }
+                            if (is_blocking)
+                            {
+                                // timeout
+                                read_timedout = true;
+                                return SOCKET_RESULT_TIMEOUT;
+                            }
+                            return SOCKET_RESULT_WOULD_BLOCK;
+                        }
                         else
                         {
                             // some error occured...
@@ -679,39 +773,20 @@ namespace Platform
                             signaled = true;
                             return SOCKET_RESULT_ERROR;
                         }
+                    }
 
-                    } // if (dwWaitResult == WAIT_OBJECT_0 + 0)
-                    break; // spurious wakeup loop
-                }
-
-                if (break_continue)
-                    continue;
-
-#else
-
-                // force count the socket as a semaphore
-                //  per thread signal logic
-                currentThread->semaphoreLock();
-                if (isSignaled())
-                {
-                    // signaled = true;
-                    currentThread->semaphoreUnLock();
-
-                    return SOCKET_RESULT_ERROR;
-                }
+#endif
+                } // is blocking
                 else
                 {
-                    currentThread->semaphoreWaitBegin(nullptr);
-                    currentThread->semaphoreUnLock();
+                    // non-blocking code
+                    ITK_SOCKET_SSIZE_T iResult = recv(fd, (char *)&data[current_pos],
+                                                      static_cast<ITK_SOCKET_SSIZE_T>(size - current_pos), 0);
 
-                    ssize_t iResult = recv(fd, (char *)&data[current_pos],
-                                           static_cast<ssize_t>(size - current_pos), 0);
-
+#if !defined(_WIN32)
                     // Save errno immediately to prevent it from being overwritten
                     int saved_errno = errno;
-
-                    currentThread->semaphoreWaitDone(nullptr);
-
+#endif
                     if (iResult > 0)
                     {
                         // received some quantity of bytes...
@@ -729,7 +804,11 @@ namespace Platform
 
                         return SOCKET_RESULT_CLOSED;
                     }
+#if defined(_WIN32)
+                    else if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+#else
                     else if (iResult == -1 && (saved_errno == EWOULDBLOCK || saved_errno == EAGAIN))
+#endif
                     {
                         // Non-blocking socket would block
                         if (block_until_read_size)
@@ -752,9 +831,7 @@ namespace Platform
                         signaled = true;
                         return SOCKET_RESULT_ERROR;
                     }
-                }
-
-#endif
+                } // non-blocking code
             }
 
             return SOCKET_RESULT_OK;
