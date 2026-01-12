@@ -13,7 +13,9 @@ namespace AlgorithmCore
             int test_limit = input_size - pattern_size;
             for (int i = start_input; i <= test_limit; i++)
             {
-                if (memcmp(&input[i], pattern, pattern_size) == 0)
+                if (input[i] == pattern[0] &&
+                    input[i + pattern_size - 1] == pattern[pattern_size - 1] &&
+                    memcmp(&input[i], pattern, pattern_size) == 0)
                     return i;
             }
             return input_size;
