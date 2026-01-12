@@ -298,78 +298,75 @@ namespace Platform
                 {
                     connected = false;
                 }
-                else
-                    // true if the interrupt is signaled (and only the interrupt...)
-                    if (dwWaitResult == WAIT_OBJECT_0 + 1)
+                else if (dwWaitResult == WAIT_OBJECT_0 + 1) // true if the interrupt is signaled (and only the interrupt...)
+                {
+                    connected = false;
+                }
+                else if (dwWaitResult == WAIT_OBJECT_0 + 0) // true if the socket is signaled (might have the interrupt or not...)
+                {
+
+                    WSANETWORKEVENTS NetworkEvents = {0};
+                    // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
+                    // if (nReturnCode==WSA_WAIT_FAILED)
+                    // throw MyException("WSA__WAIT_FAILED.\n");
+                    ITK_ABORT(
+                        WSAEnumNetworkEvents(fd, wsa_connect_event, &NetworkEvents) == SOCKET_ERROR,
+                        "WSAEnumNetworkEvents error. %s",
+                        SocketUtils::getLastSocketErrorMessage().c_str());
+
+                    if (!(NetworkEvents.lNetworkEvents & (FD_CONNECT | FD_CLOSE)))
+                    {
+                        // Spurious wakeup
+                        // printf("[Spurious Wakeup] connect failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                        // connected = false;
+                        continue;
+                    }
+                    else if (NetworkEvents.lNetworkEvents & FD_CONNECT)
+                    {
+                        connected = true;
+                        int error_code;
+                        int error_code_size = sizeof(error_code);
+                        if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&error_code, &error_code_size) == 0)
+                            connected = (error_code == 0);
+
+                        if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                            connected = false;
+                    }
+                    else if (NetworkEvents.lNetworkEvents & FD_CLOSE)
                     {
                         connected = false;
                     }
                     else
-                        // true if the socket is signaled (might have the interrupt or not...)
-                        if (dwWaitResult == WAIT_OBJECT_0 + 0)
-                        {
-
-                            WSANETWORKEVENTS NetworkEvents = {0};
-                            // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
-                            // if (nReturnCode==WSA_WAIT_FAILED)
-                            // throw MyException("WSA__WAIT_FAILED.\n");
-                            ITK_ABORT(
-                                WSAEnumNetworkEvents(fd, wsa_connect_event, &NetworkEvents) == SOCKET_ERROR,
-                                "WSAEnumNetworkEvents error. %s",
-                                SocketUtils::getLastSocketErrorMessage().c_str());
-
-                            if (!(NetworkEvents.lNetworkEvents & (FD_CONNECT | FD_CLOSE)))
-                            {
-                                // Spurious wakeup
-                                // printf("[Spurious Wakeup] connect failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                                // connected = false;
-                                continue;
-                            }
-                            else if (NetworkEvents.lNetworkEvents & FD_CONNECT)
-                            {
-                                connected = true;
-                                int error_code;
-                                int error_code_size = sizeof(error_code);
-                                if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&error_code, &error_code_size) == 0)
-                                    connected = (error_code == 0);
-
-                                if (NetworkEvents.lNetworkEvents & FD_CLOSE)
-                                    connected = false;
-                            }
-                            else if (NetworkEvents.lNetworkEvents & FD_CLOSE)
-                            {
-                                connected = false;
-                            }
-                            else
-                            {
-                                // any other error...
-                                connected = false;
-                            }
-                        }
-
-                if (wsa_connect_event != WSA_INVALID_EVENT)
-                {
-                    ::WSACloseEvent(wsa_connect_event);
-                    wsa_connect_event = WSA_INVALID_EVENT;
+                    {
+                        // any other error...
+                        connected = false;
+                    }
                 }
 
-                if (!connected)
-                {
+                break; // spurious wakeup loop
+            }
 
-                    printf("Failed to connect socket. %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+            if (wsa_connect_event != WSA_INVALID_EVENT)
+            {
+                ::WSACloseEvent(wsa_connect_event);
+                wsa_connect_event = WSA_INVALID_EVENT;
+            }
 
-                    signaled = true;
+            if (!connected)
+            {
 
-                    if (read_aquired)
-                        read_semaphore.release();
-                    if (write_aquired)
-                        write_semaphore.release();
+                printf("Failed to connect socket. %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
 
-                    setBlocking(true);
+                signaled = true;
 
-                    return false;
-                }
-                break;
+                if (read_aquired)
+                    read_semaphore.release();
+                if (write_aquired)
+                    write_semaphore.release();
+
+                setBlocking(true);
+
+                return false;
             }
 
             setBlocking(true);
@@ -523,7 +520,6 @@ namespace Platform
                     }
 
                     return SOCKET_RESULT_WOULD_BLOCK;
-                    // continue;
                 }
                 else
                 {
@@ -569,7 +565,7 @@ namespace Platform
 
 #if defined(_WIN32)
                 bool break_continue = false;
-                while (true) // Add retry loop for spurious wakeups
+                while (true) // spurious wakeup loop
                 {
                     DWORD dwWaitResult;
                     HANDLE handles_threadInterrupt_sem[2] = {
@@ -599,99 +595,93 @@ namespace Platform
                         //     *read_feedback = 0;
                         return SOCKET_RESULT_TIMEOUT;
                     }
-                    else
+                    else if (dwWaitResult == WAIT_OBJECT_0 + 1) // true if the interrupt is signaled (and only the interrupt...)
+                    {
+                        // signaled = true;
+                        if (read_feedback != nullptr)
+                            *read_feedback = 0;
+                        return SOCKET_RESULT_ERROR_INTERRUPTED;
+                    }
+                    else if (dwWaitResult == WAIT_OBJECT_0 + 0) // true if the socket is signaled (might have the interrupt or not...)
+                    {
 
-                        // true if the interrupt is signaled (and only the interrupt...)
-                        if (dwWaitResult == WAIT_OBJECT_0 + 1)
+                        WSANETWORKEVENTS NetworkEvents = {0};
+                        // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
+                        // if (nReturnCode==WSA_WAIT_FAILED)
+                        // throw MyException("WSA__WAIT_FAILED.\n");
+                        ITK_ABORT(
+                            WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
+                            "WSAEnumNetworkEvents error. %s",
+                            SocketUtils::getLastSocketErrorMessage().c_str());
+
+                        if (!(NetworkEvents.lNetworkEvents & (FD_READ | FD_CLOSE)))
                         {
-                            // signaled = true;
+                            // Spurious wakeup
+                            // printf("[Spurious Wakeup] recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                            // if (read_feedback != nullptr)
+                            //     *read_feedback = 0;
+                            // return SOCKET_RESULT_ERROR;
+                            continue; // retry
+                        }
+
+                        // read event...
+                        int iResult = recv(fd, (char *)&data[current_pos], size - current_pos, 0);
+                        if (iResult > 0 && (NetworkEvents.lNetworkEvents & FD_READ))
+                        {
+                            // received some quantity of bytes...
+                            current_pos += iResult;
                             if (read_feedback != nullptr)
-                                *read_feedback = 0;
-                            return SOCKET_RESULT_ERROR_INTERRUPTED;
+                                *read_feedback = current_pos;
+
+                            if (NetworkEvents.lNetworkEvents & FD_CLOSE)
+                            {
+                                // close connection
+                                printf("(connection closed with reading data!!!)...\n");
+                                signaled = true;
+
+                                SocketTCP::close(); // force close state
+
+                                return SOCKET_RESULT_OK;
+                            }
+                        }
+                        else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
+                        {
+                            // close connection
+                            printf("recv read 0 bytes (connection closed)...\n");
+                            signaled = true;
+
+                            SocketTCP::close(); // force close state
+
+                            return SOCKET_RESULT_CLOSED;
+                        }
+                        else if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+                        {
+
+                            if (block_until_read_size)
+                            {
+                                Platform::Sleep::millis(1); // avoid busy wait
+                                break_continue = true;
+                                break;
+                            }
+
+                            if (is_blocking)
+                            {
+                                read_timedout = true;
+                                return SOCKET_RESULT_TIMEOUT;
+                            }
+
+                            return SOCKET_RESULT_WOULD_BLOCK;
                         }
                         else
+                        {
+                            // some error occured...
+                            printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                            signaled = true;
+                            return SOCKET_RESULT_ERROR;
+                        }
 
-                            // true if the socket is signaled (might have the interrupt or not...)
-                            if (dwWaitResult == WAIT_OBJECT_0 + 0)
-                            {
-
-                                WSANETWORKEVENTS NetworkEvents = {0};
-                                // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
-                                // if (nReturnCode==WSA_WAIT_FAILED)
-                                // throw MyException("WSA__WAIT_FAILED.\n");
-                                ITK_ABORT(
-                                    WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
-                                    "WSAEnumNetworkEvents error. %s",
-                                    SocketUtils::getLastSocketErrorMessage().c_str());
-
-                                if (!(NetworkEvents.lNetworkEvents & (FD_READ | FD_CLOSE)))
-                                {
-                                    // Spurious wakeup
-                                    // printf("[Spurious Wakeup] recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                                    // if (read_feedback != nullptr)
-                                    //     *read_feedback = 0;
-                                    // return SOCKET_RESULT_ERROR;
-                                    continue; // retry
-                                }
-
-                                // read event...
-                                int iResult = recv(fd, (char *)&data[current_pos], size - current_pos, 0);
-                                if (iResult > 0 && (NetworkEvents.lNetworkEvents & FD_READ))
-                                {
-                                    // received some quantity of bytes...
-                                    current_pos += iResult;
-                                    if (read_feedback != nullptr)
-                                        *read_feedback = current_pos;
-
-                                    if (NetworkEvents.lNetworkEvents & FD_CLOSE)
-                                    {
-                                        // close connection
-                                        printf("(connection closed with reading data!!!)...\n");
-                                        signaled = true;
-
-                                        SocketTCP::close(); // force close state
-
-                                        return SOCKET_RESULT_OK;
-                                    }
-                                }
-                                else if (iResult == 0 && (NetworkEvents.lNetworkEvents & FD_CLOSE))
-                                {
-                                    // close connection
-                                    printf("recv read 0 bytes (connection closed)...\n");
-                                    signaled = true;
-
-                                    SocketTCP::close(); // force close state
-
-                                    return SOCKET_RESULT_CLOSED;
-                                }
-                                else if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
-                                {
-
-                                    if (block_until_read_size)
-                                    {
-                                        Platform::Sleep::millis(1); // avoid busy wait
-                                        break_continue = true;
-                                        break;
-                                    }
-
-                                    if (is_blocking)
-                                    {
-                                        read_timedout = true;
-                                        return SOCKET_RESULT_TIMEOUT;
-                                    }
-
-                                    return SOCKET_RESULT_WOULD_BLOCK;
-                                    // continue;
-                                }
-                                else
-                                {
-                                    // some error occured...
-                                    printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                                    signaled = true;
-                                    return SOCKET_RESULT_ERROR;
-                                }
-                                break; // exit retry loop
-                            }
+                    } // if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                    break; // spurious wakeup loop
                 }
 
                 if (break_continue)
@@ -1159,7 +1149,7 @@ namespace Platform
 
             if (blocking)
             {
-                while (true) // Add retry loop for spurious wakeups
+                while (true) // spurious wakeup loop
                 {
                     Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
@@ -1181,17 +1171,13 @@ namespace Platform
                         semaphore.release();
                         return SOCKET_RESULT_TIMEOUT;
                     }
-
-                    // true if the interrupt is signaled (and only the interrupt...)
-                    else if (dwWaitResult == WAIT_OBJECT_0 + 1)
+                    else if (dwWaitResult == WAIT_OBJECT_0 + 1) // true if the interrupt is signaled (and only the interrupt...)
                     {
                         // signaled = true;
                         semaphore.release();
                         return SOCKET_RESULT_ERROR_INTERRUPTED;
                     }
-
-                    // true if the socket is signaled (might have the interrupt or not...)
-                    else if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                    else if (dwWaitResult == WAIT_OBJECT_0 + 0) // true if the socket is signaled (might have the interrupt or not...)
                     {
 
                         /*
@@ -1268,8 +1254,8 @@ namespace Platform
                             close(); // force close state
                             return SOCKET_RESULT_CLOSED;
                         }
-                    }
-                    break;
+                    } // if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                    break; // spurious wakeup loop
                 }
             }
             else
