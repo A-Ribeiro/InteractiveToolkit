@@ -50,6 +50,10 @@
 #define swprintf _snwprintf
 #endif
 
+#if !defined(__CYGWIN__)
+typedef SSIZE_T ssize_t;
+#endif
+
 #define ITK_SYS_ALIGNED_ALLOC(alignment, size) _aligned_malloc(size, alignment)
 #define ITK_SYS_ALIGNED_FREE(data) _aligned_free(data)
 
