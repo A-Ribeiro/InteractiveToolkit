@@ -126,6 +126,11 @@ namespace Platform
 #endif
         }
 
+        virtual ~SocketUDP()
+        {
+            close();
+        }
+
 #if defined(_WIN32)
         SOCKET getNativeFD()
 #else
@@ -369,6 +374,9 @@ namespace Platform
                 0,
                 (const struct sockaddr *)&target_address,
                 sizeof(struct sockaddr_in));
+#if !defined(_WIN32)
+            int saved_errno = errno;
+#endif
 
             if (iResult >= 0)
             {
@@ -379,42 +387,33 @@ namespace Platform
                 return SOCKET_RESULT_OK;
             }
             else
+#if defined(_WIN32)
+                if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+#else
+                if (iResult == -1 && (saved_errno == EWOULDBLOCK || saved_errno == EAGAIN))
+
+#endif
             {
-#if defined(_WIN32)
-                if (WSAGetLastError() == WSAEWOULDBLOCK)
-                {
-#else
-                int _error = errno;
-                if (errno == EWOULDBLOCK || errno == EAGAIN)
-                {
-#endif
-                    // printf("non block write skip\n");
+                // printf("non block write skip\n");
 
-                    // non-blocking socket event
-                    if (write_feedback != nullptr)
-                        *write_feedback = 0;
+                // non-blocking socket event
+                if (write_feedback != nullptr)
+                    *write_feedback = 0;
 
-#if defined(_WIN32)
-                    if (iResult == SOCKET_ERROR)
-#else
-                    if (iResult == -1)
-#endif
-                    {
-                        write_timedout = true;
-                        return SOCKET_RESULT_TIMEOUT;
-                    }
-
-                    return SOCKET_RESULT_WOULD_BLOCK;
-                }
-                else
+                if (blocking)
                 {
-                    // socket error...
-                    printf("sendto failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                    if (write_feedback != nullptr)
-                        *write_feedback = 0;
-                    return SOCKET_RESULT_ERROR;
+                    write_timedout = true;
+                    return SOCKET_RESULT_TIMEOUT;
                 }
 
+                return SOCKET_RESULT_WOULD_BLOCK;
+            }
+            else
+            {
+                // socket error...
+                printf("sendto failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                if (write_feedback != nullptr)
+                    *write_feedback = 0;
                 return SOCKET_RESULT_ERROR;
             }
         }
@@ -435,57 +434,68 @@ namespace Platform
                 Platform::Thread *currentThread = Platform::Thread::getCurrentThread();
 
 #if defined(_WIN32)
-                DWORD dwWaitResult;
-                HANDLE handles_threadInterrupt_sem[2] = {
-                    wsa_read_event,                         // WAIT_OBJECT_0 + 0
-                    currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
-                };
-
-                DWORD dwWaitTime = INFINITE;
-
-                if (read_timeout_ms != 0)
-                    dwWaitTime = read_timeout_ms;
-
-                dwWaitResult = WaitForMultipleObjects(
-                    2,                           // number of handles in array
-                    handles_threadInterrupt_sem, // array of thread handles
-                    FALSE,                       // wait until all are signaled
-                    dwWaitTime                   // INFINITE //INFINITE
-                );
-
-                if (dwWaitResult == WAIT_TIMEOUT)
+                while (true) // spurious wakeup loop
                 {
-                    read_timedout = true;
-                    if (read_feedback != nullptr)
-                        *read_feedback = 0;
-                    return SOCKET_RESULT_TIMEOUT;
-                }
-                else
+                    DWORD dwWaitResult;
+                    HANDLE handles_threadInterrupt_sem[2] = {
+                        wsa_read_event,                         // WAIT_OBJECT_0 + 0
+                        currentThread->m_thread_interrupt_event // WAIT_OBJECT_0 + 1
+                    };
 
-                    // true if the interrupt is signaled (and only the interrupt...)
-                    if (dwWaitResult == WAIT_OBJECT_0 + 1)
+                    DWORD dwWaitTime = INFINITE;
+
+                    if (read_timeout_ms != 0)
+                        dwWaitTime = read_timeout_ms;
+
+                    dwWaitResult = WaitForMultipleObjects(
+                        2,                           // number of handles in array
+                        handles_threadInterrupt_sem, // array of thread handles
+                        FALSE,                       // wait until all are signaled
+                        dwWaitTime                   // INFINITE //INFINITE
+                    );
+
+                    if (dwWaitResult == WAIT_TIMEOUT)
                     {
-                        // signaled = true;
+                        read_timedout = true;
                         if (read_feedback != nullptr)
                             *read_feedback = 0;
-                        return SOCKET_RESULT_ERROR_INTERRUPTED;
+                        return SOCKET_RESULT_TIMEOUT;
                     }
                     else
 
-                        // true if the socket is signaled (might have the interrupt or not...)
-                        if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                        // true if the interrupt is signaled (and only the interrupt...)
+                        if (dwWaitResult == WAIT_OBJECT_0 + 1)
                         {
+                            // signaled = true;
+                            if (read_feedback != nullptr)
+                                *read_feedback = 0;
+                            return SOCKET_RESULT_ERROR_INTERRUPTED;
+                        }
+                        else
 
-                            WSANETWORKEVENTS NetworkEvents = {0};
-                            // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
-                            // if (nReturnCode==WSA_WAIT_FAILED)
-                            // throw MyException("WSA__WAIT_FAILED.\n");
-                            ITK_ABORT(
-                                WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
-                                "WSAEnumNetworkEvents error. %s",
-                                SocketUtils::getLastSocketErrorMessage().c_str());
+                            // true if the socket is signaled (might have the interrupt or not...)
+                            if (dwWaitResult == WAIT_OBJECT_0 + 0)
+                            {
 
-                            // read event...
+                                WSANETWORKEVENTS NetworkEvents = {0};
+                                // int nReturnCode = WSAWaitForMultipleEvents(1, &lphEvents[0], false, WSA_INFINITE, false);
+                                // if (nReturnCode==WSA_WAIT_FAILED)
+                                // throw MyException("WSA__WAIT_FAILED.\n");
+                                ITK_ABORT(
+                                    WSAEnumNetworkEvents(fd, wsa_read_event, &NetworkEvents) == SOCKET_ERROR,
+                                    "WSAEnumNetworkEvents error. %s",
+                                    SocketUtils::getLastSocketErrorMessage().c_str());
+
+                                if (!(NetworkEvents.lNetworkEvents & FD_READ))
+                                {
+                                    // Spurious wakeup
+                                    // printf("[Spurious Wakeup] recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
+                                    // if (read_feedback != nullptr)
+                                    //     *read_feedback = 0;
+                                    // return SOCKET_RESULT_ERROR;
+                                    continue;
+                                }
+                                // read event...
 #else
                 // force count the socket as a semaphore
                 //  per thread signal logic
@@ -503,48 +513,47 @@ namespace Platform
                     currentThread->semaphoreUnLock();
 #endif
 
-                            socklen_t addr_len = sizeof(struct sockaddr_in);
-                            ITK_SOCKET_SSIZE_T iResult = ::recvfrom(
-                                fd,
-                                (char *)data, size,
-                                0,
-                                (struct sockaddr *)source_address,
-                                &addr_len);
-
+                                socklen_t addr_len = sizeof(struct sockaddr_in);
+                                ITK_SOCKET_SSIZE_T iResult = ::recvfrom(
+                                    fd,
+                                    (char *)data, size,
+                                    0,
+                                    (struct sockaddr *)source_address,
+                                    &addr_len);
 #if !defined(_WIN32)
-                            currentThread->semaphoreWaitDone(nullptr);
-#endif
-
-                            if (iResult >= 0)
-                            {
-
-                                if (read_feedback != nullptr)
-                                    *read_feedback = static_cast<uint32_t>(iResult);
-
-                                return SOCKET_RESULT_OK;
-                            }
-                            else
-                            {
-#if defined(_WIN32)
-                                if (WSAGetLastError() == WSAEWOULDBLOCK)
-                                {
+                                int saved_errno = errno;
+                                currentThread->semaphoreWaitDone(nullptr);
+                                if (iResult >= 0)
 #else
-                        // int _error = errno;
-                        if (errno == EWOULDBLOCK || errno == EAGAIN)
-                        {
+                    if (iResult >= 0 && (NetworkEvents.lNetworkEvents & FD_READ))
 #endif
+
+                                {
+
+                                    if (read_feedback != nullptr)
+                                        *read_feedback = static_cast<uint32_t>(iResult);
+
+                                    return SOCKET_RESULT_OK;
+                                }
+                                else
+#if defined(_WIN32)
+                                    if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
+#else
+                        if (iResult == -1 && (saved_errno == EWOULDBLOCK || saved_errno == EAGAIN))
+#endif
+                                {
                                     // printf("non block receive skip\n");
 
-                                    if (iResult == -1)
+                                    if (read_feedback != nullptr)
+                                        *read_feedback = 0;
+
+                                    if (blocking)
                                     {
-                                        if (read_feedback != nullptr)
-                                            *read_feedback = 0;
+                                        read_timedout = true;
                                         return SOCKET_RESULT_TIMEOUT;
                                     }
 
                                     // non-blocking socket event
-                                    if (read_feedback != nullptr)
-                                        *read_feedback = 0;
                                     return SOCKET_RESULT_WOULD_BLOCK;
                                 }
                                 else
@@ -556,15 +565,15 @@ namespace Platform
                                     return SOCKET_RESULT_ERROR;
                                 }
 
-                                if (read_feedback != nullptr)
-                                    *read_feedback = 0;
-                                return SOCKET_RESULT_ERROR;
+                                // #if defined(_WIN32)
+                                // #if !defined(_WIN32)
                             }
+                            // #endif
 
-                            // #if defined(_WIN32)
-                            // #if !defined(_WIN32)
-                        }
-                // #endif
+#if defined(_WIN32)
+                    break; // spurious wakeup loop
+                }
+#endif
             }
             else
             {
@@ -577,6 +586,9 @@ namespace Platform
                     0,
                     (struct sockaddr *)source_address,
                     &addr_len);
+#if !defined(_WIN32)
+                int saved_errno = errno;
+#endif
 
                 if (iResult >= 0)
                 {
@@ -587,31 +599,23 @@ namespace Platform
                     return SOCKET_RESULT_OK;
                 }
                 else
-                {
 #if defined(_WIN32)
-                    if (WSAGetLastError() == WSAEWOULDBLOCK)
-                    {
+                    if (iResult == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
 #else
-                    // int _error = errno;
-                    if (errno == EWOULDBLOCK || errno == EAGAIN)
-                    {
+                    if (iResult == -1 && (saved_errno == EWOULDBLOCK || saved_errno == EAGAIN))
 #endif
-                        // printf("non block receive skip\n");
+                {
+                    // printf("non block receive skip\n");
 
-                        // non-blocking socket event
-                        if (read_feedback != nullptr)
-                            *read_feedback = 0;
-                        return SOCKET_RESULT_WOULD_BLOCK;
-                    }
-                    else
-                    {
-                        // socket error...
-                        printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
-                        if (read_feedback != nullptr)
-                            *read_feedback = 0;
-                        return SOCKET_RESULT_ERROR;
-                    }
-
+                    // non-blocking socket event
+                    if (read_feedback != nullptr)
+                        *read_feedback = 0;
+                    return SOCKET_RESULT_WOULD_BLOCK;
+                }
+                else
+                {
+                    // socket error...
+                    printf("recv failed: %s\n", SocketUtils::getLastSocketErrorMessage().c_str());
                     if (read_feedback != nullptr)
                         *read_feedback = 0;
                     return SOCKET_RESULT_ERROR;
