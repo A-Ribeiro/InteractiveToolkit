@@ -10,37 +10,6 @@
 
 namespace STL_Tools
 {
-    // need a base class... otherwise, cannot extract sub-types
-    template <typename _single_element_>
-    struct stl_extractor;
-
-    template <typename... _ArgsType>
-    struct stl_aux;
-
-    //
-    // Functor types extraction
-    //
-    template <typename _RetType, typename... _ArgsType>
-    struct stl_extractor<_RetType(_ArgsType...)>
-    {
-        typedef std::function<_RetType(_ArgsType...)> std_function_functor;
-        typedef _RetType (*ptr_functor)(_ArgsType...);
-
-        // typedef std::tuple<_ArgsType...> std_tuple_arguments;
-        typedef stl_aux<_ArgsType...> std_arguments;
-
-        typedef _RetType return_type;
-    };
-
-    //
-    // Class types extraction
-    //
-    template <typename _ClassType, typename _RetType, typename... _ArgsType>
-    struct stl_extractor<std::tuple<_ClassType, _RetType, stl_aux<_ArgsType...>>>
-    {
-        typedef std::function<_RetType(_ClassType *, _ArgsType...)> std_function_class_member;
-        typedef _RetType (_ClassType::*ptr_class_member)(_ArgsType...);
-    };
 
     template <size_t... _ints_>
     struct index_sequence
@@ -193,5 +162,41 @@ namespace STL_Tools
     {
         return Reversal_Impl_Const<ContainerT, ValueT, AllocatorT>(obj);
     }
+
+    // need a base class... otherwise, cannot extract sub-types
+    template <typename _single_element_>
+    struct stl_extractor;
+
+    template <typename... _ArgsType>
+    struct stl_aux;
+
+    //
+    // Functor types extraction
+    //
+    template <typename _RetType, typename... _ArgsType>
+    struct stl_extractor<_RetType(_ArgsType...)>
+    {
+        typedef std::function<_RetType(_ArgsType...)> std_function_functor;
+        typedef _RetType (*ptr_functor)(_ArgsType...);
+
+        // typedef std::tuple<_ArgsType...> std_tuple_arguments;
+        typedef stl_aux<_ArgsType...> std_arguments;
+
+        typedef _RetType return_type;
+
+        static constexpr int arg_counter = sizeof...(_ArgsType);
+
+        typedef STL_Tools::make_index_sequence<(sizeof...(_ArgsType))> index_sequence_type;
+    };
+
+    //
+    // Class types extraction
+    //
+    template <typename _ClassType, typename _RetType, typename... _ArgsType>
+    struct stl_extractor<std::tuple<_ClassType, _RetType, stl_aux<_ArgsType...>>>
+    {
+        typedef std::function<_RetType(_ClassType *, _ArgsType...)> std_function_class_member;
+        typedef _RetType (_ClassType::*ptr_class_member)(_ArgsType...);
+    };
 
 }

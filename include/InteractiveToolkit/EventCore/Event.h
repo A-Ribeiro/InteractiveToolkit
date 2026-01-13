@@ -449,7 +449,7 @@ namespace EventCore
 
             // functor
             struct_._ptr_functor = ptr_functor_ref;
-            struct_._std_function_functor = ptr_functor_ref; // std_function_functor(struct_._ptr_functor);
+            struct_._std_function_functor = nullptr; // std_function_functor(struct_._ptr_functor);
 
             // object
             struct_._ptr_instance = nullptr;
@@ -505,16 +505,18 @@ namespace EventCore
             _add(std::move(struct_));
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassTypeA, typename _ClassTypeB>
         void add(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
         {
-            specialAdd(class_member, (_ClassTypeA *)instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            specialAdd(class_member, (_ClassTypeA *)instance, index_sequence_type());
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassTypeA, typename _ClassTypeB>
         void add(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
         {
-            specialAdd((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            specialAdd((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, index_sequence_type());
         }
 
     private:
@@ -550,10 +552,12 @@ namespace EventCore
 #endif
             // struct_._std_function_class_member = struct_._ptr_class_member; // std_function_class_member(struct_._ptr_class_member);
 
-            {
-                struct_._std_function_functor = std::bind(struct_._ptr_class_member, struct_._ptr_instance,
-                                                          STL_Tools::placeholder<I + 1>{}...);
-            }
+            // {
+            //     struct_._std_function_functor = std::bind(struct_._ptr_class_member, struct_._ptr_instance,
+            //                                               STL_Tools::placeholder<I + 1>{}...);
+            // }
+            struct_._std_function_functor = nullptr;
+
 
             struct_.mCallType = CallType::ClassMember;
 
@@ -620,16 +624,18 @@ namespace EventCore
             _remove(std::move(struct_));
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassTypeA, typename _ClassTypeB>
         void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
         {
-            specialRemove(class_member, (_ClassTypeA *)instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            specialRemove(class_member, (_ClassTypeA *)instance, index_sequence_type());
         }
 
-        template <typename _ClassTypeA, typename _ClassTypeB, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassTypeA, typename _ClassTypeB>
         void remove(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
         {
-            specialRemove((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            specialRemove((_RetType (_ClassTypeA::*)(_ArgsType...))class_member, (_ClassTypeA *)instance, index_sequence_type());
         }
 
     private:

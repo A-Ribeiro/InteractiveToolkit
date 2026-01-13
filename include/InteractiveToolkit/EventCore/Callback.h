@@ -55,7 +55,7 @@ namespace EventCore
 
         // using std_function_class_member = typename std::function<_RetType(_BaseClassType*, _ArgsType...)>;
         using ptr_class_member = _RetType (_BaseClassType::*)(_ArgsType...);
-        using ptr_class_member_functor = _RetType(*)(_BaseClassType*, _ArgsType...);
+        using ptr_class_member_functor = _RetType (*)(_BaseClassType *, _ArgsType...);
 
         //
         // Functor
@@ -72,7 +72,7 @@ namespace EventCore
         // - void(_ClassType::*ptr_class_member)(args)
 #if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
         ptr_class_member_functor _ptr_class_member;
-#else 
+#else
         ptr_class_member _ptr_class_member;
 #endif
         // - ptr_instance*
@@ -107,8 +107,10 @@ namespace EventCore
 #endif
             case CallType::Functor:
                 return _ptr_functor(std::forward<_ArgsType>(_arg)...);
-            default:
+            case CallType::STDFunction:
                 return _std_function_functor(std::forward<_ArgsType>(_arg)...);
+            default:
+                throw std::runtime_error("Callback: invalid call type");
             }
             // return (this->*call_ptr)(std::forward<_ArgsType>(_arg)...);
             //  if (_ptr_functor)
@@ -127,15 +129,38 @@ namespace EventCore
         operator bool() const
         {
             return _std_function_functor != nullptr ||
+                   _ptr_functor != nullptr ||
                    _ptr_class_member != nullptr ||
                    _ptr_instance != nullptr;
         }
 
-        ITK_INLINE std_function_functor toFunction() const
+    private:
+        template <std::size_t... I>
+        ITK_INLINE std_function_functor toFunction_internal(STL_Tools::index_sequence<I...>) const
         {
-            return _std_function_functor;
+            switch (mCallType)
+            {
+            case CallType::ClassMember:
+#if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
+                return std::bind(_ptr_class_member, _ptr_instance, STL_Tools::placeholder<I + 1>{}...);
+#else
+                return std::bind(_ptr_class_member, _ptr_instance, STL_Tools::placeholder<I + 1>{}...);
+#endif
+            case CallType::Functor:
+                return _ptr_functor;
+            case CallType::STDFunction:
+                return _std_function_functor;
+            default:
+                return nullptr;
+            }
         }
 
+    public:
+        ITK_INLINE std_function_functor toFunction() const
+        {
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            return toFunction_internal(index_sequence_type());
+        }
         //////////////////////////
         // COPY CONSTRUCTOR
         // COPY OPERATOR
@@ -288,7 +313,7 @@ namespace EventCore
 
             // functor
             _ptr_functor = ptr_functor_ref;
-            _std_function_functor = ptr_functor_ref; // std_function_functor(_ptr_functor);
+            _std_function_functor = nullptr; // std_function_functor(_ptr_functor);
 
             // object
             _ptr_instance = nullptr;
@@ -334,16 +359,18 @@ namespace EventCore
             mCallType = CallType::STDFunction;
         }
 
-        template <typename _ClassType, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassType>
         Callback(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassType *instance)
         {
-            setCallback(class_member, instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            setCallback(class_member, instance, index_sequence_type());
         }
 
-        template <typename _ClassType, typename Indices = STL_Tools::make_index_sequence<(sizeof...(_ArgsType))>>
+        template <typename _ClassType>
         Callback(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
         {
-            setCallback((_RetType(_ClassType::*)(_ArgsType...))class_member, instance, Indices());
+            using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
+            setCallback((_RetType (_ClassType::*)(_ArgsType...))class_member, instance, index_sequence_type());
         }
 
     private:
@@ -370,17 +397,17 @@ namespace EventCore
             // object
             _ptr_instance = reinterpret_cast<_BaseClassType *>(instance);
 #if USE_C_FUNCTOR_PTR_FOR_MEMBER_FUNCTION == true
-            _ptr_class_member = *(ptr_class_member_functor*)&class_member;
+            _ptr_class_member = *(ptr_class_member_functor *)&class_member;
 #else
-            _ptr_class_member = *(ptr_class_member*)&class_member;
+            _ptr_class_member = *(ptr_class_member *)&class_member;
 #endif
             //_std_function_class_member = _ptr_class_member;//std_function_class_member(_ptr_class_member);
 
-
-            {
-                _std_function_functor = std::bind(_ptr_class_member, _ptr_instance,
-                                                  STL_Tools::placeholder<I + 1>{}...);
-            }
+            // {
+            //     _std_function_functor = std::bind(_ptr_class_member, _ptr_instance,
+            //                                       STL_Tools::placeholder<I + 1>{}...);
+            // }
+            _std_function_functor = nullptr;
 
             mCallType = CallType::ClassMember;
         }
@@ -467,7 +494,7 @@ namespace EventCore
             //
             return //(std::is_same<_RetType_param(*)(_ArgsType_param...), ptr_functor>::value) &&
                    // functor
-                (_std_function_functor != nullptr) &&
+                (_ptr_functor != nullptr) &&
                 _ptr_functor == ptr_functor_ref &&
                 // object
                 _ptr_class_member == nullptr &&
@@ -523,13 +550,13 @@ namespace EventCore
     template <typename _RetType, typename... _ArgsType, typename _BaseClassType = HandleCallback, typename _ClassTypeA, typename _ClassTypeB>
     Callback<_RetType(_ArgsType...), _BaseClassType> CallbackWrapper(_RetType (_ClassTypeA::*class_member)(_ArgsType...), _ClassTypeB *instance)
     {
-        return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, (_ClassTypeA*)instance);
+        return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, (_ClassTypeA *)instance);
     }
 
     template <typename _RetType, typename... _ArgsType, typename _BaseClassType = HandleCallback, typename _ClassTypeA, typename _ClassTypeB>
     Callback<_RetType(_ArgsType...), _BaseClassType> CallbackWrapper(_RetType (_ClassTypeA::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
     {
-        return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, (_ClassTypeA*)instance);
+        return Callback<_RetType(_ArgsType...), _BaseClassType>(class_member, (_ClassTypeA *)instance);
     }
 
 }
