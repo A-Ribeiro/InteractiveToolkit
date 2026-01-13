@@ -359,18 +359,18 @@ namespace EventCore
             mCallType = CallType::STDFunction;
         }
 
-        template <typename _ClassType>
-        Callback(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassType *instance)
+        template <typename _ClassType, typename _ClassTypeB>
+        Callback(_RetType (_ClassType::*class_member)(_ArgsType...), _ClassTypeB *instance)
         {
             using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
-            setCallback(class_member, instance, index_sequence_type());
+            setCallback(class_member, (_ClassType *)instance, index_sequence_type());
         }
 
-        template <typename _ClassType>
-        Callback(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassType *instance)
+        template <typename _ClassType, typename _ClassTypeB>
+        Callback(_RetType (_ClassType::*class_member)(_ArgsType...) const, _ClassTypeB *instance)
         {
             using index_sequence_type = typename STL_Tools::stl_extractor<_RetType(_ArgsType...)>::index_sequence_type;
-            setCallback((_RetType (_ClassType::*)(_ArgsType...))class_member, instance, index_sequence_type());
+            setCallback((_RetType (_ClassType::*)(_ArgsType...))class_member, (_ClassType *)instance, index_sequence_type());
         }
 
     private:
