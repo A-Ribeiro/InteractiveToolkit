@@ -46,6 +46,8 @@ namespace ITKCommon
         mt19937_type mt;
 
     public:
+        using TypeDefinition = RandomDefinition<_type_>;
+
         _type_ seed;
 
         RandomTemplate(_type_ seed = mt19937_type::default_seed)
@@ -107,7 +109,16 @@ namespace ITKCommon
         // }
 
         template<typename T>
-        T getRange(T min, T max)
+        typename std::enable_if<(sizeof(T) == 1), T>::type
+        getRange(T min, T max)
+        {
+            std::uniform_int_distribution<int> dist(min, max);
+            return static_cast<T>(dist(mt));
+        }
+
+        template<typename T>
+        typename std::enable_if<(sizeof(T) > 1), T>::type
+        getRange(T min, T max)
         {
             std::uniform_int_distribution<T> dist(min, max);
             return dist(mt);
