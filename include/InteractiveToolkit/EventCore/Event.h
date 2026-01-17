@@ -86,7 +86,8 @@ namespace EventCore
         Platform::SmartVector<__internal> op_fncs;
         bool _runtime_inside_call;
 
-        std::recursive_mutex mtx;
+        // mutable -> allow lock on const methods
+        mutable std::recursive_mutex mtx;
 
         // add works as subscribe, only if not exists
         void _add(__internal &&struct_)
@@ -273,7 +274,8 @@ namespace EventCore
         }
         self_type &operator=(const self_type &_v)
         {
-            std::lock_guard<decltype(mtx)> lock(mtx);
+            std::lock_guard<decltype(mtx)> lock_self(mtx);
+            std::lock_guard<decltype(_v.mtx)> lock_other(_v.mtx);
 
             _runtime_inside_call = _v._runtime_inside_call;
             fncs.assign(_v.fncs.begin(), _v.fncs.end());

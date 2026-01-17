@@ -19,7 +19,7 @@ namespace Platform
     {
 
         bool constructed_from_external_buffer;
-        Platform::Mutex mutex;
+        mutable Platform::Mutex mutex;
 
     public:
         uint8_t *data;
@@ -65,6 +65,8 @@ namespace Platform
         ObjectBuffer& operator=(const ObjectBuffer &v)
         {
             Platform::AutoLock _lovk_self(&mutex);
+            Platform::AutoLock _lovk_v(&v.mutex);
+
             // only to clean the vars ref
             if (constructed_from_external_buffer)
                 free();
@@ -79,7 +81,7 @@ namespace Platform
         }
         ObjectBuffer& operator=(ObjectBuffer &v)
         {
-            Platform::AutoLock _lovk_v(&v.mutex);
+            // Platform::AutoLock _lovk_v(&v.mutex);
             *this = *(const ObjectBuffer*)&v;
             return *this;
         }
