@@ -660,15 +660,15 @@ namespace MathCore
             return ::tanf(v);
         }
 
-        static ITK_INLINE float atan(const float &v) noexcept
-        {
-            return ::atanf(v);
-        }
+        static ITK_INLINE float atan(const float &v) noexcept;
+        // {
+        //     return ::atanf(v);
+        // }
 
-        static ITK_INLINE float atan2(const float &y, const float &x) noexcept
-        {
-            return ::atan2f(y, x);
-        }
+        static ITK_INLINE float atan2(const float &y, const float &x) noexcept;
+        // {
+        //     return ::atan2f(y, x);
+        // }
 
         static ITK_INLINE float fmod(const float &a, const float &b) noexcept
         {
@@ -1251,6 +1251,22 @@ namespace MathCore
         return fastArc->asin(v);
     }
 
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::atan(const float &v) noexcept
+    {
+        return fastArc->atan(v);
+    }
+
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::atan2(const float &y, const float &x) noexcept
+    {
+        return fastArc->atan2(y, x);
+    }
+
 #else
 
     template <typename _type, typename _Algorithm>
@@ -1267,6 +1283,22 @@ namespace MathCore
                         _Algorithm>::asin(const float &v) noexcept
     {
         return ::asinf(v);
+    }
+
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::atan(const float &v) noexcept
+    {
+        return ::atanf(v);
+    }
+    
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::atan2(const float &y, const float &x) noexcept
+    {
+        return ::atan2f(y, x);
     }
 
 #endif
