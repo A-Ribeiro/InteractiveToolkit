@@ -52,7 +52,7 @@ namespace MathCore
         {
 
             // [ < 0 => -1 baixo , > 0 => 1 cima ]
-            double sign_baixo_cima = OP<double>::sign(_csp);
+            // double sign_baixo_cima = OP<double>::sign(_csp);
 
             double _cs = OP<double>::abs(_csp);
             // double _cs = _csp;
@@ -66,16 +66,16 @@ namespace MathCore
             _cs = (_cs > FastArc_0_5_y_d) ? _circ : _line;
 
             // graph 0..1 to 0..0.5
-            _cs *= sign_baixo_cima;
+            //_cs *= sign_baixo_cima;
 
-            return _cs;
+            return (_csp >= 0) ? _cs : -_cs;
         }
 
         // [-1..1]
         static float ITK_INLINE cos_map_2_array(const float &_csp)
         {
             // [ < 0 => -1 baixo , > 0 => 1 cima ]
-            float sign_baixo_cima = OP<float>::sign(_csp);
+            // float sign_baixo_cima = OP<float>::sign(_csp);
 
             float _cs = OP<float>::abs(_csp);
 
@@ -93,9 +93,9 @@ namespace MathCore
             // }
 
             // graph 0..1 to 0..0.5
-            _cs *= sign_baixo_cima;
+            //_cs *= sign_baixo_cima;
 
-            return _cs;
+            return (_csp >= 0) ? _cs : -_cs;
         }
 
         float ITK_INLINE acos(const float &_csp) const
@@ -126,7 +126,7 @@ namespace MathCore
 
             const float cos_0 = MathCore::OP<float>::deg_2_rad(90.0);
 
-            float sign = OP<float>::sign(_csp);
+            // float sign = OP<float>::sign(_csp);
 
             float _cs = cos_map_2_array(_abs);
 
@@ -136,7 +136,9 @@ namespace MathCore
 
             int32_t array_index = (int32_t)_cs;
 
-            return sign * (cos_0 - acos_values[array_index]);
+            // return sign * (cos_0 - acos_values[array_index]);
+            float result = cos_0 - acos_values[array_index];
+            return (_csp >= 0) ? result : -result;
         }
 
         float inline atan(const float &y_over_x) const
@@ -184,6 +186,7 @@ namespace MathCore
 
         const float number_of_samples_float = (float)number_of_samples;
         std::vector<float> cos_values;
+        std::vector<float> tan_values;
 
         // number_of_samples =>
         //    90 degrees
@@ -191,7 +194,7 @@ namespace MathCore
         //    times 2 (to double that precision)
         //    = 90 * 100 * 2
         //
-        FastCos() : cos_values(number_of_samples + 1)
+        FastCos() : cos_values(number_of_samples + 1), tan_values(number_of_samples + 1)
         {
 
             int32_t values_size_int32 = (int)number_of_samples;
@@ -236,6 +239,17 @@ namespace MathCore
 
                 if (cos_values[i] == -0)
                     cos_values[i] = 0;
+
+                const double _90_deg = OP<double>::deg_2_rad(90.0);
+                const double _270_deg = OP<double>::deg_2_rad(270.0);
+
+                if (OP<double>::distance(angle, _90_deg) <= 0.0000001)
+                    tan_values[i] = FLT_MAX;
+                else if (OP<double>::distance(angle, _270_deg) <= 0.0000001)
+                    tan_values[i] = -FLT_MAX;
+                else
+                    tan_values[i] = (float)::tan(angle);
+
             }
         }
 
@@ -258,6 +272,26 @@ namespace MathCore
 #endif
 
             return cos_values[array_index];
+        }
+
+        float ITK_INLINE tan(const float &angle_queryp) const
+        {
+            const float inv_2pi = 1.0f / (2.0f * CONSTANT<float>::PI);
+
+            float angle_query = angle_queryp;
+            angle_query *= inv_2pi;
+            angle_query -= OP<float>::floor(angle_query);
+            angle_query *= number_of_samples_float;
+            angle_query += 0.5f;
+
+            int32_t array_index = (int32_t)angle_query;
+
+#if !defined(NDEBUG)
+            if (array_index < 0 || array_index > number_of_samples)
+                throw std::runtime_error("x out of bounds exception.");
+#endif
+
+            return tan_values[array_index];
         }
 
         float inline sin(float angle_query) const
@@ -284,13 +318,14 @@ namespace MathCore
 
         const float number_of_samples_float_times_4 = (float)(number_of_samples << 2);
         std::vector<float> cos_values;
+        std::vector<float> tan_values;
 
         // number_of_samples =>
         //    90 degrees
         //    times the number of places of precision (100) [you can query angles like these: 90.23]
         //    times 2 (to double that precision)
         //    = 90 * 100 * 2
-        FastCosQuarter() : cos_values(number_of_samples + 1)
+        FastCosQuarter() : cos_values(number_of_samples + 1), tan_values(number_of_samples + 1)
         {
 
             int32_t values_size_int32 = (int)number_of_samples;
@@ -324,6 +359,17 @@ namespace MathCore
 
                 if (cos_values[i] == -0.0f)
                     cos_values[i] = 0;
+
+                const double _90_deg = OP<double>::deg_2_rad(90.0);
+                const double _270_deg = OP<double>::deg_2_rad(270.0);
+
+                if (OP<double>::distance(angle, _90_deg) <= 0.0000001)
+                    tan_values[i] = FLT_MAX;
+                else if (OP<double>::distance(angle, _270_deg) <= 0.0000001)
+                    tan_values[i] = -FLT_MAX;
+                else
+                    tan_values[i] = OP<float>::abs((float)::tan(angle));
+
             }
         }
 
@@ -351,9 +397,10 @@ namespace MathCore
 
             real_index = (region & 0x01) ? inverted_index : real_index;
 
-            int32_t sig = 1 - ((region ^ (region << 1)) & 0x02);
+            // int32_t sig = 1 - ((region ^ (region << 1)) & 0x02);
 
-            return (float)sig * cos_values[real_index];
+            // return (float)sig * cos_values[real_index];
+            return ((region ^ (region << 1)) & 0x02) ? -cos_values[real_index] : cos_values[real_index];
 
             // #if !defined(NDEBUG)
             //             if (region != 4 && (real_index < 0 || real_index > number_of_samples))
@@ -389,6 +436,39 @@ namespace MathCore
             const float _270_deg = -(float)((2.0 * CONSTANT<double>::PI) * 0.25);
             angle_query += _270_deg;
             return cos(angle_query);
+        }
+
+        float ITK_INLINE tan(const float &angle_queryp) const
+        {
+            const float inv_2pi = 1.0f / (2.0f * CONSTANT<float>::PI);
+
+            float angle_query = angle_queryp;
+            angle_query *= inv_2pi;
+            angle_query -= OP<float>::floor(angle_query);
+            angle_query *= number_of_samples_float_times_4;
+            angle_query += 0.5f;
+
+            int32_t int_angle = (int32_t)angle_query;
+
+            int32_t region = int_angle / number_of_samples;
+            int32_t real_index = int_angle - region * number_of_samples;
+
+            int32_t inverted_index = number_of_samples - real_index;
+
+            real_index = (region & 0x01) ? inverted_index : real_index;
+
+            // At singularity (real_index == number_of_samples)
+            if (real_index == number_of_samples)
+            {
+                const float inv_4pi = 1.0f / (4.0f * CONSTANT<float>::PI);
+                float aux = angle_queryp * inv_4pi;
+                aux -= OP<float>::floor(aux);
+                int aux_i = (int)(aux * 8.0f + 0.5f);
+                // filter 1 0b001 and 5 0b101
+                region = ((aux_i & 3) == 1) ? 0 : region;
+            }
+
+            return (region & 0x01) ? -tan_values[real_index] : tan_values[real_index];
         }
 
         static FastCosQuarter *Instance()

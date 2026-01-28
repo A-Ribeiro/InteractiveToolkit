@@ -655,20 +655,11 @@ namespace MathCore
 
         static ITK_INLINE float asin(const float &v) noexcept;
 
-        static ITK_INLINE float tan(const float &v) noexcept
-        {
-            return ::tanf(v);
-        }
+        static ITK_INLINE float tan(const float &v) noexcept;
 
         static ITK_INLINE float atan(const float &v) noexcept;
-        // {
-        //     return ::atanf(v);
-        // }
 
         static ITK_INLINE float atan2(const float &y, const float &x) noexcept;
-        // {
-        //     return ::atan2f(y, x);
-        // }
 
         static ITK_INLINE float fmod(const float &a, const float &b) noexcept
         {
@@ -1182,6 +1173,15 @@ namespace MathCore
         return fastCos->sin(v);
     }
 
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::tan(const float &v) noexcept
+    {
+        return fastCos->tan(v);
+    }
+
+
 #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #endif
@@ -1207,6 +1207,14 @@ namespace MathCore
         return fastCos->sin(v);
     }
 
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::tan(const float &v) noexcept
+    {
+        return fastCos->tan(v);
+    }
+
 #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #endif
@@ -1227,6 +1235,14 @@ namespace MathCore
                         _Algorithm>::sin(const float &v) noexcept
     {
         return ::sinf(v);
+    }
+
+    template <typename _type, typename _Algorithm>
+    ITK_INLINE float OP<_type,
+                        typename std::enable_if<std::is_same<_type, float>::value>::type,
+                        _Algorithm>::tan(const float &v) noexcept
+    {
+        return ::tanf(v);
     }
 
 #endif
