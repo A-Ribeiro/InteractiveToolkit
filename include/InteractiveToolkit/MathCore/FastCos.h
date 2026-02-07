@@ -72,12 +72,12 @@ namespace MathCore
         }
 
         // [-1..1]
-        static float ITK_INLINE cos_map_2_array(const float &_csp)
+        static float ITK_INLINE cos_map_2_array(const float &_csp, const float &_csp_abs) noexcept
         {
             // [ < 0 => -1 baixo , > 0 => 1 cima ]
             // float sign_baixo_cima = OP<float>::sign(_csp);
 
-            float _cs = OP<float>::abs(_csp);
+            float _cs = _csp_abs; // OP<float>::abs(_csp);
 
             // circ_sqrt
             float _circ = 1.0f - OP<float>::sqrt(1.0f - _cs * _cs);
@@ -98,14 +98,15 @@ namespace MathCore
             return (_csp >= 0) ? _cs : -_cs;
         }
 
-        float ITK_INLINE acos(const float &_csp) const
+        float ITK_INLINE acos(const float &_csp) const noexcept
         {
             float _abs = OP<float>::abs(_csp);
 
-            if (_abs > 1.0f)
-                return NAN;
+            // if (_abs > 1.0f)
+            //     return NAN;
+            _abs = OP<float>::minimum(_abs, 1.0f);
 
-            float _cs = cos_map_2_array(_csp);
+            float _cs = cos_map_2_array(_csp, _abs);
             // float _cs = array_map_2_cos(_csp);
 
             _cs = _cs * 0.5f + 0.5f;
@@ -115,20 +116,24 @@ namespace MathCore
             int32_t array_index = (int32_t)_cs;
 
             return acos_values[array_index];
+
+            // float sq = OP<float>::sqrt(1.0f - _csp * _csp);
+            // return atan2(sq, _csp);
         }
 
-        float inline asin(const float &_csp) const
+        float inline asin(const float &_csp) const noexcept
         {
+            const float cos_0 = MathCore::CONSTANT<float>::PI * 0.5f;
+
             float _abs = OP<float>::abs(_csp);
 
-            if (_abs > 1.0f)
-                return NAN;
-
-            const float cos_0 = MathCore::OP<float>::deg_2_rad(90.0);
+            // if (_abs > 1.0f)
+            //     return NAN;
+            _abs = OP<float>::minimum(_abs, 1.0f);
 
             // float sign = OP<float>::sign(_csp);
 
-            float _cs = cos_map_2_array(_abs);
+            float _cs = cos_map_2_array(_csp, _abs);
 
             _cs = _cs * 0.5f + 0.5f;
             _cs *= number_of_samples_cos_float;
@@ -137,32 +142,76 @@ namespace MathCore
             int32_t array_index = (int32_t)_cs;
 
             // return sign * (cos_0 - acos_values[array_index]);
-            float result = cos_0 - acos_values[array_index];
-            return (_csp >= 0) ? result : -result;
+            return cos_0 - acos_values[array_index];
+
+            // float sq = OP<float>::sqrt(1.0f - _csp * _csp);
+            // return cos_0 - atan2(sq, _csp);
         }
 
-        float inline atan(const float &y_over_x) const
+    private:
+        // p_{0}\left(x\right)=a_{1}x+a_{3}x^{3}+a_{5}x^{5}+a_{7}x^{7}+a_{9}x^{9}+a_{11}x^{11}
+        // p_{1}\left(x\right)=\left\{x\le1\ :\ p_{0}\left(x\right),\ \frac{\pi}{2}-p_{0}\left(\frac{1}{x}\right)\right\}
+        // p\left(x\right)=\left\{x<0\ :\ -p_{1}\left(-x\right),\ p_{1}\left(x\right)\right\}
+        static inline float super_atan_p0(float x) noexcept
         {
-            return asin(y_over_x * OP<float>::rsqrt(1.0f + y_over_x * y_over_x));
+            constexpr float a1 = 0.99997726f;
+            constexpr float a3 = -0.33262347f;
+            constexpr float a5 = 0.19354346f;
+            constexpr float a7 = -0.11643287f;
+            constexpr float a9 = 0.05265332f;
+            constexpr float a11 = -0.01172120f;
+
+            float x2 = x * x;
+
+            float t = a11;
+            t = t * x2 + a9;
+            t = t * x2 + a7;
+            t = t * x2 + a5;
+            t = t * x2 + a3;
+            t = t * x2 + a1;
+            return t * x;
         }
 
-        float inline atan2(const float &y, const float &x) const
+        static inline float super_atan_p1(float x) noexcept
         {
+            constexpr float pi_2 = MathCore::CONSTANT<float>::PI * 0.5f;
+            return (x <= 1.0f) ? super_atan_p0(x) : (pi_2 - super_atan_p0(1.0f / x));
+        }
+
+    public:
+        static inline float atan(const float &y_over_x) noexcept
+        {
+            // return asin(y_over_x * OP<float>::rsqrt(1.0f + y_over_x * y_over_x));
+            return (y_over_x < 0.0f) ? -super_atan_p1(-y_over_x) : super_atan_p1(y_over_x);
+        }
+
+        static inline float atan2(const float &y, const float &x) noexcept
+        {
+            constexpr float pi = MathCore::CONSTANT<float>::PI;
+            constexpr float pi_90 = pi * 0.5f;
+
             if (x > 0.0f)
-                return asin(y * OP<float>::rsqrt(x * x + y * y));
+            {
+                // return asin(y * OP<float>::rsqrt(x * x + y * y));
+                float ratio = y / x;
+                return (ratio < 0.0f) ? -super_atan_p1(-ratio) : super_atan_p1(ratio);
+            }
             else if (x < 0.0f)
             {
+                float ratio = y / x;
                 if (y >= 0.0f)
-                    return MathCore::OP<float>::deg_2_rad(180.0f) - asin(y * OP<float>::rsqrt(x * x + y * y));
+                    // return pi - asin(y * OP<float>::rsqrt(x * x + y * y));
+                    return pi - super_atan_p1(-ratio);
                 else
-                    return -MathCore::OP<float>::deg_2_rad(180.0f) - asin(y * OP<float>::rsqrt(x * x + y * y));
+                    // return -pi - asin(y * OP<float>::rsqrt(x * x + y * y));
+                    return super_atan_p1(ratio) - pi;
             }
             else
             {
                 if (y > 0.0f)
-                    return MathCore::OP<float>::deg_2_rad(90.0f);
+                    return pi_90;
                 else if (y < 0.0f)
-                    return -MathCore::OP<float>::deg_2_rad(90.0f);
+                    return -pi_90;
                 else
                     return 0.0f;
             }
@@ -249,7 +298,6 @@ namespace MathCore
                     tan_values[i] = -FLT_MAX;
                 else
                     tan_values[i] = (float)::tan(angle);
-
             }
         }
 
@@ -369,7 +417,6 @@ namespace MathCore
                     tan_values[i] = -FLT_MAX;
                 else
                     tan_values[i] = OP<float>::abs((float)::tan(angle));
-
             }
         }
 
