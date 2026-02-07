@@ -8,144 +8,179 @@ namespace MathCore
 
 #if defined(ITK_TRIGONOMETRIC_FASTEST_MORE_MEMORY) || defined(ITK_TRIGONOMETRIC_FAST_LESS_MEMORY)
 
-#define FastArc_DIM 16.0
-
     class FastArc
     {
-        static constexpr int number_of_samples_cos = 180 * 1000 * 4;
-        static constexpr float number_of_samples_cos_float = (float)number_of_samples_cos;
+        // static constexpr int number_of_samples_cos = 180 * 1000 * 4;
+        // static constexpr float number_of_samples_cos_float = (float)number_of_samples_cos;
 
-        static constexpr double FastArc_filter_on_x_d = 0.70710678118654752440084436210485; // OP<double>::cos(OP<double>::deg_2_rad(45.0));
-        static constexpr double FastArc_0_5_y_d = 0.29289321881345247559915563789515;       // 1.0 - OP<double>::sqrt(1.0 - FastArc_filter_on_x_d * FastArc_filter_on_x_d);
-        static constexpr double FastArc_new_inclination_d = FastArc_0_5_y_d / FastArc_filter_on_x_d;
-        static constexpr double FastArc_new_inclination_inv_d = FastArc_filter_on_x_d / FastArc_0_5_y_d;
+        // static constexpr double FastArc_filter_on_x_d = 0.70710678118654752440084436210485; // OP<double>::cos(OP<double>::deg_2_rad(45.0));
+        // static constexpr double FastArc_0_5_y_d = 0.29289321881345247559915563789515;       // 1.0 - OP<double>::sqrt(1.0 - FastArc_filter_on_x_d * FastArc_filter_on_x_d);
+        // static constexpr double FastArc_new_inclination_d = FastArc_0_5_y_d / FastArc_filter_on_x_d;
+        // static constexpr double FastArc_new_inclination_inv_d = FastArc_filter_on_x_d / FastArc_0_5_y_d;
 
-        static constexpr float FastArc_filter_on_x_f = (float)FastArc_filter_on_x_d;
-        static constexpr float FastArc_0_5_y_f = (float)FastArc_0_5_y_d;
-        static constexpr float FastArc_new_inclination_f = (float)FastArc_new_inclination_d;
-        static constexpr float FastArc_new_inclination_inv_f = (float)FastArc_new_inclination_inv_d;
+        // static constexpr float FastArc_filter_on_x_f = (float)FastArc_filter_on_x_d;
+        // static constexpr float FastArc_0_5_y_f = (float)FastArc_0_5_y_d;
+        // static constexpr float FastArc_new_inclination_f = (float)FastArc_new_inclination_d;
+        // static constexpr float FastArc_new_inclination_inv_f = (float)FastArc_new_inclination_inv_d;
 
-        std::vector<float> acos_values;
+        // std::vector<float> acos_values;
 
-        FastArc() : acos_values(number_of_samples_cos + 1)
+        // FastArc() // : acos_values(number_of_samples_cos + 1)
+        // {
+
+        //     // for (int i = 0; i < number_of_samples_cos + 1; i++)
+        //     // {
+        //     //     double _cs = (double)i / (double)number_of_samples_cos;
+
+        //     //     // [-1..1]
+        //     //     _cs = _cs * 2.0 - 1.0;
+
+        //     //     _cs = array_map_2_cos(_cs);
+
+        //     //     _cs = OP<double>::clamp(_cs, -1.0, 1.0);
+
+        //     //     acos_values[i] = (float)::acos(_cs);
+        //     // }
+        //     // acos_values[number_of_samples_cos] = acos_values[number_of_samples_cos - 1];
+        // }
+
+    public:
+        // // [-1..1]
+        // static double ITK_INLINE array_map_2_cos(const double &_csp)
+        // {
+
+        //     // [ < 0 => -1 baixo , > 0 => 1 cima ]
+        //     // double sign_baixo_cima = OP<double>::sign(_csp);
+
+        //     double _cs = OP<double>::abs(_csp);
+        //     // double _cs = _csp;
+
+        //     // circ_sqrt
+        //     //_cs -= sign_baixo_cima;
+
+        //     double _circ = _cs - 1.0f;
+        //     _circ = OP<double>::sqrt(1.0f - _circ * _circ);
+        //     double _line = _cs * FastArc_new_inclination_inv_d;
+        //     _cs = (_cs > FastArc_0_5_y_d) ? _circ : _line;
+
+        //     // graph 0..1 to 0..0.5
+        //     //_cs *= sign_baixo_cima;
+
+        //     return (_csp >= 0) ? _cs : -_cs;
+        // }
+
+        // // [-1..1]
+        // static float ITK_INLINE cos_map_2_array(const float &_csp, const float &_csp_abs) noexcept
+        // {
+        //     // [ < 0 => -1 baixo , > 0 => 1 cima ]
+        //     // float sign_baixo_cima = OP<float>::sign(_csp);
+
+        //     float _cs = _csp_abs; // OP<float>::abs(_csp);
+
+        //     // circ_sqrt
+        //     float _circ = 1.0f - OP<float>::sqrt(1.0f - _cs * _cs);
+        //     float _line = _cs * FastArc_new_inclination_f;
+        //     _cs = (_cs > FastArc_filter_on_x_f) ? _circ : _line;
+
+        //     // if (_cs > FastArc_filter_on_x_f) {
+        //     //     float _circ = 1.0f - OP<float>::sqrt(1.0f - _cs * _cs);
+        //     //     _cs = _circ;
+        //     // } else {
+        //     //     float _line = _cs * FastArc_new_inclination_f;
+        //     //     _cs = _line;
+        //     // }
+
+        //     // graph 0..1 to 0..0.5
+        //     //_cs *= sign_baixo_cima;
+
+        //     return (_csp >= 0) ? _cs : -_cs;
+        // }
+
+    private:
+        // p_{0}\left(x\right)=\sqrt{\left(1-x\right)}\left(a_{0}+a_{1}x^{1}+a_{2}x^{2}+a_{3}x^{3}\right)
+        // p\left(x\right)=\left\{x<0:\pi-p_{0}\left(-x\right),p_{0}\left(x\right)\right\}
+        static inline float acos_positive(const float &x) noexcept
         {
+#ifndef ITK_FAST_ARC_APPROXIMATION_DEGREE
+#define ITK_FAST_ARC_APPROXIMATION_DEGREE 4
+#endif
 
-            for (int i = 0; i < number_of_samples_cos + 1; i++)
-            {
-                double _cs = (double)i / (double)number_of_samples_cos;
+#if ITK_FAST_ARC_APPROXIMATION_DEGREE == 4
+            constexpr float a0 = 1.57078f;
+            constexpr float a1 = -0.214158f;
+            constexpr float a2 = 0.0851296f;
+            constexpr float a3 = -0.0368823f;
+            constexpr float a4 = 0.00939283f;
 
-                // [-1..1]
-                _cs = _cs * 2.0 - 1.0;
+            float t = a4;
+            t = t * x + a3;
+            t = t * x + a2;
+            t = t * x + a1;
+            t = t * x + a0;
+            return t * OP<float>::sqrt(1.0f - x);
+#elif ITK_FAST_ARC_APPROXIMATION_DEGREE == 3
+            constexpr float a0 = 1.570796f;
+            constexpr float a1 = -0.2125329f;
+            constexpr float a2 = 0.0747737f;
+            constexpr float a3 = -0.0188236f;
 
-                _cs = array_map_2_cos(_cs);
-
-                _cs = OP<double>::clamp(_cs, -1.0, 1.0);
-
-                acos_values[i] = (float)::acos(_cs);
-            }
-            acos_values[number_of_samples_cos] = acos_values[number_of_samples_cos - 1];
+            float t = a3;
+            t = t * x + a2;
+            t = t * x + a1;
+            t = t * x + a0;
+            return t * OP<float>::sqrt(1.0f - x);
+#endif
         }
 
     public:
-        // [-1..1]
-        static double ITK_INLINE array_map_2_cos(const double &_csp)
+        static inline float acos(const float &_csp) noexcept
         {
+            // float _abs = OP<float>::abs(_csp);
 
-            // [ < 0 => -1 baixo , > 0 => 1 cima ]
-            // double sign_baixo_cima = OP<double>::sign(_csp);
+            // // if (_abs > 1.0f)
+            // //     return NAN;
+            // _abs = OP<float>::minimum(_abs, 1.0f);
 
-            double _cs = OP<double>::abs(_csp);
-            // double _cs = _csp;
+            // float _cs = cos_map_2_array(_csp, _abs);
+            // // float _cs = array_map_2_cos(_csp);
 
-            // circ_sqrt
-            //_cs -= sign_baixo_cima;
+            // _cs = _cs * 0.5f + 0.5f;
+            // _cs *= number_of_samples_cos_float;
+            // _cs += 0.5f;
 
-            double _circ = _cs - 1.0f;
-            _circ = OP<double>::sqrt(1.0f - _circ * _circ);
-            double _line = _cs * FastArc_new_inclination_inv_d;
-            _cs = (_cs > FastArc_0_5_y_d) ? _circ : _line;
+            // int32_t array_index = (int32_t)_cs;
 
-            // graph 0..1 to 0..0.5
-            //_cs *= sign_baixo_cima;
+            // return acos_values[array_index];
 
-            return (_csp >= 0) ? _cs : -_cs;
+            constexpr float pi = MathCore::CONSTANT<float>::PI;
+            return (_csp < 0.0f) ? pi - acos_positive(-_csp) : acos_positive(_csp);
         }
 
-        // [-1..1]
-        static float ITK_INLINE cos_map_2_array(const float &_csp, const float &_csp_abs) noexcept
-        {
-            // [ < 0 => -1 baixo , > 0 => 1 cima ]
-            // float sign_baixo_cima = OP<float>::sign(_csp);
-
-            float _cs = _csp_abs; // OP<float>::abs(_csp);
-
-            // circ_sqrt
-            float _circ = 1.0f - OP<float>::sqrt(1.0f - _cs * _cs);
-            float _line = _cs * FastArc_new_inclination_f;
-            _cs = (_cs > FastArc_filter_on_x_f) ? _circ : _line;
-
-            // if (_cs > FastArc_filter_on_x_f) {
-            //     float _circ = 1.0f - OP<float>::sqrt(1.0f - _cs * _cs);
-            //     _cs = _circ;
-            // } else {
-            //     float _line = _cs * FastArc_new_inclination_f;
-            //     _cs = _line;
-            // }
-
-            // graph 0..1 to 0..0.5
-            //_cs *= sign_baixo_cima;
-
-            return (_csp >= 0) ? _cs : -_cs;
-        }
-
-        float ITK_INLINE acos(const float &_csp) const noexcept
-        {
-            float _abs = OP<float>::abs(_csp);
-
-            // if (_abs > 1.0f)
-            //     return NAN;
-            _abs = OP<float>::minimum(_abs, 1.0f);
-
-            float _cs = cos_map_2_array(_csp, _abs);
-            // float _cs = array_map_2_cos(_csp);
-
-            _cs = _cs * 0.5f + 0.5f;
-            _cs *= number_of_samples_cos_float;
-            _cs += 0.5f;
-
-            int32_t array_index = (int32_t)_cs;
-
-            return acos_values[array_index];
-
-            // float sq = OP<float>::sqrt(1.0f - _csp * _csp);
-            // return atan2(sq, _csp);
-        }
-
-        float inline asin(const float &_csp) const noexcept
+        static inline float asin(const float &_csp) noexcept
         {
             const float cos_0 = MathCore::CONSTANT<float>::PI * 0.5f;
 
-            float _abs = OP<float>::abs(_csp);
+            // float _abs = OP<float>::abs(_csp);
 
-            // if (_abs > 1.0f)
-            //     return NAN;
-            _abs = OP<float>::minimum(_abs, 1.0f);
+            // // if (_abs > 1.0f)
+            // //     return NAN;
+            // _abs = OP<float>::minimum(_abs, 1.0f);
 
-            // float sign = OP<float>::sign(_csp);
+            // // float sign = OP<float>::sign(_csp);
 
-            float _cs = cos_map_2_array(_csp, _abs);
+            // float _cs = cos_map_2_array(_csp, _abs);
 
-            _cs = _cs * 0.5f + 0.5f;
-            _cs *= number_of_samples_cos_float;
-            _cs += 0.5f;
+            // _cs = _cs * 0.5f + 0.5f;
+            // _cs *= number_of_samples_cos_float;
+            // _cs += 0.5f;
 
-            int32_t array_index = (int32_t)_cs;
+            // int32_t array_index = (int32_t)_cs;
 
-            // return sign * (cos_0 - acos_values[array_index]);
-            return cos_0 - acos_values[array_index];
+            // // return sign * (cos_0 - acos_values[array_index]);
+            // return cos_0 - acos_values[array_index];
 
-            // float sq = OP<float>::sqrt(1.0f - _csp * _csp);
-            // return cos_0 - atan2(sq, _csp);
+            constexpr float pi = MathCore::CONSTANT<float>::PI;
+            return cos_0 - ((_csp < 0.0f) ? pi - acos_positive(-_csp) : acos_positive(_csp));
         }
 
     private:
@@ -154,6 +189,7 @@ namespace MathCore
         // p\left(x\right)=\left\{x<0\ :\ -p_{1}\left(-x\right),\ p_{1}\left(x\right)\right\}
         static inline float super_atan_p0(float x) noexcept
         {
+#if ITK_FAST_ARC_APPROXIMATION_DEGREE == 4
             constexpr float a1 = 0.99997726f;
             constexpr float a3 = -0.33262347f;
             constexpr float a5 = 0.19354346f;
@@ -170,6 +206,33 @@ namespace MathCore
             t = t * x2 + a3;
             t = t * x2 + a1;
             return t * x;
+#elif ITK_FAST_ARC_APPROXIMATION_DEGREE == 3
+
+            // // Eberly's odd polynomial degree 5
+            // constexpr float a1 = 1.0f;
+            // constexpr float a3 = -0.301895f;
+            // constexpr float a5 = 0.0872929f;
+
+            // float x2 = x * x;
+
+            // float t = a5;
+            // t = t * x2 + a3;
+            // t = t * x2 + a1;
+            // return t * x;
+
+            constexpr float a1 = 0.999302f;
+            constexpr float a3 = -0.322127f;
+            constexpr float a5 = 0.148618f;
+            constexpr float a7 = -0.0405679f;
+
+            float x2 = x * x;
+
+            float t = a7;
+            t = t * x2 + a5;
+            t = t * x2 + a3;
+            t = t * x2 + a1;
+            return t * x;
+#endif
         }
 
         static inline float super_atan_p1(float x) noexcept
@@ -217,11 +280,11 @@ namespace MathCore
             }
         }
 
-        static FastArc *Instance()
-        {
-            static FastArc fastACos;
-            return &fastACos;
-        }
+        // static FastArc *Instance()
+        // {
+        //     static FastArc fastACos;
+        //     return &fastACos;
+        // }
     };
 
 #endif

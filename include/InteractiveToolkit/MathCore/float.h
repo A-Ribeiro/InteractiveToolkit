@@ -118,13 +118,13 @@ namespace MathCore
         // optimized instructions
         static ITK_INLINE _type abs(const _type &a) noexcept
         {
-            using type_info = FloatTypeInfo<_type>;
-            using compatible_uint = typename type_info::compatible_uint;
+            // using type_info = FloatTypeInfo<_type>;
+            // using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
-            return *((_type *)&result);
+            // compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
+            // return *((_type *)&result);
 
-            // return (a < (_type)0) ? -a : a;
+            return (a < (_type)0) ? -a : a;
 
             // return OP<_type>::sign(a) * a;
         }
@@ -1249,14 +1249,14 @@ namespace MathCore
 
 #if defined(ITK_TRIGONOMETRIC_USE_FAST_ARCH)
 
-    static FastArc *fastArc = FastArc::Instance();
+    // static FastArc *fastArc = FastArc::Instance();
 
     template <typename _type, typename _Algorithm>
     ITK_INLINE float OP<_type,
                         typename std::enable_if<std::is_same<_type, float>::value>::type,
                         _Algorithm>::acos(const float &v) noexcept
     {
-        return fastArc->acos(v);
+        return FastArc::acos(v);
     }
 
     template <typename _type, typename _Algorithm>
@@ -1264,7 +1264,7 @@ namespace MathCore
                         typename std::enable_if<std::is_same<_type, float>::value>::type,
                         _Algorithm>::asin(const float &v) noexcept
     {
-        return fastArc->asin(v);
+        return FastArc::asin(v);
     }
 
     template <typename _type, typename _Algorithm>
@@ -1272,7 +1272,7 @@ namespace MathCore
                         typename std::enable_if<std::is_same<_type, float>::value>::type,
                         _Algorithm>::atan(const float &v) noexcept
     {
-        return fastArc->atan(v);
+        return FastArc::atan(v);
     }
 
     template <typename _type, typename _Algorithm>
@@ -1280,7 +1280,7 @@ namespace MathCore
                         typename std::enable_if<std::is_same<_type, float>::value>::type,
                         _Algorithm>::atan2(const float &y, const float &x) noexcept
     {
-        return fastArc->atan2(y, x);
+        return FastArc::atan2(y, x);
     }
 
 #else
