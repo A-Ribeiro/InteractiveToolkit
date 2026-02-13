@@ -15,9 +15,7 @@ namespace EventCore
     /// Example:
     ///
     /// \code
-    /// #include <aRibeiroCore/aRibeiroCore.h>
-    /// using namespace aRibeiro;
-    ///
+            ///
     /// Property<vec2> Size;
     ///
     /// // you can listen to property changes
@@ -57,8 +55,6 @@ namespace EventCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// Property<vec2> Size = Property<vec2>( MathCore::vec2f(1.0f) );
         /// \endcode
@@ -82,8 +78,6 @@ namespace EventCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// Property<vec2> Size;
         ///
@@ -115,8 +109,6 @@ namespace EventCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// Property<vec2> Size;
         ///
@@ -144,8 +136,6 @@ namespace EventCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// Property<vec2> Size;
         ///

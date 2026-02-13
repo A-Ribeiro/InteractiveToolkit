@@ -48,8 +48,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 rgb;
         ///
@@ -119,8 +117,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 hsv;
         ///
@@ -179,8 +175,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 rgb;
         ///
@@ -230,8 +224,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 cie;
         ///
@@ -282,8 +274,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t r, g, b;
         /// uint8_t c, m, y;
@@ -335,8 +325,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t c, m, y;
         /// uint8_t r, g, b;
@@ -388,8 +376,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t r, g, b;
         /// uint8_t c, m, y, k;
@@ -456,8 +442,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t c, m, y, k;
         /// uint8_t r, g, b;
@@ -513,8 +497,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t r, g, b;
         /// uint8_t y, u, v;
@@ -563,8 +545,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// uint8_t y, u, v;
         /// uint8_t r, g, b;

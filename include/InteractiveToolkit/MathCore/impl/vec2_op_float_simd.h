@@ -41,8 +41,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 result;
         /// // result = vec2 ( 50, 3 )
@@ -115,8 +113,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, b;
         /// float result = dot( a, b ) ;
@@ -156,8 +152,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a;
         ///
@@ -180,8 +174,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a = vec2( 1, 0 );
         /// vec2 b = vec2( 0, 10 );
@@ -281,8 +273,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a = vec2( 1 , -1 );
         /// vec2 normal = vec2( 0 ,1 );
@@ -333,8 +323,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// float ior_air = 1.0f;
         /// float ior_water = 1.33f;
@@ -410,8 +398,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 input;
         ///
@@ -438,8 +424,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 input;
         ///
@@ -466,8 +450,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, b;
         ///
@@ -496,8 +478,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 a, b;
         ///
@@ -529,8 +509,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, unitV;
         ///
@@ -578,8 +556,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, unitV;
         ///
@@ -640,8 +616,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, unitV;
         ///
@@ -697,8 +671,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 center = vec2( 0, 0 );
         /// float maxRadius = 10.0f;
@@ -741,8 +713,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 input;
         ///
@@ -777,8 +747,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, b;
         ///
@@ -806,8 +774,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a;
         ///
@@ -842,8 +808,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a, b;
         ///
@@ -871,8 +835,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 input = vec2( -10, 20 );
         ///
@@ -902,8 +864,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a = vec2( 0.0f );
         /// vec2 b = vec2( 100.0f );
@@ -929,8 +889,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 a = vec2( 1, 0 );
         /// vec2 b = vec2( 0, 10 );
@@ -990,8 +948,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// // point inside the triangle
         /// vec3 p;
@@ -1055,8 +1011,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 dataA = vec2(0,0);
         /// vec2 dataB = vec2(1,0);
@@ -1112,8 +1066,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 p0,p1,p2,p3;
         ///
@@ -1148,8 +1100,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// PlatformTime timer;
         /// float moveSpeed;
@@ -1197,8 +1147,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// PlatformTime timer;
         /// float moveSpeedAngle;

@@ -19,8 +19,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// // result could be: 0xa0, 0xb1, 0xc2, 0xd3, 0xe4, 0xf5
         /// std::vector<unsigned char> mac = getFirstMacAddress();

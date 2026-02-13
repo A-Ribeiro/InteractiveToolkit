@@ -33,9 +33,7 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-    /// #include <aRibeiroCore/aRibeiroCore.h>
-    /// using namespace aRibeiro;
-    ///
+            ///
     /// mat3 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
@@ -94,8 +92,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix = mat3();
         /// \endcode
@@ -113,8 +109,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix = mat3( 10.0f );
         /// \endcode
@@ -149,8 +143,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
         ///                     0.0f, 1.0f, 0.0f, 0.0f,
@@ -202,8 +194,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix_src = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
         ///                         0.0f, 1.0f, 0.0f, 0.0f,
@@ -276,8 +266,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix, other_matrix;
         ///
@@ -323,8 +311,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///
@@ -354,8 +340,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         /// vec3 translate_vec;
@@ -381,8 +365,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// void process_matrix( const mat3 &matrix ) {
         ///     vec3 forward = matrix[2];
@@ -404,8 +386,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix_a, matrix_b;
         ///
@@ -482,8 +462,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix_a, matrix_b;
         ///
@@ -507,8 +485,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix, matrix_b;
         ///
@@ -541,8 +517,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix, matrix_b;
         ///
@@ -577,8 +551,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///
@@ -602,8 +574,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix, matrix_b;
         ///
@@ -663,8 +633,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///
@@ -696,8 +664,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///
@@ -729,8 +695,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///
@@ -762,8 +726,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// mat3 matrix;
         ///

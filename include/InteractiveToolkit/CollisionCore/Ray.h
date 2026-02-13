@@ -34,9 +34,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// \endcode
@@ -50,9 +47,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 origin, direction;
         ///
@@ -76,9 +70,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// AABB aabb;
@@ -109,9 +100,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Plane plane;
@@ -142,9 +130,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// //sphere
@@ -178,9 +163,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Sphere sphere;
@@ -211,9 +193,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// //triangle
@@ -247,9 +226,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Triangle triangle;
@@ -280,9 +256,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// OBB obb;

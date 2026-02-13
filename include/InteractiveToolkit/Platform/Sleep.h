@@ -46,8 +46,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_function() {
         ///     ...
@@ -68,8 +66,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_function() {
         ///     ...
@@ -96,8 +92,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_function() {
         ///     ...

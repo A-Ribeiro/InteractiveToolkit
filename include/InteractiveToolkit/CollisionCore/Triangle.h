@@ -36,9 +36,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// \endcode
@@ -52,9 +49,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 a, b, c;
         ///
@@ -77,9 +71,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// //triangle
@@ -113,9 +104,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Triangle triangle;
@@ -144,9 +132,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 ptn_to_input;
         /// // triangle
@@ -169,9 +154,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 ptn_to_input;
         /// Triangle triangle;
@@ -194,9 +176,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // line segment
         /// vec3 p, q;
@@ -233,9 +212,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// LineSegment lineSegment;
         /// // triangle
@@ -270,9 +246,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // line segment
         /// vec3 p, q;
@@ -306,9 +279,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// LineSegment lineSegment;
         /// Triangle triangle;
@@ -337,9 +307,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle
         /// vec3 a, b, c;
@@ -369,9 +336,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle
         /// vec3 a, b, c;
@@ -398,9 +362,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// // sphere
@@ -427,9 +388,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// Sphere sphere;
@@ -456,9 +414,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle vertex a, b, c
         /// vec3 a, b, c;
@@ -483,9 +438,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// AABB aabb;
@@ -507,9 +459,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle vertex a, b, c
         /// vec3 a, b, c;
@@ -534,9 +483,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// OBB obb;

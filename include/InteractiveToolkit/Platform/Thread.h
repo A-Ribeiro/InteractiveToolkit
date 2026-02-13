@@ -266,8 +266,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_example() {
         ///     // the thread or main thread could call #interrupt() to change this state
@@ -428,8 +426,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_example() {
         ///     // the thread or main thread could call #Thread::interrupt() to change this state
@@ -558,8 +554,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_example() {
         ///     // the thread or main thread could call #Thread::interrupt() to change this state
@@ -662,8 +656,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_example() {
         ///     // the thread or main thread could call #Thread::interrupt() to change this state
@@ -757,8 +749,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_example() {
         ///     ...
@@ -810,8 +800,6 @@ namespace Platform
         /// example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// void thread_function()
         /// {

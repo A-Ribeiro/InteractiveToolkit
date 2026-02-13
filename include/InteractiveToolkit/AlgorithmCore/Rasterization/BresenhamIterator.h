@@ -16,8 +16,6 @@ namespace AlgorithmCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// bool matrix[height][width];
         /// int x, y, xd yd;

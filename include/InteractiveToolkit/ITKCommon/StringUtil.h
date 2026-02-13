@@ -62,8 +62,6 @@ namespace ITKCommon
         /// It is possible to use it to generate a string that will be rendered as font glyphs.
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// float fps;
         /// StringUtil stringUtil;
@@ -97,8 +95,6 @@ namespace ITKCommon
         /// It is possible to use it to generate a string that will be rendered as font glyphs.
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// float fps;
         /// StringUtil stringUtil;
@@ -129,8 +125,6 @@ namespace ITKCommon
         /// \brief Convert any char string to wchar_t string
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string input;
         ///
@@ -473,8 +467,6 @@ namespace ITKCommon
         /// \brief test if a string starts with another string
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string input;
         ///
@@ -497,8 +489,6 @@ namespace ITKCommon
         /// \brief test if a string ends with another string
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string input;
         ///

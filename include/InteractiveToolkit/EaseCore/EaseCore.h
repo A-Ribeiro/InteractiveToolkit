@@ -34,8 +34,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 interpolationFunctionA(const vec3& a, const vec3& b, _type lerp){
         ///     ...
@@ -75,8 +73,6 @@ namespace EaseCore
 /// Example:
 ///
 /// \code
-/// #include <aRibeiroCore/aRibeiroCore.h>
-/// using namespace aRibeiro;
 ///
 /// template <class T>
 /// static inline T inQuad(const T& _startValue, const T& _endValue, _type lerp) {
@@ -114,8 +110,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = easeNone<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -140,8 +134,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inQuad<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -166,8 +158,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outQuad<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -195,8 +185,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutQuad<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -214,8 +202,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInQuad<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -233,8 +219,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inCubic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -259,8 +243,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outCubic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -286,8 +268,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutCubic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -305,8 +285,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInCubic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -324,8 +302,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inQuart<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -350,8 +326,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outQuart<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -377,8 +351,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutQuart<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -396,8 +368,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInQuart<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -415,8 +385,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inQuint<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -441,8 +409,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outQuint<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -468,8 +434,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutQuint<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -487,8 +451,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInQuint<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -506,8 +468,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inSine<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -532,8 +492,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outSine<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -558,8 +516,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutSine<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -577,8 +533,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInSine<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -596,8 +550,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inExpo<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -624,8 +576,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outExpo<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -652,8 +602,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutExpo<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -671,8 +619,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInExpo<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -690,8 +636,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inCirc<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -716,8 +660,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outCirc<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -743,8 +685,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutCirc<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -762,8 +702,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInCirc<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -781,8 +719,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inElastic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -811,8 +747,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outElastic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -842,8 +776,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutElastic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -861,8 +793,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInElastic<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -880,8 +810,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inBack<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -907,8 +835,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outBack<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -935,8 +861,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutBack<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -954,8 +878,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInBack<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -973,8 +895,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inBounce<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -1019,8 +939,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outBounce<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -1064,8 +982,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = inOutBounce<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode
@@ -1083,8 +999,6 @@ namespace EaseCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec3 result = outInBounce<vec3>(vec3(0.0f),vec3(1.0f),0.5f);
         /// \endcode

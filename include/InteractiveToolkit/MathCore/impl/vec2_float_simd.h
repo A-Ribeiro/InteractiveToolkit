@@ -25,9 +25,7 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-    /// #include <aRibeiroCore/aRibeiroCore.h>
-    /// using namespace aRibeiro;
-    ///
+            ///
     /// vec2 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
@@ -86,8 +84,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec = vec2();
         /// \endcode
@@ -114,8 +110,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec = vec2( 0.5f );
         /// \endcode
@@ -149,8 +143,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec = vec2( 0.1f, 0.2f );
         /// \endcode
@@ -190,8 +182,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec_source;
         ///
@@ -236,8 +226,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec_a, vec_b;
         ///
@@ -266,8 +254,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec_a, vec_b;
         ///
@@ -356,8 +342,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec_a, vec_b;
         ///
@@ -383,8 +367,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec, vec_b;
         ///
@@ -414,8 +396,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec, vec_b;
         ///
@@ -445,8 +425,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -475,8 +453,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec, vec_b;
         ///
@@ -506,8 +482,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec, vec_b;
         ///
@@ -545,8 +519,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -576,8 +548,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -607,8 +577,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -638,8 +606,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -667,8 +633,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// vec2 vec;
         ///
@@ -691,8 +655,6 @@ namespace MathCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// void process_vec( const vec2 &vec ) {
         ///     float x = vec[0];

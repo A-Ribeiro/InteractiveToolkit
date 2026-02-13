@@ -125,7 +125,7 @@ namespace Platform
 
         void setGlobalThreadPriority(ThreadPriority priority)
         {
-            /*ARIBEIRO_ABORT(
+            /*ITK_ABORT(
                 Thread::getCurrentThread() != Thread::getMainThread(),
                 "You can set the thread priority just from the main thread.\n"
             );*/

@@ -34,9 +34,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Sphere sphere;
         /// \endcode
@@ -50,9 +47,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 sphere_center;
         /// float sphere_radius;
@@ -71,9 +65,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 ptn_to_input;
         /// // sphere
@@ -96,9 +87,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 ptn_to_input;
         /// Sphere sphere;
@@ -118,9 +106,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Sphere sphere_a;
         /// Sphere sphere_b;
@@ -142,9 +127,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Sphere sphere_a;
         /// Sphere sphere_b;
@@ -168,9 +150,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// //sphere
@@ -204,9 +183,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Sphere sphere;
@@ -233,9 +209,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// //line segment a and b
         /// vec3 a, b;
@@ -262,9 +235,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// LineSegment lineSegment;
         /// //sphere
@@ -289,9 +259,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// //line segment a and b
         /// vec3 a, b;
@@ -315,9 +282,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// LineSegment lineSegment;
         /// Sphere sphere;
@@ -339,9 +303,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 point;
         /// // sphere
@@ -366,9 +327,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 point;
         /// Sphere sphere;
@@ -394,9 +352,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 sphere_center;
         /// float sphere_radius;
@@ -422,9 +377,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Sphere sphere;
         /// AABB aabb;
@@ -448,9 +400,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// // sphere
@@ -475,9 +424,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// Sphere sphere;
@@ -499,9 +445,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle
         /// vec3 a, b, c;
@@ -531,9 +474,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle
         /// vec3 a, b, c;
@@ -560,9 +500,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// // sphere
@@ -589,9 +526,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         /// Sphere sphere;
@@ -615,9 +549,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 sphere_center;
         /// float sphere_radius;
@@ -643,9 +574,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Sphere sphere;
         /// OBB obb;

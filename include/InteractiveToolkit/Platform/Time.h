@@ -254,8 +254,6 @@ namespace Platform
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// PlatformTime time;
         /// float elapsedSinceStartTimeSec = 0;

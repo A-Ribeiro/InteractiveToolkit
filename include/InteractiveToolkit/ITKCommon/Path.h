@@ -318,8 +318,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string current_work_directory = PlatformPath::getWorkingPath();
         /// \endcode
@@ -359,8 +357,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// int main(int argc, char *argv[]) {
         ///     PlatformPath::setWorkingPath( PlatformPath::getExecutablePath( argv[0] ) );
@@ -389,8 +385,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// int main(int argc, char *argv[]) {
         ///     PlatformPath::setWorkingPath( PlatformPath::getExecutablePath( std::string( argv[0] ) ) );
@@ -434,8 +428,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string path_to_save_files = PlatformPath::getSaveGamePath( "Company Root Folder", "Game Name" );
         /// ...
@@ -493,8 +485,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// std::string path_to_save_files = PlatformPath::getDocumentsPath( "Company Root Folder", "App Name" );
         /// ...
@@ -541,8 +531,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// if ( PlatformPath::isDirectory( "directory to test" ) ) {
         ///     ...
@@ -596,8 +584,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// if ( PlatformPath::isFile( "file to test" ) ) {
         ///     ...
@@ -639,8 +625,6 @@ namespace ITKCommon
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-        /// using namespace aRibeiro;
         ///
         /// int main(int argc, char *argv[]) {
         ///     if ( argc < 2 )

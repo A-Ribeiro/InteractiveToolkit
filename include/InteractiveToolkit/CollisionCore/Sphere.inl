@@ -315,7 +315,7 @@ namespace CollisionCore
         }
         */
 
-        // ARIBEIRO_ABORT(det_a == 0, "All 4 points are coplanar.\n");
+        // ITK_ABORT(det_a == 0, "All 4 points are coplanar.\n");
 
         // Copy the matrix so we can modify it
         // and still read rows from the original.

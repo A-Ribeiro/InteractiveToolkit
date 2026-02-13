@@ -72,9 +72,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         ///
@@ -95,9 +92,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// void process_frustum( const Frustum &frustum ) {
         ///     Plane right = frustum[0];
@@ -122,9 +116,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// mat4 camera_projection;
         ///
@@ -142,9 +133,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// mat4 camera_projection;
         /// mat4 camera_inverse_transformation;
@@ -161,9 +149,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// vec3 point;
@@ -185,9 +170,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// // sphere
@@ -212,9 +194,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// Sphere sphere;
@@ -236,9 +215,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// AABB aabb;
@@ -260,9 +236,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Frustum frustum;
         /// OOBB oobb;

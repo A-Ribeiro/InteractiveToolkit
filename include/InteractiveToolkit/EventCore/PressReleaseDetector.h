@@ -29,8 +29,6 @@ namespace EventCore
         /// Example of use with functions:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// void callbackFunction() {
         ///     ...
@@ -44,8 +42,6 @@ namespace EventCore
         /// Example of use with method:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// class ExampleClass {
         /// public:
@@ -70,8 +66,6 @@ namespace EventCore
         /// Example of use with functions:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// void callbackFunction() {
         ///     ...
@@ -85,8 +79,6 @@ namespace EventCore
         /// Example of use with method:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// class ExampleClass {
         /// public:
@@ -118,8 +110,6 @@ namespace EventCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
         ///
         /// PressReleaseDetector right;
         ///

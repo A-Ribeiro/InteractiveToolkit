@@ -34,9 +34,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane;
         /// \endcode
@@ -52,9 +49,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 point_in_plane;
         /// vec3 normal;
@@ -75,9 +69,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle a, b, c
         /// vec3 a, b, c;
@@ -99,9 +90,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane;
         ///
@@ -120,9 +108,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// // triangle a, b, c
         /// vec3 a, b, c;
@@ -143,9 +128,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Triangle triangle;
         ///
@@ -167,9 +149,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 ptn_to_input;
         /// Plane plane;
@@ -193,9 +172,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// vec3 point;
         /// Plane plane;
@@ -219,9 +195,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Ray ray;
         /// Plane plane;
@@ -248,9 +221,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// //line segment a and b
         /// vec3 a, b;
@@ -274,9 +244,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// LineSegment lineSegment;
         /// Plane plane;
@@ -302,9 +269,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane_a, plane_b;
         ///
@@ -332,9 +296,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane_a, plane_b, plane_c;
         ///
@@ -362,9 +323,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane;
         /// AABB aabb;
@@ -386,9 +344,6 @@ namespace CollisionCore
         /// Example:
         ///
         /// \code
-        /// #include <aRibeiroCore/aRibeiroCore.h>
-        /// using namespace aRibeiro;
-        /// using namespace aRibeiro::collision;
         ///
         /// Plane plane;
         /// OBB obb;

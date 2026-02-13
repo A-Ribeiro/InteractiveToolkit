@@ -8,16 +8,14 @@ namespace EventCore
 
     /// \brief Class to implement a completely virtual property.
     ///
-    /// The #aRibeiro::Property class stores the content of the variable and check if a variation occurs to trigger an event #aRibeiro::Property::OnChange.
+    /// The Property class stores the content of the variable and check if a variation occurs to trigger an event Property::OnChange.
     ///
     /// This class do not store the values. It call internal class methods for get and set custom implementation instead.
     ///
     /// Example:
     ///
     /// \code
-    /// #include <aRibeiroCore/aRibeiroCore.h>
-    /// using namespace aRibeiro;
-    ///
+            ///
     /// class Example {
     ///
     ///     vec2 size_internal;

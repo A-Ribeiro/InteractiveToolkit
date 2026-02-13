@@ -467,7 +467,7 @@ namespace Platform
                 CloseHandle(processInformation.hProcess);
                 CloseHandle(processInformation.hThread);
 
-                // ARIBEIRO_ABORT(code != 0, "Child process terminated with code: %u", code);
+                // ITK_ABORT(code != 0, "Child process terminated with code: %u", code);
                 exit_code = code;
 
                 pid_str = "";

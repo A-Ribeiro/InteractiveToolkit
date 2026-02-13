@@ -12,8 +12,6 @@ namespace Platform
     /// Example:
     ///
     /// \code
-    /// #include <aRibeiroPlatform/aRibeiroPlatform.h>
-    /// using namespace aRibeiro;
     ///
     /// Platform::Mutex mutex;
     ///

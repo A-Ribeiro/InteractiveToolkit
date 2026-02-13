@@ -331,7 +331,7 @@ namespace MathCore
             _type length_inv = x * x + y * y + z * z;
             length_inv = OP<_type>::sqrt(length_inv);
             length_inv = OP<_type>::maximum(length_inv, type_info::min);
-            // ARIBEIRO_ABORT(length_inv == 0, "division by zero\n");
+            // ITK_ABORT(length_inv == 0, "division by zero\n");
             length_inv = (_type)1 / length_inv;
 
             x *= length_inv;

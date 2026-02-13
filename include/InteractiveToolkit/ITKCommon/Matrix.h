@@ -141,7 +141,7 @@ namespace ITKCommon
 
 			if (size.width <= 0 || size.height <= 0)
 				throw std::runtime_error("invalid matrix size.");
-			// ARIBEIRO_ABORT(size.width <= 0 || size.height <= 0, "invalid matrix size: %i %i", size.width, size.height);
+			// ITK_ABORT(size.width <= 0 || size.height <= 0, "invalid matrix size: %i %i", size.width, size.height);
 
 			if (array != nullptr)
 				delete[] array;
