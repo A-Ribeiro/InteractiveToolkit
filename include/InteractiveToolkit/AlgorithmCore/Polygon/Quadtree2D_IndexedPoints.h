@@ -12,8 +12,8 @@ namespace AlgorithmCore
     (Quadrant)(((int)(y_positive_north_bit) << 1) | (int)(x_positive_east_bit))
         enum Quadrant
         {
-            Quadrant_bit_E = 0x01, // East
-            Quadrant_bit_N = 0x10, // North
+            Quadrant_bit_E = 0b001, // East
+            Quadrant_bit_N = 0b010, // North
 
             Quadrant_SW = 0b000, // South-West
             Quadrant_SE = 0b001, // South-East
