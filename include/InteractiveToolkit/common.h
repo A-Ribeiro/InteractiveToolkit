@@ -324,7 +324,7 @@ static inline float32x4_t _neon_mm_floor_ps(const float32x4_t &f)
     // and no decimal part
     //
     // if ((abs(f) > 2**31 )) r = f;
-    //const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
+    // const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
     const float32x4_t _max_f = vdupq_n_f32(8388608.f);
     uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
     uint32x4_t r_u = vreinterpretq_u32_f32(r);
@@ -356,7 +356,7 @@ static inline float32x4_t _neon_mm_ceil_ps(const float32x4_t &f)
     // and no decimal part
     //
     // if ((abs(f) > 2**31 )) r = f;
-    //const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
+    // const uint32x4_t _sign_bit = vreinterpretq_u32_f32(vdupq_n_f32(-0.f));
     const float32x4_t _max_f = vdupq_n_f32(8388608.f);
     uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
     uint32x4_t r_u = vreinterpretq_u32_f32(r);
@@ -377,7 +377,7 @@ static inline float32x4_t _neon_mm_round_ps(const float32x4_t &input)
     float32x4_t f = vaddq_f32(input, _half_signed);
 
     // r = (float)(int)f;
-    //float32x4_t r = vcvtq_f32_s32(vcvtq_s32_f32(f));
+    // float32x4_t r = vcvtq_f32_s32(vcvtq_s32_f32(f));
     uint32x4_t r = vreinterpretq_u32_f32(vcvtq_f32_s32(vcvtq_s32_f32(f)));
 
     // two possible values:
@@ -423,18 +423,26 @@ namespace ITKCommon
 
 }
 
-#define ITK_DECLARE_CREATE_SHARED(ClassName)                       \
-private:                                                           \
-    std::weak_ptr<ClassName> mSelf;                                \
-                                                                   \
-public:                                                            \
-    static inline std::shared_ptr<ClassName> CreateShared()        \
-    {                                                              \
-        auto result = std::shared_ptr<ClassName>(new ClassName()); \
-        result->mSelf = std::weak_ptr<ClassName>(result);          \
-        return result;                                             \
-    }                                                              \
-    inline std::shared_ptr<ClassName> self()                       \
-    {                                                              \
-        return std::shared_ptr<ClassName>(mSelf);                  \
+#define ITK_DECLARE_CREATE_SHARED(ClassName)                                                         \
+private:                                                                                             \
+    std::weak_ptr<ClassName> mSelf;                                                                  \
+                                                                                                     \
+public:                                                                                              \
+    template <typename... _param_args>                                                               \
+    static inline std::shared_ptr<ClassName> CreateShared(_param_args &&...args)                     \
+    {                                                                                                \
+        auto result = std::shared_ptr<ClassName>(new ClassName(std::forward<_param_args>(args)...)); \
+        result->mSelf = std::weak_ptr<ClassName>(result);                                            \
+        return result;                                                                               \
+    }                                                                                                \
+    inline std::shared_ptr<ClassName> self()                                                         \
+    {                                                                                                \
+        return std::shared_ptr<ClassName>(mSelf);                                                    \
     }
+
+// static inline std::shared_ptr<ClassName> CreateShared()
+// {
+//     auto result = std::shared_ptr<ClassName>(new ClassName());
+//     result->mSelf = std::weak_ptr<ClassName>(result);
+//     return result;
+// }
