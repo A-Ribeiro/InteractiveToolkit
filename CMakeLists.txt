@@ -188,6 +188,9 @@ elseif(UNIX)
             ( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND ${UNAME_OUTPUT} MATCHES "aarch64" )
         ) )
         set(${var} ON)
+    elseif( (${flag} STREQUAL "sse3" OR ${flag} STREQUAL "sse4_1" OR ${flag} STREQUAL "avx2") AND
+        ( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64" ) )
+        set(${var} OFF)
     else()
         execute_process(
             COMMAND bash -c "grep -m1 '${flag}' /proc/cpuinfo"
