@@ -56,8 +56,8 @@ namespace Platform
             using pointer = T *;
             using reference = T &;
 
-            ITK_INLINE iterator(SmartVector *vec, size_t idx, size_t count) noexcept
-                : vec(vec), idx(idx), item_count(count)
+            ITK_INLINE iterator(SmartVector *vec, size_t idx_p, size_t count) noexcept
+                : vec(vec), idx(idx_p), item_count(count)
             {
                 if (item_count == 0)
                 {
@@ -250,8 +250,8 @@ namespace Platform
             using pointer = const T *;
             using reference = const T &;
 
-            ITK_INLINE const_iterator(const SmartVector *vec, size_t idx, size_t count) noexcept
-                : vec(vec), idx(idx), item_count(count)
+            ITK_INLINE const_iterator(const SmartVector *vec, size_t idx_p, size_t count) noexcept
+                : vec(vec), idx(idx_p), item_count(count)
             {
                 if (item_count == 0)
                 {
