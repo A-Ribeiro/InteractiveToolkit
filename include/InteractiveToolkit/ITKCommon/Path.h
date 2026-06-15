@@ -22,8 +22,7 @@
 typedef GUID KNOWNFOLDERID;
 #define REFKNOWNFOLDERID const KNOWNFOLDERID &
 
-static HRESULT(_stdcall *SHGetKnownFolderPath_Custom)
-(
+static HRESULT(_stdcall *SHGetKnownFolderPath_Custom)(
     REFKNOWNFOLDERID rfid,
     DWORD dwFlags,
     HANDLE hToken,
@@ -123,9 +122,9 @@ namespace ITKCommon
 {
 
 #if defined(_WIN32)
-        static constexpr char PATH_SEPARATOR[] = "\\";
+    static constexpr char PATH_SEPARATOR[] = "\\";
 #elif defined(__APPLE__) || defined(__linux__)
-        static constexpr char PATH_SEPARATOR[] = "/";
+    static constexpr char PATH_SEPARATOR[] = "/";
 #endif
 
     class Path
@@ -312,7 +311,6 @@ namespace ITKCommon
 #endif
 
     public:
-
         /// \brief Get the current executable path.
         ///
         /// Example:
@@ -442,11 +440,40 @@ namespace ITKCommon
         /// \author Alessandro Ribeiro
         /// \param rootFolder base path used to group several games
         /// \param gameName the game name
-        /// \return true if its OK
+        /// \return the computed save game path
         ///
-        static std::string getSaveGamePath(const std::string &rootFolder, const std::string &gameName)
+        static std::string getSaveGamePath(const std::string &rootFolder_p, const std::string &gameName_p)
         {
+            std::string rootFolder = rootFolder_p;
+            std::string gameName = gameName_p;
+
+            // Remove invalid filesystem characters (Windows + Linux)
+            // Windows forbids: < > : " / \ | ? *
+            // Both systems: control characters (0x00-0x1F, 0x7F)
+            std::regex invalidCharsRegex("[<>:\"/\\\\|?*\\x00-\\x1F\\x7F]+");
+            rootFolder = std::regex_replace(rootFolder, invalidCharsRegex, "_");
+            gameName = std::regex_replace(gameName, invalidCharsRegex, "_");
+
+            // Trim trailing dots and spaces (Windows issue)
+            std::regex trailingRegex("[\\.\\s]+$");
+            rootFolder = std::regex_replace(rootFolder, trailingRegex, "");
+            gameName = std::regex_replace(gameName, trailingRegex, "");
+
+            // Ensure not empty after sanitization
+            if (rootFolder.empty())
+                rootFolder = "default";
+            if (gameName.empty())
+                gameName = "game";
+
 #if defined(_WIN32)
+            // Check for Windows reserved names (case-insensitive)
+            // Reserved: CON, PRN, AUX, NUL, COM1-9, LPT1-9
+            std::regex reservedNamesRegex("^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\\.|$)", std::regex_constants::icase);
+            if (std::regex_search(rootFolder, reservedNamesRegex))
+                rootFolder = "_" + rootFolder;
+            if (std::regex_search(gameName, reservedNamesRegex))
+                gameName = "_" + gameName;
+
             std::wstring base = StringUtil::string_to_WString(rootFolder);
             std::wstring game = StringUtil::string_to_WString(gameName);
 
@@ -499,11 +526,40 @@ namespace ITKCommon
         /// \author Alessandro Ribeiro
         /// \param rootFolder base path used to group several apps
         /// \param appName the app name
-        /// \return true if its OK
+        /// \return the computed documents path
         ///
-        static std::string getDocumentsPath(const std::string &rootFolder, const std::string &appName)
+        static std::string getDocumentsPath(const std::string &rootFolder_p, const std::string &appName_p)
         {
+            std::string rootFolder = rootFolder_p;
+            std::string appName = appName_p;
+
+            // Remove invalid filesystem characters (Windows + Linux)
+            // Windows forbids: < > : " / \ | ? *
+            // Both systems: control characters (0x00-0x1F, 0x7F)
+            std::regex invalidCharsRegex("[<>:\"/\\\\|?*\\x00-\\x1F\\x7F]+");
+            rootFolder = std::regex_replace(rootFolder, invalidCharsRegex, "_");
+            appName = std::regex_replace(appName, invalidCharsRegex, "_");
+
+            // Trim trailing dots and spaces (Windows issue)
+            std::regex trailingRegex("[\\.\\s]+$");
+            rootFolder = std::regex_replace(rootFolder, trailingRegex, "");
+            appName = std::regex_replace(appName, trailingRegex, "");
+
+            // Ensure not empty after sanitization
+            if (rootFolder.empty())
+                rootFolder = "default";
+            if (appName.empty())
+                appName = "app";
+
 #if defined(_WIN32)
+            // Check for Windows reserved names (case-insensitive)
+            // Reserved: CON, PRN, AUX, NUL, COM1-9, LPT1-9
+            std::regex reservedNamesRegex("^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\\.|$)", std::regex_constants::icase);
+            if (std::regex_search(rootFolder, reservedNamesRegex))
+                rootFolder = "_" + rootFolder;
+            if (std::regex_search(appName, reservedNamesRegex))
+                appName = "_" + appName;
+
             std::wstring base = StringUtil::string_to_WString(rootFolder);
             std::wstring app = StringUtil::string_to_WString(appName);
 
@@ -519,7 +575,7 @@ namespace ITKCommon
             home += std::string("/.") + rootFolder;
             unixCheckPathCreation(home.c_str());
 
-            home += std::string( "/" ) + appName;
+            home += std::string("/") + appName;
             unixCheckPathCreation(home.c_str());
 
             return home;
@@ -571,9 +627,9 @@ namespace ITKCommon
                 auto _t = GetDriveTypeW(path_w.c_str());
                 return (_t != DRIVE_NO_ROOT_DIR && _t != DRIVE_UNKNOWN);
 
-                //return false;
+                // return false;
             }
-            //return PathIsDirectoryW(path_w.c_str()) == TRUE;
+            // return PathIsDirectoryW(path_w.c_str()) == TRUE;
 #elif defined(__APPLE__) || defined(__linux__)
             return unixIsDirectory(path_.c_str());
 #endif
@@ -594,7 +650,7 @@ namespace ITKCommon
         /// \param path the path to test
         /// \return true if it is a file
         ///
-        static bool isFile(const std::string & path_)
+        static bool isFile(const std::string &path_)
         {
 #if defined(_WIN32)
             std::wstring path_w;
@@ -612,7 +668,7 @@ namespace ITKCommon
             }
             else
                 return false;
-            //return PathFileExistsW(path_w.c_str()) && !isDirectory(path_);
+            // return PathFileExistsW(path_w.c_str()) && !isDirectory(path_);
 #elif defined(__APPLE__) || defined(__linux__)
             return unixIsFile(path_.c_str());
 #endif
@@ -697,32 +753,34 @@ namespace ITKCommon
             WCHAR fullFilename[MAX_PATH];
             std::wstring path_w = StringUtil::string_to_WString(path_);
 
-            if (StringUtil::endsWith(path_, ":")) {
+            if (StringUtil::endsWith(path_, ":"))
+            {
                 auto _is_drive_test = GetDriveTypeW(path_w.c_str());
-                if (_is_drive_test != DRIVE_NO_ROOT_DIR && _is_drive_test != DRIVE_UNKNOWN) {
+                if (_is_drive_test != DRIVE_NO_ROOT_DIR && _is_drive_test != DRIVE_UNKNOWN)
                     path_w += L"\\";
-                }
             }
-            
-            if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0) {
+
+            if (GetFullPathNameW(path_w.c_str(), MAX_PATH, fullFilename, nullptr) > 0)
+            {
                 std::string result = StringUtil::wString_to_String(fullFilename);
                 if (StringUtil::endsWith(result, "\\"))
-                    result = result.substr(0, result.length()-1);
+                    result = result.substr(0, result.length() - 1);
                 return result;
             }
 
             // return the path without resolve the absolute path
-            char resolved_path[MAX_PATH*4];
+            char resolved_path[MAX_PATH * 4];
             snprintf(resolved_path, MAX_PATH, "%s", path_.c_str());
-            while (strlen(resolved_path) > 0 && 
-                (resolved_path[strlen(resolved_path) - 1] == '/' ||
-                resolved_path[strlen(resolved_path) - 1] == '\\') )
+            while (strlen(resolved_path) > 0 &&
+                   (resolved_path[strlen(resolved_path) - 1] == '/' ||
+                    resolved_path[strlen(resolved_path) - 1] == '\\'))
                 resolved_path[strlen(resolved_path) - 1] = '\0';
             return resolved_path;
 
 #elif defined(__APPLE__) || defined(__linux__)
             char resolved_path[PATH_MAX];
-            if (realpath(path_.c_str(), resolved_path) != nullptr) {
+            if (realpath(path_.c_str(), resolved_path) != nullptr)
+            {
                 if (strlen(resolved_path) > 0 && resolved_path[strlen(resolved_path) - 1] == '/')
                     resolved_path[strlen(resolved_path) - 1] = '\0';
                 return resolved_path;
