@@ -28,6 +28,7 @@
 #include <wchar.h>    // wprintf
 #include <cctype>     // tolower
 #include <inttypes.h> // PRIu64
+#include <regex>
 
 #include <list>
 
