@@ -514,13 +514,16 @@ if (ITK_OPENMP)
     #add_definitions(-DITK_OPENMP)
     list(APPEND ITK_COMPILE_DEFINITIONS ITK_OPENMP)
     # include_directories(${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
-    list(APPEND ITK_INCLUDE_DIRECTORIES ${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
+    list(APPEND ITK_INCLUDE_DIRECTORIES 
+        $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${OpenMP_C_INCLUDE_DIRS}> 
+        $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${OpenMP_CXX_INCLUDE_DIRS}>
+    )
     # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    list(APPEND ITK_COMPILE_OPTIONS "${OpenMP_CXX_FLAGS}")
+    list(APPEND ITK_COMPILE_OPTIONS $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${OpenMP_CXX_FLAGS}> )
     # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-    list(APPEND ITK_LINK_OPTIONS "${OpenMP_EXE_LINKER_FLAGS}")
-    list(APPEND ITK_LINK_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
+    list(APPEND ITK_LINK_OPTIONS $<$<NOT:$<LINK_LANGUAGE:CUDA>>:${OpenMP_EXE_LINKER_FLAGS}>)
+    list(APPEND ITK_LINK_LIBRARIES $<$<NOT:$<LINK_LANGUAGE:CUDA>>:${OpenMP_CXX_LIBRARIES}>)
 endif()
 ############################################################################
 # Detect SSE2 compatible environment
@@ -571,9 +574,9 @@ if (ITK_SSE2)
     else()
         #visual studio
         if (ITK_AVX2)
-            list(APPEND ITK_COMPILE_OPTIONS /arch:AVX2)
+            list(APPEND ITK_COMPILE_OPTIONS $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/arch:AVX2> $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/arch:AVX2> )
         elseif(ITK_SSE2)
-            list(APPEND ITK_COMPILE_OPTIONS /arch:SSE2)
+            list(APPEND ITK_COMPILE_OPTIONS $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/arch:SSE2> $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/arch:SSE2> )
         endif()
     endif()
 endif()
