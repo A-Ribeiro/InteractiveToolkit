@@ -158,6 +158,13 @@ namespace EventCore
         }
 
     public:
+
+        bool isInsideCallback() const
+        {
+            std::lock_guard<decltype(mtx)> lock(mtx);
+            return _runtime_inside_call;
+        }
+
         void operator()(_ArgsType... _arg)
         {
             {

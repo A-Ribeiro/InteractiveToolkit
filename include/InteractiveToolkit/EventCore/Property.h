@@ -3,6 +3,8 @@
 #include "../common.h"
 #include "Event.h"
 
+// #include "../Platform/Core/SmartVector.h"
+
 namespace EventCore
 {
 
@@ -15,7 +17,7 @@ namespace EventCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// Property<vec2> Size;
     ///
     /// // you can listen to property changes
@@ -43,11 +45,41 @@ namespace EventCore
         T oldValue; ///< The property last value, before the modification
         T value;    ///< The property current value
 
+        bool has_value_to_set_in_future;
+        T value_set_in_future;
+
+        void value_set(const T &v)
+        {
+
+            if (has_value_to_set_in_future || OnChange.isInsideCallback())
+            {
+                value_set_in_future = v;
+                has_value_to_set_in_future = true;
+                return;
+            }
+
+            T aux = v;
+            while (value != aux)
+            {
+                oldValue = value;
+                value = aux;
+                OnChange(value, oldValue); // OnChange(this);
+
+                if (has_value_to_set_in_future)
+                {
+                    has_value_to_set_in_future = false;
+                    aux = value_set_in_future;
+                }
+                else
+                    return;
+            }
+        }
+
     public:
-        //deleted copy constructor and assign operator, to avoid copy...
+        // deleted copy constructor and assign operator, to avoid copy...
         Property(const Property &) = delete;
-        Property& operator=(const Property &) = delete;
-        
+        Property &operator=(const Property &) = delete;
+
         Event<void(const T &value, const T &oldValue)> OnChange; ///< Called when a modification occurs
 
         /// \brief Construct this property with an initial value.
@@ -65,12 +97,14 @@ namespace EventCore
         {
             oldValue = defaultValue;
             value = defaultValue;
+            has_value_to_set_in_future = false;
         }
 
         ITK_INLINE Property()
         {
             oldValue = T();
             value = T();
+            has_value_to_set_in_future = false;
         }
 
         /// \brief Undo the last modification
@@ -120,14 +154,9 @@ namespace EventCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        ITK_INLINE Property& operator=(const T &v)
+        ITK_INLINE Property &operator=(const T &v)
         {
-            if (value != v)
-            {
-                oldValue = value;
-                value = v;
-                OnChange(value, oldValue); // OnChange(this);
-            }
+            value_set(v);
             return *this;
         }
 
@@ -163,52 +192,58 @@ namespace EventCore
 
         ITK_INLINE void operator+=(const T &v)
         {
-            oldValue = value;
-            value += v;
-            if (value != oldValue)
-            {
-                OnChange(value, oldValue); // OnChange(this);
-            }
+            value_set(value + v);
+            // oldValue = value;
+            // value += v;
+            // if (value != oldValue)
+            // {
+            //     OnChange(value, oldValue); // OnChange(this);
+            // }
             // return value;
         }
         ITK_INLINE void operator-=(const T &v)
         {
-            oldValue = value;
-            value -= v;
-            if (value != oldValue)
-            {
-                OnChange(value, oldValue); // OnChange(this);
-            }
+            value_set(value - v);
+            // oldValue = value;
+            // value -= v;
+            // if (value != oldValue)
+            // {
+            //     OnChange(value, oldValue); // OnChange(this);
+            // }
             // return value;
         }
         ITK_INLINE void operator*=(const T &v)
         {
-            oldValue = value;
-            value *= v;
-            if (value != oldValue)
-            {
-                OnChange(value, oldValue); // OnChange(this);
-            }
+            value_set(value * v);
+
+            // oldValue = value;
+            // value *= v;
+            // if (value != oldValue)
+            // {
+            //     OnChange(value, oldValue); // OnChange(this);
+            // }
             // return value;
         }
         ITK_INLINE void operator/=(const T &v)
         {
-            oldValue = value;
-            value /= v;
-            if (value != oldValue)
-            {
-                OnChange(value, oldValue); // OnChange(this);
-            }
-            // return value;
+            value_set(value / v);
+            // oldValue = value;
+            // value /= v;
+            // if (value != oldValue)
+            // {
+            //     OnChange(value, oldValue); // OnChange(this);
+            // }
+            // // return value;
         }
         ITK_INLINE void operator^=(const T &v)
         {
-            oldValue = value;
-            value ^= v;
-            if (value != oldValue)
-            {
-                OnChange(value, oldValue); // OnChange(this);
-            }
+            value_set(value ^ v);
+            // oldValue = value;
+            // value ^= v;
+            // if (value != oldValue)
+            // {
+            //     OnChange(value, oldValue); // OnChange(this);
+            // }
             // return value;
         }
 
@@ -237,7 +272,7 @@ namespace EventCore
             {
                 oldValue = value;
                 value = v;
-                //OnChange(value, oldValue); // OnChange(this);
+                // OnChange(value, oldValue); // OnChange(this);
             }
         }
     };
