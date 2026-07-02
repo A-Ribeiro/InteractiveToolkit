@@ -441,7 +441,7 @@ public:                                                                         
         return mSelf.lock();                                                                         \
     }                                                                                                \
     template <typename _ChildClassType>                                                              \
-    inline std::enable_if<                                                                           \
+    inline typename std::enable_if<                                                                  \
         !std::is_same<_ChildClassType, ClassName>::value &&                                          \
             std::is_base_of<ClassName, _ChildClassType>::value,                                      \
         std::shared_ptr<_ChildClassType>>::type                                                      \
@@ -450,7 +450,7 @@ public:                                                                         
         return std::dynamic_pointer_cast<_ChildClassType>(self());                                   \
     }                                                                                                \
     template <typename _ParentClassType>                                                             \
-    inline std::enable_if<                                                                           \
+    inline typename std::enable_if<                                                                  \
         !std::is_same<_ParentClassType, ClassName>::value &&                                         \
             std::is_base_of<_ParentClassType, ClassName>::value,                                     \
         std::shared_ptr<_ParentClassType>>::type                                                     \
@@ -459,7 +459,7 @@ public:                                                                         
         return std::shared_ptr<_ParentClassType>(self());                                            \
     }                                                                                                \
     template <typename _SameClassType>                                                               \
-    inline std::enable_if<                                                                           \
+    inline typename std::enable_if<                                                                  \
         std::is_same<_SameClassType, ClassName>::value,                                              \
         std::shared_ptr<ClassName>>::type                                                            \
     self() const                                                                                     \
