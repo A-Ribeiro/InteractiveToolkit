@@ -438,7 +438,33 @@ public:                                                                         
     }                                                                                                \
     inline std::shared_ptr<ClassName> self() const                                                   \
     {                                                                                                \
-        return std::shared_ptr<ClassName>(mSelf);                                                    \
+        return mSelf.lock();                                                                         \
+    }                                                                                                \
+    template <typename _ChildClassType>                                                              \
+    inline std::enable_if<                                                                           \
+        !std::is_same<_ChildClassType, ClassName>::value &&                                          \
+            std::is_base_of<ClassName, _ChildClassType>::value,                                      \
+        std::shared_ptr<_ChildClassType>>::type                                                      \
+    self() const                                                                                     \
+    {                                                                                                \
+        return std::dynamic_pointer_cast<_ChildClassType>(self());                                   \
+    }                                                                                                \
+    template <typename _ParentClassType>                                                             \
+    inline std::enable_if<                                                                           \
+        !std::is_same<_ParentClassType, ClassName>::value &&                                         \
+            std::is_base_of<_ParentClassType, ClassName>::value,                                     \
+        std::shared_ptr<_ParentClassType>>::type                                                     \
+    self() const                                                                                     \
+    {                                                                                                \
+        return std::shared_ptr<_ParentClassType>(self());                                            \
+    }                                                                                                \
+    template <typename _SameClassType>                                                               \
+    inline std::enable_if<                                                                           \
+        std::is_same<_SameClassType, ClassName>::value,                                              \
+        std::shared_ptr<ClassName>>::type                                                            \
+    self() const                                                                                     \
+    {                                                                                                \
+        return mSelf.lock();                                                                         \
     }
 
 // static inline std::shared_ptr<ClassName> CreateShared()
