@@ -44,7 +44,7 @@ namespace ITKCommon
             std::string getNameNoExtension() const
             {
                 size_t path_directory_index = name.find_last_of('.');
-                if (path_directory_index == -1)
+                if (path_directory_index == std::string::npos)
                     return name;
                 std::string filename_wo_ext = name.substr(0, path_directory_index);
                 // std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
@@ -54,7 +54,7 @@ namespace ITKCommon
             std::string getExtension() const
             {
                 size_t path_directory_index = name.find_last_of('.');
-                if (path_directory_index == -1)
+                if (path_directory_index == std::string::npos)
                     return "";
                 // std::string filename_wo_ext = name.substr(0, path_directory_index);
                 std::string ext = name.substr(path_directory_index + 1, name.size() - 1 - path_directory_index);
@@ -63,7 +63,7 @@ namespace ITKCommon
 
             bool hasExtension() const
             {
-                return name.find_last_of('.') != -1;
+                return name.find_last_of('.') != std::string::npos;
             }
 
             std::string readLink() const

@@ -78,12 +78,12 @@ namespace Platform
 
             const uint64_t MS_PER_SEC = UINT64_C(1000); // MS = milliseconds
             const uint64_t US_PER_MS = UINT64_C(1000);  // US = microseconds
-            const uint64_t HNS_PER_US = UINT64_C(10);   // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
-            const uint64_t NS_PER_US = UINT64_C(1000);
+            // const uint64_t HNS_PER_US = UINT64_C(10);   // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
+            // const uint64_t NS_PER_US = UINT64_C(1000);
 
-            const uint64_t HNS_PER_SEC = (MS_PER_SEC * US_PER_MS * HNS_PER_US);
-            const uint64_t NS_PER_HNS = UINT64_C(100); // NS = nanoseconds
-            const uint64_t NS_PER_SEC = (MS_PER_SEC * US_PER_MS * NS_PER_US);
+            // const uint64_t HNS_PER_SEC = (MS_PER_SEC * US_PER_MS * HNS_PER_US);
+            // const uint64_t NS_PER_HNS = UINT64_C(100); // NS = nanoseconds
+            // const uint64_t NS_PER_SEC = (MS_PER_SEC * US_PER_MS * NS_PER_US);
             const uint64_t US_PER_SEC = (MS_PER_SEC * US_PER_MS);
 
             const w32PerformanceCounterData *p_dt = w32PerformanceCounterData::Instance();

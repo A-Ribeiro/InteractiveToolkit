@@ -211,7 +211,7 @@ namespace MathCore
 #if defined(ITK_SSE2)
             // array_sse = _mm_setr_ps(xy.x, xy.y, z, 0);
             array_sse = xy.array_sse;
-            _mm_f32_(array_sse, 2) = z.value;
+            iSseOps<store_type>::_mm_32_(array_sse, 2) = z.value;
 #elif defined(ITK_NEON)
             array_neon = (neon_type){xy.x.value, xy.y.value, z.value, 0};
 #else

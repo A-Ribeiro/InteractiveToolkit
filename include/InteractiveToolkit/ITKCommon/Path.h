@@ -717,7 +717,7 @@ namespace ITKCommon
 
             std::string folder, filename, filename_wo_ext, ext;
             size_t path_directory_index = input.find_last_of(ITKCommon::PATH_SEPARATOR[0]);
-            if (path_directory_index == -1)
+            if (path_directory_index == std::string::npos)
             {
                 folder = ".";
                 filename = input;
@@ -729,7 +729,7 @@ namespace ITKCommon
             }
 
             path_directory_index = filename.find_last_of('.');
-            if (path_directory_index == -1)
+            if (path_directory_index == std::string::npos)
             {
                 filename_wo_ext = filename;
                 ext = "";

@@ -455,8 +455,8 @@ namespace MathCore
                 const double _45_deg = OP<double>::deg_2_rad(45.0);
                 const double _135_deg = OP<double>::deg_2_rad(135.0);
 
-                const double _225_deg = OP<double>::deg_2_rad(225.0);
-                const double _315_deg = OP<double>::deg_2_rad(315.0);
+                // const double _225_deg = OP<double>::deg_2_rad(225.0);
+                // const double _315_deg = OP<double>::deg_2_rad(315.0);
 
                 if (angle >= _45_deg && angle <= _135_deg)
                 {
