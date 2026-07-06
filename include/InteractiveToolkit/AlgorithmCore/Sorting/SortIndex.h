@@ -9,11 +9,12 @@ namespace AlgorithmCore
     namespace Sorting
     {
 
+#pragma pack(push, 8) // best for CUDA integration, 8 bytes alignment for each struct variable
         template <typename _type>
         struct SortIndex
         {
-            uint32_t index;  // current index in the array, max of 4294967296 elements in the array
-            _type toSort; // hash to sort
+            uint32_t index; // current index in the array, max of 4294967296 elements in the array
+            _type toSort;   // hash to sort
 
             static ITK_INLINE bool comparator(const SortIndex<_type> &i1, const SortIndex<_type> &i2)
             {
@@ -28,6 +29,7 @@ namespace AlgorithmCore
                 return result;
             }
         };
+#pragma pack(pop)
 
         // template <>
         // struct SortIndex<uint32_t>
