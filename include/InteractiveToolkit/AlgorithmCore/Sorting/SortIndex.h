@@ -3,18 +3,25 @@
 #include "../../common.h"
 #include "../../ITKCommon/ITKCommon.h"
 
+// #include <type_traits>
+
 namespace AlgorithmCore
 {
 
     namespace Sorting
     {
 
-#pragma pack(push, 8) // best for CUDA integration, 8 bytes alignment for each struct variable
+        template <typename _type, typename Enable = void>
+        struct SortIndex;
+
         template <typename _type>
-        struct SortIndex
+        struct SortIndex<_type, typename std::enable_if<(sizeof(_type) == 8), void>::type>
         {
-            uint32_t index; // current index in the array, max of 4294967296 elements in the array
             _type toSort;   // hash to sort
+            uint32_t index; // current index in the array, max of 4294967296 elements in the array
+        private:
+            uint32_t _padding_for_gpu_compute = 0; // padding for GPU compute, to make the struct 16 bytes aligned
+        public:
 
             static ITK_INLINE bool comparator(const SortIndex<_type> &i1, const SortIndex<_type> &i2)
             {
@@ -29,87 +36,26 @@ namespace AlgorithmCore
                 return result;
             }
         };
-#pragma pack(pop)
 
-        // template <>
-        // struct SortIndex<uint32_t>
-        // {
-        //     uint32_t index;  // current index in the array
-        //     uint32_t toSort; // hash to sort
+        template <typename _type>
+        struct SortIndex<_type, typename std::enable_if<(sizeof(_type) == 4), void>::type>
+        {
+            _type toSort;   // hash to sort
+            uint32_t index; // current index in the array, max of 4294967296 elements in the array
 
-        //     static ITK_INLINE bool comparator(const SortIndex<uint32_t> &i1, const SortIndex<uint32_t> &i2)
-        //     {
-        //         return (i1.toSort < i2.toSort);
-        //     }
+            static ITK_INLINE bool comparator(const SortIndex<_type> &i1, const SortIndex<_type> &i2)
+            {
+                return (i1.toSort < i2.toSort);
+            }
 
-        //     static ITK_INLINE SortIndex<uint32_t> Create(uint32_t index, uint32_t toSort)
-        //     {
-        //         SortIndex<uint32_t> result;
-        //         result.index = index;
-        //         result.toSort = toSort;
-        //         return result;
-        //     }
-        // };
-
-        // template <>
-        // struct SortIndex<int32_t>
-        // {
-        //     uint32_t index; // current index in the array
-        //     int32_t toSort; // hash to sort
-
-        //     static ITK_INLINE bool comparator(const SortIndex<int32_t> &i1, const SortIndex<int32_t> &i2)
-        //     {
-        //         return (i1.toSort < i2.toSort);
-        //     }
-
-        //     static ITK_INLINE SortIndex<int32_t> Create(uint32_t index, int32_t toSort)
-        //     {
-        //         SortIndex<int32_t> result;
-        //         result.index = index;
-        //         result.toSort = toSort;
-        //         return result;
-        //     }
-        // };
-
-        // template <>
-        // struct SortIndex<uint64_t>
-        // {
-        //     uint32_t index;  // current index in the array
-        //     uint64_t toSort; // hash to sort
-
-        //     static ITK_INLINE bool comparator(const SortIndex<uint64_t> &i1, const SortIndex<uint64_t> &i2)
-        //     {
-        //         return (i1.toSort < i2.toSort);
-        //     }
-
-        //     static ITK_INLINE SortIndex<uint64_t> Create(uint32_t index, uint64_t toSort)
-        //     {
-        //         SortIndex<uint64_t> result;
-        //         result.index = index;
-        //         result.toSort = toSort;
-        //         return result;
-        //     }
-        // };
-
-        // template <>
-        // struct SortIndex<int64_t>
-        // {
-        //     uint32_t index; // current index in the array
-        //     int64_t toSort; // hash to sort
-
-        //     static ITK_INLINE bool comparator(const SortIndex<int64_t> &i1, const SortIndex<int64_t> &i2)
-        //     {
-        //         return (i1.toSort < i2.toSort);
-        //     }
-
-        //     static ITK_INLINE SortIndex<int64_t> Create(uint32_t index, int64_t toSort)
-        //     {
-        //         SortIndex<int64_t> result;
-        //         result.index = index;
-        //         result.toSort = toSort;
-        //         return result;
-        //     }
-        // };
+            static ITK_INLINE SortIndex<_type> Create(uint32_t index, _type toSort)
+            {
+                SortIndex<_type> result;
+                result.index = index;
+                result.toSort = toSort;
+                return result;
+            }
+        };
 
         using SortIndexu32 = SortIndex<uint32_t>;
         using SortIndexi32 = SortIndex<int32_t>;
