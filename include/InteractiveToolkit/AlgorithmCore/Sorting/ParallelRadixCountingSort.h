@@ -34,23 +34,23 @@ namespace AlgorithmCore
             // };
 
             // Check block max size limit
-            template <typename _type, typename std::enable_if<std::is_same<_type, uint64_t>::value, bool>::type = true>
-            static inline uint64_t read_sort_uint_value(_type item_count)
+            template <typename _type_internal, typename std::enable_if<std::is_same<_type_internal, uint64_t>::value, bool>::type = true>
+            static inline uint64_t read_sort_uint_value(_type_internal item_count)
             {
                 return item_count;
             }
-            template <typename _type, typename std::enable_if<std::is_same<_type, int64_t>::value, bool>::type = true>
-            static inline uint64_t read_sort_uint_value(_type item_count)
+            template <typename _type_internal, typename std::enable_if<std::is_same<_type_internal, int64_t>::value, bool>::type = true>
+            static inline uint64_t read_sort_uint_value(_type_internal item_count)
             {
                 return (uint64_t)item_count ^ UINT64_C(0x8000000000000000);
             }
-            template <typename _type, typename std::enable_if<std::is_same<_type, uint32_t>::value, bool>::type = true>
-            static inline uint32_t read_sort_uint_value(_type item_count)
+            template <typename _type_internal, typename std::enable_if<std::is_same<_type_internal, uint32_t>::value, bool>::type = true>
+            static inline uint32_t read_sort_uint_value(_type_internal item_count)
             {
                 return item_count;
             }
-            template <typename _type, typename std::enable_if<std::is_same<_type, int32_t>::value, bool>::type = true>
-            static inline uint32_t read_sort_uint_value(_type item_count)
+            template <typename _type_internal, typename std::enable_if<std::is_same<_type_internal, int32_t>::value, bool>::type = true>
+            static inline uint32_t read_sort_uint_value(_type_internal item_count)
             {
                 return (uint32_t)item_count ^ UINT32_C(0x80000000);
             }
