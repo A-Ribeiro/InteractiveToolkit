@@ -208,7 +208,7 @@ namespace ITKCommon
 
         static std::string unixHomeDirectory()
         {
-            size_t bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+            long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
             if (bufsize == -1)
                 bufsize = 0x4000; // = all zeroes with the 14th bit set (1 << 14)
 
