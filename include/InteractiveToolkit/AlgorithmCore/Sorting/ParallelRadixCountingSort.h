@@ -65,7 +65,7 @@ namespace AlgorithmCore
                              uint64_t min_blocks_to_paralelize = 8)
             {
                 if (thread_count == -1)
-                    thread_count = threadpool->threadCount();
+                    thread_count = threadpool->threadCount() * 4;
 
                 uint64_t virt_threads = (count + (uint64_t)thread_count - 1) / (uint64_t)thread_count;
 
@@ -199,11 +199,6 @@ namespace AlgorithmCore
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
                                 if (thread_id_end > 256)
                                     thread_id_end = 256;
-                                if (thread_id_end <= thread_id_start)
-                                {
-                                    completion_semaphore.release();
-                                    return;
-                                }
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
@@ -406,7 +401,7 @@ namespace AlgorithmCore
                                   uint64_t min_blocks_to_paralelize = 8)
             {
                 if (thread_count == -1)
-                    thread_count = threadpool->threadCount();
+                    thread_count = threadpool->threadCount() * 4;
 
                 uint64_t virt_threads = (count + (uint64_t)thread_count - 1) / (uint64_t)thread_count;
 
@@ -539,11 +534,6 @@ namespace AlgorithmCore
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
                                 if (thread_id_end > 256)
                                     thread_id_end = 256;
-                                if (thread_id_end <= thread_id_start)
-                                {
-                                    completion_semaphore.release();
-                                    return;
-                                }
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
