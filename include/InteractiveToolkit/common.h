@@ -473,3 +473,58 @@ public:                                                                         
 //     result->mSelf = std::weak_ptr<ClassName>(result);
 //     return result;
 // }
+
+namespace ITKCommon
+{
+    // Created to allow reference any kind object
+    // that inherits from this class
+    class AttachableObject
+    {
+    public:
+        virtual ~AttachableObject() = default;
+
+        template <typename _ChildClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ChildClassType, AttachableObject>::value &&
+                std::is_base_of<AttachableObject, _ChildClassType>::value,
+            _ChildClassType *>::type
+        attached_cast_to() const { return (_ChildClassType *)(this); }
+
+        template <typename _ParentClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ParentClassType, AttachableObject>::value &&
+                std::is_base_of<_ParentClassType, AttachableObject>::value,
+            _ParentClassType *>::type
+        attached_cast_to() const { return (_ParentClassType *)(this); }
+
+        template <typename _SameClass>
+        inline typename std::enable_if<
+            std::is_same<_SameClass, AttachableObject>::value,
+            _SameClass *>::type
+        attached_cast_to() const { return this; }
+
+        template <typename _AnyOtherClass>
+        inline typename std::enable_if<
+            (!std::is_same<_AnyOtherClass, AttachableObject>::value &&
+             !std::is_base_of<_AnyOtherClass, AttachableObject>::value &&
+             !std::is_base_of<AttachableObject, _AnyOtherClass>::value),
+            _AnyOtherClass *>::type
+        attached_cast_to() const { return nullptr; }
+
+        template <typename _ClassType>
+        static inline typename std::enable_if<
+            std::is_same<_ClassType, AttachableObject>::value ||
+                std::is_base_of<_ClassType, AttachableObject>::value ||
+                std::is_base_of<AttachableObject, _ClassType>::value,
+            bool>::type
+        attached_can_cast() noexcept { return true; }
+
+        template <typename _ClassType>
+        static inline typename std::enable_if<
+            !std::is_same<_ClassType, AttachableObject>::value &&
+                !std::is_base_of<_ClassType, AttachableObject>::value &&
+                !std::is_base_of<AttachableObject, _ClassType>::value,
+            bool>::type
+        attached_can_cast() noexcept { return false; }
+    };
+}
