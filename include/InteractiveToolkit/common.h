@@ -527,4 +527,65 @@ namespace ITKCommon
             bool>::type
         attached_can_cast() noexcept { return false; }
     };
+
+    class AttachedWeakObject
+    {
+    public:
+        std::weak_ptr<ITKCommon::AttachableObject> value;
+        template <typename _ChildClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ChildClassType, ITKCommon::AttachableObject>::value &&
+                std::is_base_of<ITKCommon::AttachableObject, _ChildClassType>::value,
+            std::shared_ptr<_ChildClassType>>::type
+        weakObjectAs() const { return std::dynamic_pointer_cast<_ChildClassType>(value.lock()); }
+        template <typename _ParentClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ParentClassType, ITKCommon::AttachableObject>::value &&
+                std::is_base_of<_ParentClassType, ITKCommon::AttachableObject>::value,
+            std::shared_ptr<_ParentClassType>>::type
+        weakObjectAs() const { return std::shared_ptr<_ParentClassType>(value.lock()); }
+        template <typename _SameClassType>
+        inline typename std::enable_if<
+            std::is_same<_SameClassType, ITKCommon::AttachableObject>::value,
+            std::shared_ptr<ITKCommon::AttachableObject>>::type
+        weakObjectAs() const { return value.lock(); }
+        template <typename _AnyOtherClass>
+        inline typename std::enable_if<
+            (!std::is_same<_AnyOtherClass, ITKCommon::AttachableObject>::value &&
+             !std::is_base_of<_AnyOtherClass, ITKCommon::AttachableObject>::value &&
+             !std::is_base_of<ITKCommon::AttachableObject, _AnyOtherClass>::value),
+            std::shared_ptr<_AnyOtherClass>>::type
+        weakObjectAs() const { return nullptr; }
+    };
+
+    class AttachedSharedObject
+    {
+    public:
+        std::shared_ptr<ITKCommon::AttachableObject> value;
+        template <typename _ChildClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ChildClassType, ITKCommon::AttachableObject>::value &&
+                std::is_base_of<ITKCommon::AttachableObject, _ChildClassType>::value,
+            std::shared_ptr<_ChildClassType>>::type
+        sharedObjectAs() const { return std::dynamic_pointer_cast<_ChildClassType>(value); }
+        template <typename _ParentClassType>
+        inline typename std::enable_if<
+            !std::is_same<_ParentClassType, ITKCommon::AttachableObject>::value &&
+                std::is_base_of<_ParentClassType, ITKCommon::AttachableObject>::value,
+            std::shared_ptr<_ParentClassType>>::type
+        sharedObjectAs() const { return std::shared_ptr<_ParentClassType>(value); }
+        template <typename _SameClassType>
+        inline typename std::enable_if<
+            std::is_same<_SameClassType, ITKCommon::AttachableObject>::value,
+            std::shared_ptr<ITKCommon::AttachableObject>>::type
+        sharedObjectAs() const { return value; }
+        template <typename _AnyOtherClass>
+        inline typename std::enable_if<
+            (!std::is_same<_AnyOtherClass, ITKCommon::AttachableObject>::value &&
+             !std::is_base_of<_AnyOtherClass, ITKCommon::AttachableObject>::value &&
+             !std::is_base_of<ITKCommon::AttachableObject, _AnyOtherClass>::value),
+            std::shared_ptr<_AnyOtherClass>>::type
+        sharedObjectAs() const { return nullptr; }
+    };
+
 }
