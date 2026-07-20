@@ -4,6 +4,11 @@
 #include "../../Platform/ThreadPool.h"
 #include "../../Platform/Core/ObjectBuffer.h"
 
+#define ParallelRadixCountingSort_SinglePass 1
+#define ParallelRadixCountingSort_ReductionPass 2
+
+#define ParallelRadixCountingSort_mode ParallelRadixCountingSort_SinglePass
+
 namespace AlgorithmCore
 {
 
@@ -114,6 +119,25 @@ namespace AlgorithmCore
 
                 uint64_t element_count = (uint64_t)count;
 
+                uint32_t *histogram_to_offset = histogram_per_block_out;
+                uint64_t histogram_to_offset_block_count = virt_blocks;
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                uint64_t reduced_block_count = threadpool->threadCount() * 2;
+                reduced_block_count = (virt_blocks < reduced_block_count) ? virt_blocks : reduced_block_count;
+
+                std::vector<uint32_t> histogram_reduced_per_proc_vec(reduced_block_count * 256);
+                uint32_t *histogram_reduced_per_proc = histogram_reduced_per_proc_vec.data();
+
+                uint64_t reduce_group_size = (virt_blocks + reduced_block_count - 1) / reduced_block_count;
+
+                // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
+                histogram_to_offset = histogram_reduced_per_proc;
+                histogram_to_offset_block_count = reduced_block_count;
+
+                // printf("reduced_block_count: %zu of %zu blocks\n", reduced_block_count, virt_blocks);
+#endif
+
                 for (int digit_part = 0; digit_part < sizeof(_type); digit_part++)
                 {
                     // printf("[digit %d] Start\n", digit_part);
@@ -157,12 +181,56 @@ namespace AlgorithmCore
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
                         completion_semaphore.blockingAcquire();
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                    // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
+
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                    {
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                        {
+                            threadpool->postTask(
+                                [&completion_semaphore, curr_block, curr_block_256, &histogram_reduced_per_proc, reduced_block_count, histogram_per_block_out, virt_blocks, virt_threads_256, reduce_group_size]()
+                                {
+                                    uint64_t thread_id_start = curr_block_256 * virt_threads_256;
+                                    uint64_t thread_id_end = thread_id_start + virt_threads_256;
+                                    if (thread_id_end > 256)
+                                        thread_id_end = 256;
+                                    // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
+                                    for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
+                                    {
+                                        uint64_t bucket = thread_id;
+                                        uint32_t s_hist_bucket = 0;
+
+                                        uint64_t block_id_start = curr_block * reduce_group_size;
+                                        uint64_t block_id_end = block_id_start + reduce_group_size;
+                                        block_id_end = (block_id_end >= virt_blocks) ? virt_blocks : block_id_end;
+
+                                        for (uint64_t block_id = block_id_start; block_id < block_id_end; block_id++)
+                                        {
+                                            uint64_t index = block_id * 256 + bucket;
+                                            s_hist_bucket += histogram_per_block_out[index];
+                                        }
+
+                                        histogram_reduced_per_proc[curr_block * 256 + bucket] = s_hist_bucket;
+                                    }
+                                    completion_semaphore.release();
+                                });
+                        }
+                    }
+                    // barrier - histogram
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                            completion_semaphore.blockingAcquire();
+
+#endif
+
                     // prefix sum on global histogram - transforming it into offsets
                     // printf("    [PrefixSum]\n");
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                     {
                         threadpool->postTask(
-                            [&completion_semaphore, curr_block_256, &histogram_per_block_out, &s_hist_total, virt_threads_256, virt_blocks]()
+                            [&completion_semaphore, curr_block_256, histogram_to_offset, &s_hist_total, virt_threads_256, histogram_to_offset_block_count]()
                             {
                                 uint64_t thread_id_start = curr_block_256 * virt_threads_256;
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
@@ -171,8 +239,8 @@ namespace AlgorithmCore
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
-                                    for (uint64_t block_id = 0; block_id < virt_blocks; block_id++)
-                                        s_hist_total[thread_id] += histogram_per_block_out[block_id * 256 + thread_id];
+                                    for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
+                                        s_hist_total[thread_id] += histogram_to_offset[block_id * 256 + thread_id];
                                 }
                                 completion_semaphore.release();
                             });
@@ -180,7 +248,6 @@ namespace AlgorithmCore
                     // barrier - prefix sum
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                         completion_semaphore.blockingAcquire();
-
                     uint32_t sum = 0;
                     for (uint32_t i = 0; i < 256; i++)
                     {
@@ -193,7 +260,7 @@ namespace AlgorithmCore
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                     {
                         threadpool->postTask(
-                            [&completion_semaphore, curr_block_256, &histogram_per_block_out, &s_hist_total, virt_threads_256, virt_blocks]()
+                            [&completion_semaphore, curr_block_256, &histogram_to_offset, &s_hist_total, virt_threads_256, histogram_to_offset_block_count]()
                             {
                                 uint64_t thread_id_start = curr_block_256 * virt_threads_256;
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
@@ -202,11 +269,11 @@ namespace AlgorithmCore
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
-                                    for (uint64_t block_id = 0; block_id < virt_blocks; block_id++)
+                                    for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
                                     {
                                         uint64_t index = block_id * 256 + thread_id;
-                                        uint32_t hist_count = histogram_per_block_out[index];
-                                        histogram_per_block_out[index] = s_hist_total[thread_id];
+                                        uint32_t hist_count = histogram_to_offset[index];
+                                        histogram_to_offset[index] = s_hist_total[thread_id];
                                         s_hist_total[thread_id] += hist_count;
                                     }
                                 }
@@ -216,6 +283,49 @@ namespace AlgorithmCore
                     // barrier - offset
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                         completion_semaphore.blockingAcquire();
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                    // reverse map blocks from histogram_per_block_out from blocks of histogram_reduced_per_proc
+
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                    {
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                        {
+                            threadpool->postTask(
+                                [&completion_semaphore, curr_block, curr_block_256, histogram_reduced_per_proc, reduced_block_count, &histogram_per_block_out, virt_blocks, virt_threads_256, reduce_group_size]()
+                                {
+                                    uint64_t thread_id_start = curr_block_256 * virt_threads_256;
+                                    uint64_t thread_id_end = thread_id_start + virt_threads_256;
+                                    if (thread_id_end > 256)
+                                        thread_id_end = 256;
+                                    // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
+                                    for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
+                                    {
+                                        uint64_t bucket = thread_id;
+                                        uint32_t s_offset_bucket = histogram_reduced_per_proc[curr_block * 256 + bucket];
+
+                                        uint64_t block_id_start = curr_block * reduce_group_size;
+                                        uint64_t block_id_end = block_id_start + reduce_group_size;
+                                        block_id_end = (block_id_end >= virt_blocks) ? virt_blocks : block_id_end;
+
+                                        for (uint64_t block_id = block_id_start; block_id < block_id_end; block_id++)
+                                        {
+                                            uint64_t index = block_id * 256 + bucket;
+                                            uint32_t hist_count = histogram_per_block_out[index];
+                                            histogram_per_block_out[index] = s_offset_bucket;
+                                            s_offset_bucket += hist_count;
+                                        }
+                                    }
+                                    completion_semaphore.release();
+                                });
+                        }
+                    }
+                    // barrier - histogram
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                            completion_semaphore.blockingAcquire();
+
+#endif
 
                     // scatter
                     // printf("    [Scatter]\n");
@@ -403,6 +513,7 @@ namespace AlgorithmCore
                 if (thread_count == -1)
                     thread_count = threadpool->threadCount() * 4;
 
+                // number of threads per block (max... considering the total processor count)
                 uint64_t virt_threads = (count + (uint64_t)thread_count - 1) / (uint64_t)thread_count;
 
                 uint64_t min_thread_count = per_task_max_loop_count;
@@ -450,6 +561,25 @@ namespace AlgorithmCore
 
                 uint64_t element_count = (uint64_t)count;
 
+                uint32_t *histogram_to_offset = histogram_per_block_out;
+                uint64_t histogram_to_offset_block_count = virt_blocks;
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                uint64_t reduced_block_count = threadpool->threadCount() * 2;
+                reduced_block_count = (virt_blocks < reduced_block_count) ? virt_blocks : reduced_block_count;
+
+                std::vector<uint32_t> histogram_reduced_per_proc_vec(reduced_block_count * 256);
+                uint32_t *histogram_reduced_per_proc = histogram_reduced_per_proc_vec.data();
+
+                uint64_t reduce_group_size = (virt_blocks + reduced_block_count - 1) / reduced_block_count;
+
+                // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
+                histogram_to_offset = histogram_reduced_per_proc;
+                histogram_to_offset_block_count = reduced_block_count;
+
+                // printf("reduced_block_count: %zu of %zu blocks\n", reduced_block_count, virt_blocks);
+#endif
+
                 for (int digit_part = 0; digit_part < sizeof(_type); digit_part++)
                 {
                     // printf("[digit %d] Start\n", digit_part);
@@ -492,12 +622,56 @@ namespace AlgorithmCore
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
                         completion_semaphore.blockingAcquire();
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                    // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
+
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                    {
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                        {
+                            threadpool->postTask(
+                                [&completion_semaphore, curr_block, curr_block_256, &histogram_reduced_per_proc, reduced_block_count, histogram_per_block_out, virt_blocks, virt_threads_256, reduce_group_size]()
+                                {
+                                    uint64_t thread_id_start = curr_block_256 * virt_threads_256;
+                                    uint64_t thread_id_end = thread_id_start + virt_threads_256;
+                                    if (thread_id_end > 256)
+                                        thread_id_end = 256;
+                                    // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
+                                    for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
+                                    {
+                                        uint64_t bucket = thread_id;
+                                        uint32_t s_hist_bucket = 0;
+
+                                        uint64_t block_id_start = curr_block * reduce_group_size;
+                                        uint64_t block_id_end = block_id_start + reduce_group_size;
+                                        block_id_end = (block_id_end >= virt_blocks) ? virt_blocks : block_id_end;
+
+                                        for (uint64_t block_id = block_id_start; block_id < block_id_end; block_id++)
+                                        {
+                                            uint64_t index = block_id * 256 + bucket;
+                                            s_hist_bucket += histogram_per_block_out[index];
+                                        }
+
+                                        histogram_reduced_per_proc[curr_block * 256 + bucket] = s_hist_bucket;
+                                    }
+                                    completion_semaphore.release();
+                                });
+                        }
+                    }
+                    // barrier - histogram
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                            completion_semaphore.blockingAcquire();
+
+#endif
+
                     // prefix sum on global histogram - transforming it into offsets
                     // printf("    [PrefixSum]\n");
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                     {
                         threadpool->postTask(
-                            [&completion_semaphore, curr_block_256, &histogram_per_block_out, &s_hist_total, virt_threads_256, virt_blocks]()
+                            [&completion_semaphore, curr_block_256, histogram_to_offset, &s_hist_total, virt_threads_256, histogram_to_offset_block_count]()
                             {
                                 uint64_t thread_id_start = curr_block_256 * virt_threads_256;
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
@@ -506,8 +680,8 @@ namespace AlgorithmCore
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
-                                    for (uint64_t block_id = 0; block_id < virt_blocks; block_id++)
-                                        s_hist_total[thread_id] += histogram_per_block_out[block_id * 256 + thread_id];
+                                    for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
+                                        s_hist_total[thread_id] += histogram_to_offset[block_id * 256 + thread_id];
                                 }
                                 completion_semaphore.release();
                             });
@@ -528,7 +702,7 @@ namespace AlgorithmCore
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                     {
                         threadpool->postTask(
-                            [&completion_semaphore, curr_block_256, &histogram_per_block_out, &s_hist_total, virt_threads_256, virt_blocks]()
+                            [&completion_semaphore, curr_block_256, &histogram_to_offset, &s_hist_total, virt_threads_256, histogram_to_offset_block_count]()
                             {
                                 uint64_t thread_id_start = curr_block_256 * virt_threads_256;
                                 uint64_t thread_id_end = thread_id_start + virt_threads_256;
@@ -537,11 +711,11 @@ namespace AlgorithmCore
                                 // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
                                 for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
                                 {
-                                    for (uint64_t block_id = 0; block_id < virt_blocks; block_id++)
+                                    for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
                                     {
                                         uint64_t index = block_id * 256 + thread_id;
-                                        uint32_t hist_count = histogram_per_block_out[index];
-                                        histogram_per_block_out[index] = s_hist_total[thread_id];
+                                        uint32_t hist_count = histogram_to_offset[index];
+                                        histogram_to_offset[index] = s_hist_total[thread_id];
                                         s_hist_total[thread_id] += hist_count;
                                     }
                                 }
@@ -551,6 +725,49 @@ namespace AlgorithmCore
                     // barrier - offset
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
                         completion_semaphore.blockingAcquire();
+
+#if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
+                    // reverse map blocks from histogram_per_block_out from blocks of histogram_reduced_per_proc
+
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                    {
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                        {
+                            threadpool->postTask(
+                                [&completion_semaphore, curr_block, curr_block_256, histogram_reduced_per_proc, reduced_block_count, &histogram_per_block_out, virt_blocks, virt_threads_256, reduce_group_size]()
+                                {
+                                    uint64_t thread_id_start = curr_block_256 * virt_threads_256;
+                                    uint64_t thread_id_end = thread_id_start + virt_threads_256;
+                                    if (thread_id_end > 256)
+                                        thread_id_end = 256;
+                                    // printf("        - Processing thread range: %llu - %llu\n", thread_id_start, thread_id_end);
+                                    for (uint64_t thread_id = thread_id_start; thread_id < thread_id_end; thread_id++)
+                                    {
+                                        uint64_t bucket = thread_id;
+                                        uint32_t s_offset_bucket = histogram_reduced_per_proc[curr_block * 256 + bucket];
+
+                                        uint64_t block_id_start = curr_block * reduce_group_size;
+                                        uint64_t block_id_end = block_id_start + reduce_group_size;
+                                        block_id_end = (block_id_end >= virt_blocks) ? virt_blocks : block_id_end;
+
+                                        for (uint64_t block_id = block_id_start; block_id < block_id_end; block_id++)
+                                        {
+                                            uint64_t index = block_id * 256 + bucket;
+                                            uint32_t hist_count = histogram_per_block_out[index];
+                                            histogram_per_block_out[index] = s_offset_bucket;
+                                            s_offset_bucket += hist_count;
+                                        }
+                                    }
+                                    completion_semaphore.release();
+                                });
+                        }
+                    }
+                    // barrier - histogram
+                    for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
+                        for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
+                            completion_semaphore.blockingAcquire();
+
+#endif
 
                     // scatter
                     // printf("    [Scatter]\n");
