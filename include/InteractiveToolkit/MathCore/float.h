@@ -128,7 +128,7 @@ namespace MathCore
         // static constexpr _type _PI_180() noexcept { return (_type)0.0174532925199432957692222222222222; }
         // static constexpr _type _180_PI() noexcept { return (_type)57.2957795130823208767981548141052; }
 
-        typedef FloatTypeInfo<_type>::Almost Almost;
+        typedef typename FloatTypeInfo<_type>::Almost Almost;
     };
 
     //
