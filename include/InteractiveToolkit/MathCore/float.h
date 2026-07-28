@@ -29,30 +29,30 @@ namespace MathCore
         // largest float strictly less than 2^N
         struct Almost // float max is 2^22
         {
-            static constexpr float _1 = (1.0f - 0.000000059604644775390625f);// 0x1.fffffep-1f;
-            static constexpr float _2 = 2.0f * _1;// 0x1.fffffep+0f;
-            static constexpr float _4 = 4.0f * _1;// 0x1.fffffep+1f;
-            static constexpr float _8 = 8.0f * _1;// 0x1.fffffep+2f;
-            static constexpr float _16 = 16.0f * _1;// 0x1.fffffep+3f;
-            static constexpr float _32 = 32.0f * _1;// 0x1.fffffep+4f;
-            static constexpr float _64 = 64.0f * _1;// 0x1.fffffep+5f;
-            static constexpr float _128 = 128.0f * _1;// 0x1.fffffep+6f;
-            static constexpr float _256 = 256.0f * _1;// 0x1.fffffep+7f;
-            static constexpr float _512 = 512.0f * _1;// 0x1.fffffep+8f;
-            static constexpr float _1024 = 1024.0f * _1;// 0x1.fffffep+9f;
-            static constexpr float _2048 = 2048.0f * _1;// 0x1.fffffep+10f;
-            static constexpr float _4096 = 4096.0f * _1;// 0x1.fffffep+11f;
-            static constexpr float _8192 = 8192.0f * _1;// 0x1.fffffep+12f;
-            static constexpr float _16384 = 16384.0f * _1;// 0x1.fffffep+13f;
-            static constexpr float _32768 = 32768.0f * _1;// 0x1.fffffep+14f;
-            static constexpr float _65536 = 65536.0f * _1;// 0x1.fffffep+15f;
-            static constexpr float _131072 = 131072.0f * _1;// 0x1.fffffep+16f;
-            static constexpr float _262144 = 262144.0f * _1;// 0x1.fffffep+17f;
-            static constexpr float _524288 = 524288.0f * _1;// 0x1.fffffep+18f;
-            static constexpr float _1048576 = 1048576.0f * _1;// 0x1.fffffep+19f;
-            static constexpr float _2097152 = 2097152.0f * _1;// 0x1.fffffep+20f;
-            static constexpr float _4194304 = 4194304.0f * _1;// 0x1.fffffep+21f;
-            static constexpr float _8388608 = 8388608.0f * _1;// 0x1.fffffep+22f;
+            static constexpr float _1 = (1.0f - 0.000000059604644775390625f); // 0x1.fffffep-1f;
+            static constexpr float _2 = 2.0f * _1;                            // 0x1.fffffep+0f;
+            static constexpr float _4 = 4.0f * _1;                            // 0x1.fffffep+1f;
+            static constexpr float _8 = 8.0f * _1;                            // 0x1.fffffep+2f;
+            static constexpr float _16 = 16.0f * _1;                          // 0x1.fffffep+3f;
+            static constexpr float _32 = 32.0f * _1;                          // 0x1.fffffep+4f;
+            static constexpr float _64 = 64.0f * _1;                          // 0x1.fffffep+5f;
+            static constexpr float _128 = 128.0f * _1;                        // 0x1.fffffep+6f;
+            static constexpr float _256 = 256.0f * _1;                        // 0x1.fffffep+7f;
+            static constexpr float _512 = 512.0f * _1;                        // 0x1.fffffep+8f;
+            static constexpr float _1024 = 1024.0f * _1;                      // 0x1.fffffep+9f;
+            static constexpr float _2048 = 2048.0f * _1;                      // 0x1.fffffep+10f;
+            static constexpr float _4096 = 4096.0f * _1;                      // 0x1.fffffep+11f;
+            static constexpr float _8192 = 8192.0f * _1;                      // 0x1.fffffep+12f;
+            static constexpr float _16384 = 16384.0f * _1;                    // 0x1.fffffep+13f;
+            static constexpr float _32768 = 32768.0f * _1;                    // 0x1.fffffep+14f;
+            static constexpr float _65536 = 65536.0f * _1;                    // 0x1.fffffep+15f;
+            static constexpr float _131072 = 131072.0f * _1;                  // 0x1.fffffep+16f;
+            static constexpr float _262144 = 262144.0f * _1;                  // 0x1.fffffep+17f;
+            static constexpr float _524288 = 524288.0f * _1;                  // 0x1.fffffep+18f;
+            static constexpr float _1048576 = 1048576.0f * _1;                // 0x1.fffffep+19f;
+            static constexpr float _2097152 = 2097152.0f * _1;                // 0x1.fffffep+20f;
+            static constexpr float _4194304 = 4194304.0f * _1;                // 0x1.fffffep+21f;
+            static constexpr float _8388608 = 8388608.0f * _1;                // 0x1.fffffep+22f;
         };
     };
     template <>
@@ -72,30 +72,30 @@ namespace MathCore
         // largest float strictly less than 2^N
         struct Almost // double max is 2^52
         {
-            static constexpr double _1 = (1.0 - 0.0000000000000001110223024625156540423632);// 0x1.fffffffffffffp-1;
-            static constexpr double _2 = 2.0 * _1;// 0x1.fffffffffffffp+0;
-            static constexpr double _4 = 4.0 * _1;// 0x1.fffffffffffffp+1;
-            static constexpr double _8 = 8.0 * _1;// 0x1.fffffffffffffp+2;
-            static constexpr double _16 = 16.0 * _1;// 0x1.fffffffffffffp+3;
-            static constexpr double _32 = 32.0 * _1;// 0x1.fffffffffffffp+4;
-            static constexpr double _64 = 64.0 * _1;// 0x1.fffffffffffffp+5;
-            static constexpr double _128 = 128.0 * _1;// 0x1.fffffffffffffp+6;
-            static constexpr double _256 = 256.0 * _1;// 0x1.fffffffffffffp+7;
-            static constexpr double _512 = 512.0 * _1;// 0x1.fffffffffffffp+8;
-            static constexpr double _1024 = 1024.0 * _1;// 0x1.fffffffffffffp+9;
-            static constexpr double _2048 = 2048.0 * _1;// 0x1.fffffffffffffp+10;
-            static constexpr double _4096 = 4096.0 * _1;// 0x1.fffffffffffffp+11;
-            static constexpr double _8192 = 8192.0 * _1;// 0x1.fffffffffffffp+12;
-            static constexpr double _16384 = 16384.0 * _1;// 0x1.fffffffffffffp+13;
-            static constexpr double _32768 = 32768.0 * _1;// 0x1.fffffffffffffp+14;
-            static constexpr double _65536 = 65536.0 * _1;// 0x1.fffffffffffffp+15;
-            static constexpr double _131072 = 131072.0 * _1;// 0x1.fffffffffffffp+16;
-            static constexpr double _262144 = 262144.0 * _1;// 0x1.fffffffffffffp+17;
-            static constexpr double _524288 = 524288.0 * _1;// 0x1.fffffffffffffp+18;
-            static constexpr double _1048576 = 1048576.0 * _1;// 0x1.fffffffffffffp+19;
-            static constexpr double _2097152 = 2097152.0 * _1;// 0x1.fffffffffffffp+20;
-            static constexpr double _4194304 = 4194304.0 * _1;// 0x1.fffffffffffffp+21;
-            static constexpr double _8388608 = 8388608.0 * _1;// 0x1.fffffffffffffp+22;
+            static constexpr double _1 = (1.0 - 0.0000000000000001110223024625156540423632); // 0x1.fffffffffffffp-1;
+            static constexpr double _2 = 2.0 * _1;                                           // 0x1.fffffffffffffp+0;
+            static constexpr double _4 = 4.0 * _1;                                           // 0x1.fffffffffffffp+1;
+            static constexpr double _8 = 8.0 * _1;                                           // 0x1.fffffffffffffp+2;
+            static constexpr double _16 = 16.0 * _1;                                         // 0x1.fffffffffffffp+3;
+            static constexpr double _32 = 32.0 * _1;                                         // 0x1.fffffffffffffp+4;
+            static constexpr double _64 = 64.0 * _1;                                         // 0x1.fffffffffffffp+5;
+            static constexpr double _128 = 128.0 * _1;                                       // 0x1.fffffffffffffp+6;
+            static constexpr double _256 = 256.0 * _1;                                       // 0x1.fffffffffffffp+7;
+            static constexpr double _512 = 512.0 * _1;                                       // 0x1.fffffffffffffp+8;
+            static constexpr double _1024 = 1024.0 * _1;                                     // 0x1.fffffffffffffp+9;
+            static constexpr double _2048 = 2048.0 * _1;                                     // 0x1.fffffffffffffp+10;
+            static constexpr double _4096 = 4096.0 * _1;                                     // 0x1.fffffffffffffp+11;
+            static constexpr double _8192 = 8192.0 * _1;                                     // 0x1.fffffffffffffp+12;
+            static constexpr double _16384 = 16384.0 * _1;                                   // 0x1.fffffffffffffp+13;
+            static constexpr double _32768 = 32768.0 * _1;                                   // 0x1.fffffffffffffp+14;
+            static constexpr double _65536 = 65536.0 * _1;                                   // 0x1.fffffffffffffp+15;
+            static constexpr double _131072 = 131072.0 * _1;                                 // 0x1.fffffffffffffp+16;
+            static constexpr double _262144 = 262144.0 * _1;                                 // 0x1.fffffffffffffp+17;
+            static constexpr double _524288 = 524288.0 * _1;                                 // 0x1.fffffffffffffp+18;
+            static constexpr double _1048576 = 1048576.0 * _1;                               // 0x1.fffffffffffffp+19;
+            static constexpr double _2097152 = 2097152.0 * _1;                               // 0x1.fffffffffffffp+20;
+            static constexpr double _4194304 = 4194304.0 * _1;                               // 0x1.fffffffffffffp+21;
+            static constexpr double _8388608 = 8388608.0 * _1;                               // 0x1.fffffffffffffp+22;
         };
     };
 
@@ -168,9 +168,19 @@ namespace MathCore
 
         // example: almost_power_of_two(256.0f)
         // largest float strictly less than p
-        static constexpr float almost_power_of_two(float p)
+        static constexpr ITK_INLINE float almost_power_of_two(float p)
         {
             return p * (1.0f - 0.000000059604644775390625f); // return p * (1.0f - 0x1p-24f); // * 0x1.fffffep-1f
+        }
+
+        static ITK_INLINE float almost(float p)
+        {
+            return ::nextafterf(p, -FLT_MAX);
+        }
+
+        static ITK_INLINE float next(float p)
+        {
+            return ::nextafterf(p, FLT_MAX);
         }
 
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
@@ -762,9 +772,19 @@ namespace MathCore
 
         // example: almost_power_of_two(256.0)
         // largest double strictly less than p
-        static constexpr double almost_power_of_two(double p)
+        static constexpr ITK_INLINE double almost_power_of_two(double p)
         {
-            return (1.0 - 0.0000000000000001110223024625156540423632);// p * (1.0 - 0x1p-53); // *  0x1.fffffffffffffp-1
+            return (1.0 - 0.0000000000000001110223024625156540423632); // p * (1.0 - 0x1p-53); // *  0x1.fffffffffffffp-1
+        }
+
+        static ITK_INLINE double almost(double p)
+        {
+            return ::nextafter(p, -DBL_MAX);
+        }
+
+        static ITK_INLINE double next(double p)
+        {
+            return ::nextafter(p, DBL_MAX);
         }
 
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
