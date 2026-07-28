@@ -6,6 +6,100 @@ namespace MathCore
 {
 
     //
+    // FloatTypeInfo
+    //
+    template <typename _type>
+    struct FloatTypeInfo
+    {
+    };
+    template <>
+    struct FloatTypeInfo<float>
+    {
+        using type = FloatTypeInfo<float>;
+        using compatible_uint = uint32_t;
+
+        static constexpr float minus_zero = -.0f;
+        static constexpr float one = 1.0f;
+        static constexpr float min = FLT_MIN;
+        static constexpr float max = FLT_MAX;
+        static constexpr uint32_t one_uint = 0x3f800000;
+        static constexpr uint32_t sign_bit = 0x80000000;
+        static constexpr uint32_t sign_bit_negated = ~sign_bit;
+
+        // largest float strictly less than 2^N
+        struct Almost // float max is 2^22
+        {
+            static constexpr float _1 = 0x1.fffffep-1f;
+            static constexpr float _2 = 0x1.fffffep+0f;
+            static constexpr float _4 = 0x1.fffffep+1f;
+            static constexpr float _8 = 0x1.fffffep+2f;
+            static constexpr float _16 = 0x1.fffffep+3f;
+            static constexpr float _32 = 0x1.fffffep+4f;
+            static constexpr float _64 = 0x1.fffffep+5f;
+            static constexpr float _128 = 0x1.fffffep+6f;
+            static constexpr float _256 = 0x1.fffffep+7f;
+            static constexpr float _512 = 0x1.fffffep+8f;
+            static constexpr float _1024 = 0x1.fffffep+9f;
+            static constexpr float _2048 = 0x1.fffffep+10f;
+            static constexpr float _4096 = 0x1.fffffep+11f;
+            static constexpr float _8192 = 0x1.fffffep+12f;
+            static constexpr float _16384 = 0x1.fffffep+13f;
+            static constexpr float _32768 = 0x1.fffffep+14f;
+            static constexpr float _65536 = 0x1.fffffep+15f;
+            static constexpr float _131072 = 0x1.fffffep+16f;
+            static constexpr float _262144 = 0x1.fffffep+17f;
+            static constexpr float _524288 = 0x1.fffffep+18f;
+            static constexpr float _1048576 = 0x1.fffffep+19f;
+            static constexpr float _2097152 = 0x1.fffffep+20f;
+            static constexpr float _4194304 = 0x1.fffffep+21f;
+            static constexpr float _8388608 = 0x1.fffffep+22f;
+        };
+    };
+    template <>
+    struct FloatTypeInfo<double>
+    {
+        using type = FloatTypeInfo<double>;
+        using compatible_uint = uint64_t;
+
+        static constexpr double minus_zero = -.0;
+        static constexpr double one = 1.0;
+        static constexpr double min = 2.22507385850720138309023271733240406e-308; // DBL_MIN;
+        static constexpr double max = 1.79769313486231570814527423731704357e+308; // DBL_MAX;
+        static constexpr uint64_t one_uint = 0x3ff0000000000000;
+        static constexpr uint64_t sign_bit = 0x8000000000000000;
+        static constexpr uint64_t sign_bit_negated = ~sign_bit;
+
+        // largest float strictly less than 2^N
+        struct Almost // double max is 2^52
+        {
+            static constexpr double _1 = 0x1.fffffffffffffp-1;
+            static constexpr double _2 = 0x1.fffffffffffffp+0;
+            static constexpr double _4 = 0x1.fffffffffffffp+1;
+            static constexpr double _8 = 0x1.fffffffffffffp+2;
+            static constexpr double _16 = 0x1.fffffffffffffp+3;
+            static constexpr double _32 = 0x1.fffffffffffffp+4;
+            static constexpr double _64 = 0x1.fffffffffffffp+5;
+            static constexpr double _128 = 0x1.fffffffffffffp+6;
+            static constexpr double _256 = 0x1.fffffffffffffp+7;
+            static constexpr double _512 = 0x1.fffffffffffffp+8;
+            static constexpr double _1024 = 0x1.fffffffffffffp+9;
+            static constexpr double _2048 = 0x1.fffffffffffffp+10;
+            static constexpr double _4096 = 0x1.fffffffffffffp+11;
+            static constexpr double _8192 = 0x1.fffffffffffffp+12;
+            static constexpr double _16384 = 0x1.fffffffffffffp+13;
+            static constexpr double _32768 = 0x1.fffffffffffffp+14;
+            static constexpr double _65536 = 0x1.fffffffffffffp+15;
+            static constexpr double _131072 = 0x1.fffffffffffffp+16;
+            static constexpr double _262144 = 0x1.fffffffffffffp+17;
+            static constexpr double _524288 = 0x1.fffffffffffffp+18;
+            static constexpr double _1048576 = 0x1.fffffffffffffp+19;
+            static constexpr double _2097152 = 0x1.fffffffffffffp+20;
+            static constexpr double _4194304 = 0x1.fffffffffffffp+21;
+            static constexpr double _8388608 = 0x1.fffffffffffffp+22;
+        };
+    };
+
+    //
     // CONSTANT<float|double>
     //
     template <typename _type>
@@ -33,42 +127,8 @@ namespace MathCore
         // static constexpr _type PI() noexcept { return (_type)3.1415926535897932384626433832795; }
         // static constexpr _type _PI_180() noexcept { return (_type)0.0174532925199432957692222222222222; }
         // static constexpr _type _180_PI() noexcept { return (_type)57.2957795130823208767981548141052; }
-    };
 
-    //
-    // FloatTypeInfo
-    //
-    template <typename _type>
-    struct FloatTypeInfo
-    {
-    };
-    template <>
-    struct FloatTypeInfo<float>
-    {
-        using type = FloatTypeInfo<float>;
-        using compatible_uint = uint32_t;
-
-        static constexpr float minus_zero = -.0f;
-        static constexpr float one = 1.0f;
-        static constexpr float min = FLT_MIN;
-        static constexpr float max = FLT_MAX;
-        static constexpr uint32_t one_uint = 0x3f800000;
-        static constexpr uint32_t sign_bit = 0x80000000;
-        static constexpr uint32_t sign_bit_negated = ~sign_bit;
-    };
-    template <>
-    struct FloatTypeInfo<double>
-    {
-        using type = FloatTypeInfo<double>;
-        using compatible_uint = uint64_t;
-
-        static constexpr double minus_zero = -.0;
-        static constexpr double one = 1.0;
-        static constexpr double min = 2.22507385850720138309023271733240406e-308; // DBL_MIN;
-        static constexpr double max = 1.79769313486231570814527423731704357e+308; // DBL_MAX;
-        static constexpr uint64_t one_uint = 0x3ff0000000000000;
-        static constexpr uint64_t sign_bit = 0x8000000000000000;
-        static constexpr uint64_t sign_bit_negated = ~sign_bit;
+        typedef FloatTypeInfo<_type>::Almost Almost;
     };
 
     //
@@ -106,6 +166,13 @@ namespace MathCore
         using type = _type;
         using self_type = OP<_type>;
 
+        // example: almost_power_of_two(256.0f)
+        // largest float strictly less than p
+        static constexpr float almost_power_of_two(float p)
+        {
+            return p * (1.0f - 0x1p-24f); // * 0x1.fffffep-1f
+        }
+
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_180_PI;
@@ -116,7 +183,7 @@ namespace MathCore
         }
 
         // optimized instructions
-        static ITK_INLINE _type abs(const _type &a) noexcept
+        static constexpr ITK_INLINE _type abs(const _type &a) noexcept
         {
             // using type_info = FloatTypeInfo<_type>;
             // using compatible_uint = typename type_info::compatible_uint;
@@ -693,6 +760,13 @@ namespace MathCore
         using type = _type;
         using self_type = OP<_type>;
 
+        // example: almost_power_of_two(256.0)
+        // largest double strictly less than p
+        static constexpr double almost_power_of_two(double p)
+        {
+            return p * (1.0 - 0x1p-53); // *  0x1.fffffffffffffp-1
+        }
+
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_180_PI;
@@ -703,15 +777,15 @@ namespace MathCore
         }
 
         // optimized instructions
-        static ITK_INLINE _type abs(const _type &a) noexcept
+        static constexpr ITK_INLINE _type abs(const _type &a) noexcept
         {
-            using type_info = FloatTypeInfo<_type>;
-            using compatible_uint = typename type_info::compatible_uint;
+            // using type_info = FloatTypeInfo<_type>;
+            // using compatible_uint = typename type_info::compatible_uint;
 
-            compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
-            return *((_type *)&result);
+            // compatible_uint result = (type_info::sign_bit_negated & (*(compatible_uint *)&a));
+            // return *((_type *)&result);
 
-            // return (a < (_type)0) ? -a : a;
+            return (a < (_type)0) ? -a : a;
 
             // return OP<_type>::sign(a) * a;
         }
@@ -1149,7 +1223,6 @@ namespace MathCore
         return fastCos->tan(v);
     }
 
-
 #ifndef ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #define ITK_TRIGONOMETRIC_USE_FAST_ARCH
 #endif
@@ -1276,7 +1349,7 @@ namespace MathCore
     {
         return ::atanf(v);
     }
-    
+
     template <typename _type, typename _Algorithm>
     ITK_INLINE float OP<_type,
                         typename std::enable_if<std::is_same<_type, float>::value>::type,

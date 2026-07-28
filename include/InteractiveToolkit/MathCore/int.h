@@ -87,6 +87,79 @@ namespace MathCore
         using type = _type;
         using self_type = OP<_type>;
 
+        // Integer Ceil of the division a / b
+        inline constexpr _type div_ceil(_type a, _type b)
+        {
+            return (a + b - 1) / b;
+        }
+
+        template <class _Type = _type,
+                  typename std::enable_if<
+                      std::is_same<_Type, uint32_t>::value, bool>::type = true>
+        static ITK_INLINE _type next_pow(const _type &x) noexcept
+        {
+            if (x <= 1)
+                return 1;
+#if defined(_MSC_VER)
+            unsigned long index;
+            _BitScanReverse(&index, x - 1);
+            return UINT32_C(1) << (index + 1);
+#elif defined(__GNUC__) || defined(__clang__)
+            return UINT32_C(1) << (32 - __builtin_clz(x - 1));
+#else
+            x--;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return x + 1;
+#endif
+        }
+
+        template <class _Type = _type,
+                  typename std::enable_if<
+                      (sizeof(_Type) <= 4) &&
+                          !std::is_same<_Type, uint32_t>::value,
+                      bool>::type = true>
+        static ITK_INLINE _type next_pow(const _type &x)
+        {
+            return (_type)OP<uint32_t>::next_pow((uint32_t)x);
+        }
+
+        template <class _Type = _type,
+                  typename std::enable_if<
+                      std::is_same<_Type, uint64_t>::value, bool>::type = true>
+        static ITK_INLINE _type next_pow(const _type &x) noexcept
+        {
+            if (x <= 1)
+                return 1;
+#if defined(_MSC_VER)
+            unsigned long index;
+            _BitScanReverse64(&index, x - 1);
+            return UINT64_C(1) << (index + 1);
+#elif defined(__GNUC__) || defined(__clang__)
+            return UINT64_C(1) << (64 - __builtin_clzll(x - 1));
+#else
+            x--;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            x |= x >> 32;
+            return x + 1;
+#endif
+        }
+
+        template <class _Type = _type,
+                  typename std::enable_if<
+                      std::is_same<_Type, int64_t>::value, bool>::type = true>
+        static ITK_INLINE _type next_pow(const _type &x)
+        {
+            return (_type)OP<uint64_t>::next_pow((uint64_t)x);
+        }
+
         static ITK_INLINE bool is_power_of_two(const _type &v) noexcept
         {
             using type_unsigned = typename IntTypeInfo<_type>::type_unsigned;
