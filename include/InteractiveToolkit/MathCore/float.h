@@ -183,6 +183,16 @@ namespace MathCore
             return ::nextafterf(p, FLT_MAX);
         }
 
+        static ITK_INLINE float previous(float p)
+        {
+            return ::nextafterf(p, -FLT_MAX);
+        }
+
+        static ITK_INLINE float next_after(float p, float _to)
+        {
+            return ::nextafterf(p, _to);
+        }
+
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
         {
             return v * CONSTANT<_type>::_180_PI;
@@ -785,6 +795,16 @@ namespace MathCore
         static ITK_INLINE double next(double p)
         {
             return ::nextafter(p, DBL_MAX);
+        }
+
+        static ITK_INLINE double previous(double p)
+        {
+            return ::nextafter(p, DBL_MAX);
+        }
+
+        static ITK_INLINE double next_after(double p, double _to)
+        {
+            return ::nextafter(p, _to);
         }
 
         static constexpr ITK_INLINE _type rad_2_deg(const _type &v) noexcept
