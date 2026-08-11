@@ -42,6 +42,7 @@ namespace MathCore
 
     namespace MathTypeClass
     {
+        struct _class_none{};
         struct _class_vec2{};
         struct _class_vec3{};
         struct _class_vec4{};
@@ -83,6 +84,7 @@ namespace MathCore
     struct MathTypeInfo{
         //static constexpr bool _is_valid = false;
         using _is_valid = std::false_type;
+        using _class = MathTypeClass::_class_none;
         using _is_vec = std::false_type;
         using _type = _single_element_;
 
