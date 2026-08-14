@@ -330,7 +330,7 @@ static inline __m128 _sse2_is_nan_ps(const __m128 &v)
     return _mm_xor_ps(_mm_cmpeq_ps(v, v), _float_info_all_bits_set);
 }
 
-static inline __m128 _sse2_nextafter_ps(__m128 x, __m128 y)
+static inline __m128 _sse2_nextafter_ps(const __m128 &x, const __m128 &y)
 {
     __m128i bits_x = _mm_castps_si128(x);
     __m128i bits_y = _mm_castps_si128(y);
@@ -413,7 +413,7 @@ static inline float32x4_t _neon_mm_floor_ps(const float32x4_t &f)
     uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
     uint32x4_t r_u = vreinterpretq_u32_f32(r);
     uint32x4_t f_u = vreinterpretq_u32_f32(f);
-    r_u = veorq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
+    r_u = vorrq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
 
     return vreinterpretq_f32_u32(r_u);
 }
@@ -445,7 +445,7 @@ static inline float32x4_t _neon_mm_ceil_ps(const float32x4_t &f)
     uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
     uint32x4_t r_u = vreinterpretq_u32_f32(r);
     uint32x4_t f_u = vreinterpretq_u32_f32(f);
-    r_u = veorq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
+    r_u = vorrq_u32(vandq_u32(m, r_u), vandq_u32(vmvnq_u32(m), f_u));
 
     return vreinterpretq_f32_u32(r_u);
 }
@@ -475,9 +475,86 @@ static inline float32x4_t _neon_mm_round_ps(const float32x4_t &input)
     const float32x4_t _max_f = vdupq_n_f32(8388608.f);
     uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(input));
     uint32x4_t input_u = vreinterpretq_u32_f32(input);
-    r = veorq_u32(vandq_u32(m, r), vandq_u32(vmvnq_u32(m), input_u));
+    r = vorrq_u32(vandq_u32(m, r), vandq_u32(vmvnq_u32(m), input_u));
 
     return vreinterpretq_f32_u32(r);
+}
+
+const uint32x4_t _float_info_all_bits_set = vdupq_n_u32(0xffffffff);
+const uint32x4_t _float_info_mantissa_bit_u = vdupq_n_u32(0x007FFFFF);
+const uint32x4_t _float_info_mantissa_min_u = vdupq_n_u32(1);
+const uint32x4_t _float_info_sign_bit_u = vdupq_n_u32(0x80000000);
+const uint32x4_t _float_info_minus_one_u = vdupq_n_u32(0xFFFFFFFF);
+const uint32x4_t _float_info_one_u = vdupq_n_u32(1);
+const uint32x4_t _float_info_number_except_sign_bit_u = vdupq_n_u32(0x7FFFFFFF);
+const uint32x4_t _float_info_expoent_bit_u = vdupq_n_u32(0x7F800000);
+const uint32x4_t _float_info_inf_u = vdupq_n_u32(0x7F800000);
+const uint32x4_t _float_info_max_float_u = vdupq_n_u32(0x7F7FFFFF);
+const uint32x4_t _float_info_zero = vdupq_n_u32(0);
+const uint32x4_t _float_info_q_nan = vdupq_n_u32(0x7FC00000);
+
+// v == v returns false on NaN
+static inline uint32x4_t _neon_is_nan_ps(const float32x4_t &v)
+{
+    return veorq_u32(vceqq_f32(v, v), _float_info_all_bits_set);
+}
+
+static inline float32x4_t _neon_nextafter_ps(const float32x4_t &x, const float32x4_t &y)
+{
+    uint32x4_t bits_x = vreinterpretq_u32_f32(x);
+    uint32x4_t bits_y = vreinterpretq_u32_f32(y);
+
+    // NaN check
+    uint32x4_t is_nan_mask = veorq_u32(_neon_is_nan_ps(x), _neon_is_nan_ps(y));
+
+    // x == y
+    uint32x4_t is_eq_mask = vceqq_f32(x, y);
+
+    // y < x (descending)
+    uint32x4_t is_descending = vcltq_f32(y, x);
+
+    uint32x4_t bits_number_only = vandq_u32(bits_x, _float_info_number_except_sign_bit_u);
+
+    // Zero check
+    uint32x4_t is_zero = vceqq_u32(bits_number_only, _float_info_zero);
+    uint32x4_t zero_result = vorrq_u32(vandq_u32(is_descending, _float_info_sign_bit_u), _float_info_mantissa_min_u);
+
+    // Sign bit and its mask
+    uint32x4_t sign_x = vandq_u32(bits_x, _float_info_sign_bit_u);
+    uint32x4_t sign_mask = vreinterpretq_u32_s32(vshrq_n_s32(vreinterpretq_s32_u32(sign_x), 31));
+
+    // Increment direction: -1 if descending XOR negative, else +1
+    uint32x4_t increment = veorq_u32(is_descending, sign_mask);
+    increment = vorrq_u32(vandq_u32(increment, _float_info_minus_one_u),
+                          vandq_u32(vmvnq_u32(increment), _float_info_one_u));
+
+    // Inf check
+    uint32x4_t is_inf = vceqq_u32(bits_number_only, _float_info_inf_u);
+
+    // For inf: use max_float with correct sign
+    uint32x4_t max_float = vorrq_u32(sign_x, _float_info_max_float_u);
+
+    // Increment or use max for inf
+    uint32x4_t result_number = vaddq_u32(bits_number_only, increment);
+    result_number = vorrq_u32(vandq_u32(is_inf, max_float),
+                              vandq_u32(vmvnq_u32(is_inf), result_number));
+
+    // Reconstruct with sign
+    uint32x4_t result = vorrq_u32(sign_x, result_number);
+
+    // Zero case
+    result = vorrq_u32(vandq_u32(is_zero, zero_result),
+                       vandq_u32(vmvnq_u32(is_zero), result));
+
+    // x == y case
+    result = vorrq_u32(vandq_u32(is_eq_mask, bits_y),
+                       vandq_u32(vmvnq_u32(is_eq_mask), result));
+
+    // NaN case
+    result = vorrq_u32(vandq_u32(is_nan_mask, _float_info_q_nan),
+                       vandq_u32(vmvnq_u32(is_nan_mask), result));
+
+    return vreinterpretq_f32_u32(result);
 }
 
 #else
