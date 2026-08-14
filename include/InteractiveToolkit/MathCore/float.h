@@ -324,7 +324,7 @@ namespace MathCore
 
         static ITK_INLINE float nextafter_branchless(float x, float y)
         {
-            return FloatTypeInfo<float>::nextafter_branchless(x, y);
+            return NextAfter<float>::nextafter_branchless(x, y);
         }
 
         // example: almost_power_of_two(256.0f)
@@ -948,7 +948,7 @@ namespace MathCore
 
         static ITK_INLINE double nextafter_branchless(double x, double y)
         {
-            return FloatTypeInfo<double>::nextafter_branchless(x, y);
+            return NextAfter<double>::nextafter_branchless(x, y);
         }
 
         // example: almost_power_of_two(256.0)
