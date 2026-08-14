@@ -182,12 +182,13 @@ namespace MathCore
         // optimized instructions
         static ITK_INLINE _type abs(const _type &v) noexcept
         {
-            using type_info = IntTypeInfo<_type>;
-            using type_signed = typename IntTypeInfo<_type>::type_signed;
+            // using type_info = IntTypeInfo<_type>;
+            // using type_signed = typename IntTypeInfo<_type>::type_signed;
 
-            // https://www.geeksforgeeks.org/compute-the-integer-absolute-value-abs-without-branching/
-            _type signmask_all_bits_x = (type_signed)v >> type_info::shift_to_get_sign;
-            return (v + signmask_all_bits_x) ^ signmask_all_bits_x;
+            // // https://www.geeksforgeeks.org/compute-the-integer-absolute-value-abs-without-branching/
+            // _type signmask_all_bits_x = (type_signed)v >> type_info::shift_to_get_sign;
+            // return (v + signmask_all_bits_x) ^ signmask_all_bits_x;
+            return (v < 0) ? -v : v;
         }
 
         template <class _Type = _type,
@@ -203,7 +204,7 @@ namespace MathCore
             __m128i maxStep = _mm_max_epi32(_mm_set1_epi32(value), _mm_set1_epi32(min));
             __m128i minStep = _mm_min_epi32(maxStep, _mm_set1_epi32(max));
 #endif
-            return _mm_i32_(minStep, 0);
+            return _mm_i32_read_0(minStep);
 #else
             return (value < min) ? min : ((value > max) ? max : value);
 #endif
@@ -221,7 +222,7 @@ namespace MathCore
             __m128i maxStep = _mm_max_epu32(_mm_set1_epi32(value), _mm_set1_epi32(min));
             __m128i minStep = _mm_min_epu32(maxStep, _mm_set1_epi32(max));
 #endif
-            return _mm_u32_(minStep, 0);
+            return _mm_u32_read_0(minStep);
 #else
             return (value < min) ? min : ((value > max) ? max : value);
 #endif
@@ -255,9 +256,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_i32_(_sse2_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_i32_read_0(_sse2_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #else
-            return _mm_i32_(_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_i32_read_0(_mm_max_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #endif
 #else
             return (a > b) ? a : b;
@@ -269,7 +270,7 @@ namespace MathCore
         static ITK_INLINE _type maximum(const _type &a, const _type &b) noexcept
         {
 #if defined(ITK_SSE2)
-            return _mm_u32_(_mm_max_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_u32_read_0(_mm_max_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #else
             return (a > b) ? a : b;
 #endif
@@ -292,9 +293,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_i32_(_sse2_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_i32_read_0(_sse2_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #else
-            return _mm_i32_(_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_i32_read_0(_mm_min_epi32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #endif
 #else
             return (a < b) ? a : b;
@@ -307,9 +308,9 @@ namespace MathCore
         {
 #if defined(ITK_SSE2)
 #if defined(ITK_SSE_SKIP_SSE41)
-            return _mm_u32_(_sse2_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_u32_read_0(_sse2_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #else
-            return _mm_u32_(_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)), 0);
+            return _mm_u32_read_0(_mm_min_epu32(_mm_set1_epi32(a), _mm_set1_epi32(b)));
 #endif
 #else
             return (a < b) ? a : b;
@@ -331,9 +332,10 @@ namespace MathCore
                       std::is_signed<_Type>::value, bool>::type = true>
         static ITK_INLINE _type sign(const _type &a) noexcept
         {
-            using type_info = IntTypeInfo<_type>;
-            return ((a >> type_info::shift_to_get_sign_minus_one) & type_info::first_bit_zero) + 1;
+            // using type_info = IntTypeInfo<_type>;
+            // return ((a >> type_info::shift_to_get_sign_minus_one) & type_info::first_bit_zero) + 1;
             // return (((a >= 0) << 1) - 1);
+            return (a < 0) ? _type(-1) : _type(1);
         }
 
         template <class _Type = _type,

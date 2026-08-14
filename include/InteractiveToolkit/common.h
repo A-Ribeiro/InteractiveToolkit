@@ -134,6 +134,9 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_i64_(v, i) (v).m128i_i64[i]
 #define _mm_u64_(v, i) (v).m128i_u64[i]
 
+#define _mm_i32_read_0(vec) _mm_cvtsi128_si32(vec)
+#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_cvtsi128_si32(vec))
+
 #define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
 #define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
 
@@ -146,6 +149,9 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #include <x86intrin.h>
 
 #define _mm_f32_(v, i) (v)[i]
+
+#define _mm_i32_read_0(vec) _mm_cvtsi128_si32(vec)
+#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_cvtsi128_si32(vec))
 
 #define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
 #define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
@@ -303,6 +309,83 @@ static inline __m128 _sse2_mm_round_ps(const __m128 &input)
     r = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, input));
 
     return r;
+}
+
+const __m128 _float_info_all_bits_set = _mm_castsi128_ps(_mm_set1_epi32((int)0xffffffff));
+const __m128i _float_info_mantissa_bit_u = _mm_set1_epi32((int)0x007FFFFF);
+const __m128i _float_info_mantissa_min_u = _mm_set1_epi32((int)1);
+const __m128i _float_info_sign_bit_u = _mm_set1_epi32((int)0x80000000);
+const __m128i _float_info_minus_one_u = _mm_set1_epi32((int)0xFFFFFFFF);
+const __m128i _float_info_one_u = _mm_set1_epi32((int)1);
+const __m128i _float_info_number_except_sign_bit_u = _mm_set1_epi32((int)0x7FFFFFFF);
+const __m128i _float_info_expoent_bit_u = _mm_set1_epi32((int)0x7F800000);
+const __m128i _float_info_inf_u = _mm_set1_epi32((int)0x7F800000);
+const __m128i _float_info_max_float_u = _mm_set1_epi32((int)0x7F7FFFFF);
+const __m128i _float_info_zero = _mm_set1_epi32((int)0);
+const __m128i _float_info_q_nan = _mm_set1_epi32((int)0x7FC00000);
+
+// v == v returns false on NaN
+static inline __m128 _sse2_is_nan_ps(const __m128 &v)
+{
+    return _mm_xor_ps(_mm_cmpeq_ps(v, v), _float_info_all_bits_set);
+}
+
+static inline __m128 _sse2_nextafter_ps(__m128 x, __m128 y)
+{
+    __m128i bits_x = _mm_castps_si128(x);
+    __m128i bits_y = _mm_castps_si128(y);
+
+    // NaN check
+    __m128i is_nan_mask = _mm_castps_si128(_mm_or_ps(_sse2_is_nan_ps(x), _sse2_is_nan_ps(y)));
+
+    // x == y
+    __m128i is_eq_mask = _mm_castps_si128(_mm_cmpeq_ps(x, y));
+
+    // y < x (descending)
+    __m128i is_descending = _mm_castps_si128(_mm_cmplt_ps(y, x));
+
+    __m128i bits_number_only = _mm_and_si128(bits_x, _float_info_number_except_sign_bit_u);
+
+    // Zero check
+    __m128i is_zero = _mm_cmpeq_epi32(bits_number_only, _float_info_zero);
+    __m128i zero_result = _mm_or_si128(_mm_and_si128(is_descending, _float_info_sign_bit_u), _float_info_mantissa_min_u);
+
+    // Sign bit and its mask
+    __m128i sign_x = _mm_and_si128(bits_x, _float_info_sign_bit_u);
+    __m128i sign_mask = _mm_srai_epi32(sign_x, 31);
+
+    // Increment direction: -1 if descending XOR negative, else +1
+    __m128i increment = _mm_xor_si128(is_descending, sign_mask);
+    increment = _mm_or_si128(_mm_and_si128(increment, _float_info_minus_one_u),
+                             _mm_andnot_si128(increment, _float_info_one_u));
+
+    // Inf check
+    __m128i is_inf = _mm_cmpeq_epi32(bits_number_only, _float_info_inf_u);
+
+    // For inf: use max_float with correct sign
+    __m128i max_float = _mm_or_si128(sign_x, _float_info_max_float_u);
+
+    // Increment or use max for inf
+    __m128i result_number = _mm_add_epi32(bits_number_only, increment);
+    result_number = _mm_or_si128(_mm_and_si128(is_inf, max_float),
+                                 _mm_andnot_si128(is_inf, result_number));
+
+    // Reconstruct with sign
+    __m128i result = _mm_or_si128(sign_x, result_number);
+
+    // Zero case
+    result = _mm_or_si128(_mm_and_si128(is_zero, zero_result),
+                          _mm_andnot_si128(is_zero, result));
+
+    // x == y case
+    result = _mm_or_si128(_mm_and_si128(is_eq_mask, bits_y),
+                          _mm_andnot_si128(is_eq_mask, result));
+
+    // NaN case
+    result = _mm_or_si128(_mm_and_si128(is_nan_mask, _float_info_q_nan),
+                          _mm_andnot_si128(is_nan_mask, result));
+
+    return _mm_castsi128_ps(result);
 }
 
 #elif defined(ITK_NEON)

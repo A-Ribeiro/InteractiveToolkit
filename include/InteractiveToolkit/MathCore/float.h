@@ -5,6 +5,73 @@
 namespace MathCore
 {
 
+    template <typename T>
+    struct IEEE_754_Info
+    {
+    };
+
+    template <>
+    struct IEEE_754_Info<double>
+    {
+        typedef uint64_t utype;
+
+        static constexpr uint64_t minus_one_u = UINT64_C(0xFFFFFFFFFFFFFFFF);
+        static constexpr uint64_t one_u = UINT64_C(1);
+        static constexpr uint64_t sign_bit_u = UINT64_C(0x8000000000000000);
+        static constexpr uint64_t mantissa_bit_u = UINT64_C(0x000FFFFFFFFFFFFF);
+        static constexpr uint64_t expoent_bit_u = UINT64_C(0x7FF0000000000000);
+        static constexpr uint64_t number_except_sign_bit_u = mantissa_bit_u | expoent_bit_u;
+
+        static constexpr uint64_t mantissa_min_u = UINT64_C(1);
+
+        static constexpr uint64_t inf_u = UINT64_C(0x7FF0000000000000);
+        static constexpr uint64_t max_float_u = UINT64_C(0x7FEFFFFFFFFFFFFF);
+        static constexpr uint64_t q_nan_u = UINT64_C(0x7FF8000000000000);
+        static constexpr double inf = std::numeric_limits<double>::infinity();
+        static constexpr double q_nan = std::numeric_limits<double>::quiet_NaN();
+
+        static constexpr int shift_to_sign = 63;
+
+        static inline const uint64_t &as_uint(const double &v) noexcept { return *(const uint64_t *)&v; }
+        static inline const double &from_uint(const uint64_t &v) noexcept { return *(const double *)&v; }
+        static inline constexpr uint64_t invert_signal_2complement(const uint64_t &v) noexcept { return uint64_t(-int64_t(v)); }
+        static inline constexpr bool is_nan(const double &v) noexcept { return !(v == v); }
+        static inline constexpr bool is_inf(const double &v) noexcept { return (v == inf) || (v == -inf); }
+        static inline constexpr bool is_nan(const uint64_t &v) noexcept { return ((v & expoent_bit_u) == inf_u) && ((v & mantissa_bit_u) != 0); }
+        static inline constexpr bool is_inf(const uint64_t &v) noexcept { return ((v & expoent_bit_u) == inf_u) && ((v & mantissa_bit_u) == 0); }
+    };
+
+    template <>
+    struct IEEE_754_Info<float>
+    {
+        typedef uint32_t utype;
+
+        static constexpr uint32_t minus_one_u = UINT32_C(0xFFFFFFFF);
+        static constexpr uint32_t one_u = UINT32_C(1);
+        static constexpr uint32_t sign_bit_u = UINT32_C(0x80000000);
+        static constexpr uint32_t mantissa_bit_u = UINT32_C(0x007FFFFF);
+        static constexpr uint32_t expoent_bit_u = UINT32_C(0x7F800000);
+        static constexpr uint32_t number_except_sign_bit_u = mantissa_bit_u | expoent_bit_u;
+
+        static constexpr uint32_t mantissa_min_u = UINT32_C(1);
+
+        static constexpr uint32_t inf_u = UINT32_C(0x7F800000);
+        static constexpr uint32_t max_float_u = UINT32_C(0x7F7FFFFF);
+        static constexpr uint32_t q_nan_u = UINT32_C(0x7FC00000);
+        static constexpr float inf = std::numeric_limits<float>::infinity();
+        static constexpr float q_nan = std::numeric_limits<float>::quiet_NaN();
+
+        static constexpr int shift_to_sign = 31;
+
+        static inline const uint32_t &as_uint(const float &v) noexcept { return *(const uint32_t *)&v; }
+        static inline const float &from_uint(const uint32_t &v) noexcept { return *(const float *)&v; }
+        static inline constexpr uint32_t invert_signal_2complement(const uint32_t &v) noexcept { return uint32_t(-int32_t(v)); }
+        static inline constexpr bool is_nan(const float &v) noexcept { return !(v == v); }
+        static inline constexpr bool is_inf(const float &v) noexcept { return (v == inf) || (v == -inf); }
+        static inline constexpr bool is_nan(const uint32_t &v) noexcept { return ((v & expoent_bit_u) == inf_u) && ((v & mantissa_bit_u) != 0); }
+        static inline constexpr bool is_inf(const uint32_t &v) noexcept { return ((v & expoent_bit_u) == inf_u) && ((v & mantissa_bit_u) == 0); }
+    };
+
     //
     // FloatTypeInfo
     //
@@ -153,6 +220,90 @@ namespace MathCore
         // static constexpr ITK_INLINE double high_precision() noexcept { return 1e-15; } // 1e-16
     };
 
+    template <typename _type>
+    struct NextAfter
+    {
+        static inline _type nextafter_branch(_type x, _type y) noexcept
+        {
+            if (IEEE_754_Info<_type>::is_nan(x) || IEEE_754_Info<_type>::is_nan(y))
+                return IEEE_754_Info<_type>::q_nan;
+            if (x == y)
+                return y;
+
+            typedef typename IEEE_754_Info<_type>::utype utype;
+
+            utype bits_x = IEEE_754_Info<_type>::as_uint(x);
+            utype bits_number_only = bits_x & IEEE_754_Info<_type>::number_except_sign_bit_u;
+
+            utype is_descending = utype(y < x);
+            // Only treat as zero when both mantissa AND exponent are zero
+            utype is_descending_sign = is_descending << IEEE_754_Info<_type>::shift_to_sign;
+            if (!bits_number_only)
+            {
+                // is zero
+                bits_x = is_descending_sign | IEEE_754_Info<_type>::mantissa_min_u;
+                return IEEE_754_Info<_type>::from_uint(bits_x);
+            }
+
+            utype sign_x = (bits_x & IEEE_754_Info<_type>::sign_bit_u);
+
+            // increment will be -1 if is_descenting is true, and 1 if not
+            utype increment = (sign_x ^ is_descending_sign) ? IEEE_754_Info<_type>::minus_one_u : IEEE_754_Info<_type>::one_u;
+
+            utype max_float = sign_x | IEEE_754_Info<_type>::max_float_u;
+
+            utype result_number = bits_number_only + increment;
+            result_number = (bits_number_only == IEEE_754_Info<_type>::inf_u) ? max_float : result_number;
+
+            utype result = sign_x | result_number;
+
+            return IEEE_754_Info<_type>::from_uint(result);
+        }
+
+        static inline _type nextafter_branchless(_type x, _type y) noexcept
+        {
+            typedef typename IEEE_754_Info<_type>::utype utype;
+
+            utype bits_x = IEEE_754_Info<_type>::as_uint(x);
+            utype bits_y = IEEE_754_Info<_type>::as_uint(y);
+
+            bool is_nan = IEEE_754_Info<_type>::is_nan(x) || IEEE_754_Info<_type>::is_nan(y);
+
+            bool is_eq = x == y;
+
+            utype is_descending = utype(y < x);
+
+            utype bits_number_only = bits_x & IEEE_754_Info<_type>::number_except_sign_bit_u;
+
+            // Only treat as zero when both mantissa AND exponent are zero
+            utype is_descending_sign = is_descending << IEEE_754_Info<_type>::shift_to_sign;
+
+            bool is_zero = bits_number_only == 0;
+            utype zero_result = is_descending_sign | IEEE_754_Info<_type>::mantissa_min_u;
+
+            utype sign_x = (bits_x & IEEE_754_Info<_type>::sign_bit_u);
+
+            // increment will be -1 if is_descenting is true, and 1 if not
+            utype increment = (sign_x ^ is_descending_sign) ? IEEE_754_Info<_type>::minus_one_u : IEEE_754_Info<_type>::one_u;
+
+            utype max_float = sign_x | IEEE_754_Info<_type>::max_float_u;
+
+            utype result_number = bits_number_only + increment;
+            result_number = (bits_number_only == IEEE_754_Info<_type>::inf_u) ? max_float : result_number;
+
+            utype result = sign_x | result_number;
+
+            // Zero case
+            result = (is_zero) ? zero_result : result;
+            // x == y case
+            result = (is_eq) ? bits_y : result;
+            // NaN case
+            result = (is_nan) ? IEEE_754_Info<_type>::q_nan_u : result;
+
+            return IEEE_754_Info<_type>::from_uint(result);
+        }
+    };
+
     //
     // OP<float|double>
     //
@@ -165,6 +316,16 @@ namespace MathCore
     {
         using type = _type;
         using self_type = OP<_type>;
+
+        static ITK_INLINE float nextafter_branch(float x, float y)
+        {
+            return NextAfter<float>::nextafter_branch(x, y);
+        }
+
+        static ITK_INLINE float nextafter_branchless(float x, float y)
+        {
+            return FloatTypeInfo<float>::nextafter_branchless(x, y);
+        }
 
         // example: almost_power_of_two(256.0f)
         // largest float strictly less than p
@@ -779,6 +940,16 @@ namespace MathCore
     {
         using type = _type;
         using self_type = OP<_type>;
+
+        static ITK_INLINE double nextafter_branch(double x, double y)
+        {
+            return NextAfter<double>::nextafter_branch(x, y);
+        }
+
+        static ITK_INLINE double nextafter_branchless(double x, double y)
+        {
+            return FloatTypeInfo<double>::nextafter_branchless(x, y);
+        }
 
         // example: almost_power_of_two(256.0)
         // largest double strictly less than p

@@ -22,7 +22,7 @@ namespace AlgorithmCore
 			_min = _mm_min_epi32(_min, _c);
 #endif
 
-			return _mm_i32_(_min, 0);
+			return _mm_i32_read_0(_min);
 #elif defined(ITK_NEON)
 
 			int32x2_t _a = (int32x2_t){a};
