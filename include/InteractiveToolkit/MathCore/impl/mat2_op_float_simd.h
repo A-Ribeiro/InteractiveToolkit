@@ -34,6 +34,39 @@ namespace MathCore
         using self_type = OP<typeMat2>;
 
     public:
+        static ITK_INLINE typeMat2 next(const typeMat2 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_max, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_max, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE typeMat2 previous(const typeMat2 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_minus_max, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_minus_max, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE typeMat2 next_after(const typeMat2 &p, const typeMat2 &_to) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _to.array_sse, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _to.array_neon, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         static ITK_INLINE typeMat2 clamp(const typeMat2 &value, const typeMat2 &min, const typeMat2 &max) noexcept
         {
 #if defined(ITK_SSE2)

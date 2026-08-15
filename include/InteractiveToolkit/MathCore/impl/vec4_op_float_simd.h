@@ -35,6 +35,39 @@ namespace MathCore
         using quatT = quat<_type, _simd>;
 
     public:
+        static ITK_INLINE type4 next(const type4 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_max, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_max, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type4 previous(const type4 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_minus_max, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_minus_max, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type4 next_after(const type4 &p, const type4 &_to) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _to.array_sse, _float_info_mask_1111);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _to.array_neon, _float_info_mask_1111);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:
@@ -1395,7 +1428,6 @@ namespace MathCore
             // float r = (float)(int)f;
             uint32x4_t r = vreinterpretq_u32_f32(vcvtq_f32_s32(vcvtq_s32_f32(f)));
 
-
             // two possible values:
             // - 8388608.f (23bits)
             // - 2147483648.f (31bits)
@@ -1407,7 +1439,7 @@ namespace MathCore
             // r_uint = r_uint & mask;
 
             // if ((abs(f) > 2**31 )) r = f;
-            //const __m128 _sign_bit = _mm_set1_ps(-0.f);
+            // const __m128 _sign_bit = _mm_set1_ps(-0.f);
             const float32x4_t _max_f = vdupq_n_f32(8388608.f);
             uint32x4_t m = vcgtq_f32(_max_f, vabsq_f32(f));
             r = vandq_u32(m, r);
@@ -1417,7 +1449,6 @@ namespace MathCore
 
             result = vsubq_f32(a.array_neon, result);
             return result;
-
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

@@ -19,6 +19,27 @@ namespace MathCore
         using self_type = OP<type2>;
 
     public:
+        static ITK_INLINE type2 next(const type2 &p) noexcept
+        {
+            return type2(
+                OP<_type>::next(p.x),
+                OP<_type>::next(p.y));
+        }
+
+        static ITK_INLINE type2 previous(const type2 &p) noexcept
+        {
+            return type2(
+                OP<_type>::previous(p.x),
+                OP<_type>::previous(p.y));
+        }
+
+        static ITK_INLINE type2 next_after(const type2 &p, const type2 &_to) noexcept
+        {
+            return type2(
+                OP<_type>::next_after(p.x, _to.x),
+                OP<_type>::next_after(p.y, _to.y));
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:
@@ -191,7 +212,7 @@ namespace MathCore
         }
 
         /// \brief Checks if a point is inside a triangle defined by three points in 2D space
-        /// 
+        ///
         /// The function uses the orientation of the points to determine if the point is inside the triangle.
         ///
         /// \author Alessandro Ribeiro
@@ -552,7 +573,7 @@ namespace MathCore
         /// \param parallel It is a return parameter, thats will hold the computed parallel vector
         ///
         static ITK_INLINE void vecDecomp(const type2 &a, const type2 &unitV,
-                                          type2 *perpendicular, type2 *parallel) noexcept
+                                         type2 *perpendicular, type2 *parallel) noexcept
         {
             *parallel = unitV * (self_type::dot(a, unitV));
             *perpendicular = a - *parallel;
@@ -894,7 +915,7 @@ namespace MathCore
         /// \return A vector interpolated based on dxdy considering the 4 vectors of the parameter
         ///
         static ITK_INLINE type2 blerp(const type2 &A, const type2 &B, const type2 &C, const type2 &D,
-                                       const _type &dx, const _type &dy) noexcept
+                                      const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -1136,7 +1157,7 @@ namespace MathCore
                 OP<_type>::round(v.x),
                 OP<_type>::round(v.y));
         }
-        
+
         /// \brief fmod each component.
         ///
         static ITK_INLINE type2 fmod(const type2 &a, const type2 &b) noexcept

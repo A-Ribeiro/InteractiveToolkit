@@ -23,6 +23,33 @@ namespace MathCore
         using quatT = quat<_type, _simd>;
 
     public:
+        static ITK_INLINE type4 next(const type4 &p) noexcept
+        {
+            return type4(
+                OP<_type>::next(p.x),
+                OP<_type>::next(p.y),
+                OP<_type>::next(p.z),
+                OP<_type>::next(p.w));
+        }
+
+        static ITK_INLINE type4 previous(const type4 &p) noexcept
+        {
+            return type4(
+                OP<_type>::previous(p.x),
+                OP<_type>::previous(p.y),
+                OP<_type>::previous(p.z),
+                OP<_type>::previous(p.w));
+        }
+
+        static ITK_INLINE type4 next_after(const type4 &p, const type4 &_to) noexcept
+        {
+            return type4(
+                OP<_type>::next_after(p.x, _to.x),
+                OP<_type>::next_after(p.y, _to.y),
+                OP<_type>::next_after(p.z, _to.z),
+                OP<_type>::next_after(p.w, _to.w));
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:
@@ -575,7 +602,7 @@ namespace MathCore
         /// \param parallel It is a return parameter, thats will hold the computed parallel vector
         ///
         static ITK_INLINE void vecDecomp(const type4 &a, const type4 &unitV,
-                                          type4 *perpendicular, type4 *parallel) noexcept
+                                         type4 *perpendicular, type4 *parallel) noexcept
         {
             *parallel = unitV * (self_type::dot(a, unitV));
             *perpendicular = a - *parallel;
@@ -923,7 +950,7 @@ namespace MathCore
         /// \return A vector interpolated based on dxdy considering the 4 vectors of the parameter
         ///
         static ITK_INLINE type4 blerp(const type4 &A, const type4 &B, const type4 &C, const type4 &D,
-                                       const _type &dx, const _type &dy) noexcept
+                                      const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;

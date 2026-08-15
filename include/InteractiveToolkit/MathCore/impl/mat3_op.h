@@ -5,7 +5,7 @@
 #include "../cvt.h"
 #include "../operator_overload.h"
 
-//#include "quat_op.h" -- do not use any quat for mat3 OP
+// #include "quat_op.h" -- do not use any quat for mat3 OP
 
 namespace MathCore
 {
@@ -16,11 +16,35 @@ namespace MathCore
                   std::is_same<_simd, SIMD_TYPE::NONE>::value>::type,
               _algorithm>
     {
-        private:
+    private:
         using typeMat3 = mat3<_type, _simd>;
         using type3 = vec3<_type, _simd>;
         using self_type = OP<typeMat3>;
-        public:
+
+    public:
+        static ITK_INLINE typeMat3 next(const typeMat3 &p) noexcept
+        {
+            return typeMat3(
+                OP<type3>::next(p[0]),
+                OP<type3>::next(p[1]),
+                OP<type3>::next(p[2]));
+        }
+
+        static ITK_INLINE typeMat3 previous(const typeMat3 &p) noexcept
+        {
+            return typeMat3(
+                OP<type3>::previous(p[0]),
+                OP<type3>::previous(p[1]),
+                OP<type3>::previous(p[2]));
+        }
+
+        static ITK_INLINE typeMat3 next_after(const typeMat3 &p, const typeMat3 &_to) noexcept
+        {
+            return typeMat3(
+                OP<type3>::next_after(p[0], _to[0]),
+                OP<type3>::next_after(p[1], _to[1]),
+                OP<type3>::next_after(p[2], _to[2]));
+        }
 
         static ITK_INLINE typeMat3 clamp(const typeMat3 &value, const typeMat3 &min, const typeMat3 &max) noexcept
         {
@@ -115,7 +139,7 @@ namespace MathCore
         }
 
         static ITK_INLINE typeMat3 blerp(const typeMat3 &A, const typeMat3 &B, const typeMat3 &C, const typeMat3 &D,
-                                          const _type &dx, const _type &dy) noexcept
+                                         const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -129,22 +153,22 @@ namespace MathCore
                             0, 0, 1);
         }
 
-        static ITK_INLINE type3 extractXaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractXaxis(const typeMat3 &m) noexcept
         {
             return m[0];
         }
 
-        static ITK_INLINE type3 extractYaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractYaxis(const typeMat3 &m) noexcept
         {
             return m[1];
         }
 
-        static ITK_INLINE type3 extractZaxis(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractZaxis(const typeMat3 &m) noexcept
         {
             return m[2];
         }
 
-        static ITK_INLINE type3 extractTranslation(const typeMat3& m) noexcept
+        static ITK_INLINE type3 extractTranslation(const typeMat3 &m) noexcept
         {
             return m[2];
         }
@@ -172,7 +196,7 @@ namespace MathCore
             //
             _type sy = OP<_type>::sqrt(m.a1 * m.a1 + m.a2 * m.a2);
 
-            bool singular = sy < EPSILON<_type>::high_precision;// 1e-6f; // If
+            bool singular = sy < EPSILON<_type>::high_precision; // 1e-6f; // If
 
             float x, y, z;
             if (!singular)
@@ -273,7 +297,6 @@ namespace MathCore
             //     OP<type3>::smoothstep(edge0[1], edge1[1], x[1]),
             //     OP<type3>::smoothstep(edge0[2], edge1[2], x[2]));
         }
-
     };
 
 }

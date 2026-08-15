@@ -22,6 +22,30 @@ namespace MathCore
         using quatT = quat<_type, _simd>;
 
     public:
+        static ITK_INLINE type3 next(const type3 &p) noexcept
+        {
+            return type3(
+                OP<_type>::next(p.x),
+                OP<_type>::next(p.y),
+                OP<_type>::next(p.z));
+        }
+
+        static ITK_INLINE type3 previous(const type3 &p) noexcept
+        {
+            return type3(
+                OP<_type>::previous(p.x),
+                OP<_type>::previous(p.y),
+                OP<_type>::previous(p.z));
+        }
+
+        static ITK_INLINE type3 next_after(const type3 &p, const type3 &_to) noexcept
+        {
+            return type3(
+                OP<_type>::next_after(p.x, _to.x),
+                OP<_type>::next_after(p.y, _to.y),
+                OP<_type>::next_after(p.z, _to.z));
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:

@@ -53,6 +53,9 @@ namespace MathCore
 
     const __m128i _vec4i_int64_sign_sse = _mm_set_epi32((int)0x80000000, 0, (int)0x80000000, 0);
 
+    const __m128 _vec4_max = _mm_set1_ps(FLT_MAX);
+    const __m128 _vec4_minus_max = _mm_set1_ps(-FLT_MAX);
+
     template <typename type>
     struct iSseOps
     {
@@ -110,6 +113,10 @@ namespace MathCore
     const float32x4_t _vec3_two = (float32x4_t){2.0f, 2.0f, 2.0f, 0};
 
     const uint32x4_t _quat_conjugate_sign = vreinterpretq_u32_f32((float32x4_t){-.0f, -.0f, -.0f, .0f});
+
+    const float32x4_t _vec4_max = vset1(FLT_MAX);
+    const float32x4_t _vec4_minus_max = vset1(-FLT_MAX);
+
 
     template <typename type>
     struct iNeonOps

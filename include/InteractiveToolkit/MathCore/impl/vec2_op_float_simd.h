@@ -29,6 +29,39 @@ namespace MathCore
         using self_type = OP<type2>;
 
     public:
+        static ITK_INLINE type2 next(const type2 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_max, _float_info_mask_1100);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_max, _float_info_mask_1100);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type2 previous(const type2 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_minus_max, _float_info_mask_1100);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_minus_max, _float_info_mask_1100);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type2 next_after(const type2 &p, const type2 &_to) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _to.array_sse, _float_info_mask_1100);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _to.array_neon, _float_info_mask_1100);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:
@@ -220,7 +253,7 @@ namespace MathCore
         }
 
         /// \brief Checks if a point is inside a triangle defined by three points in 2D space
-        /// 
+        ///
         /// The function uses the orientation of the points to determine if the point is inside the triangle.
         ///
         /// \author Alessandro Ribeiro

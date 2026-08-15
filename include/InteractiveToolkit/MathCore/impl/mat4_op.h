@@ -20,6 +20,33 @@ namespace MathCore
         using self_type = OP<typeMat4>;
 
     public:
+        static ITK_INLINE typeMat4 next(const typeMat4 &p) noexcept
+        {
+            return typeMat4(
+                OP<type4>::next(p[0]),
+                OP<type4>::next(p[1]),
+                OP<type4>::next(p[2]),
+                OP<type4>::next(p[3]));
+        }
+
+        static ITK_INLINE typeMat4 previous(const typeMat4 &p) noexcept
+        {
+            return typeMat4(
+                OP<type4>::previous(p[0]),
+                OP<type4>::previous(p[1]),
+                OP<type4>::previous(p[2]),
+                OP<type4>::previous(p[3]));
+        }
+
+        static ITK_INLINE typeMat4 next_after(const typeMat4 &p, const typeMat4 &_to) noexcept
+        {
+            return typeMat4(
+                OP<type4>::next_after(p[0], _to[0]),
+                OP<type4>::next_after(p[1], _to[1]),
+                OP<type4>::next_after(p[2], _to[2]),
+                OP<type4>::next_after(p[3], _to[3]));
+        }
+
         static ITK_INLINE typeMat4 clamp(const typeMat4 &value, const typeMat4 &min, const typeMat4 &max) noexcept
         {
             return typeMat4(

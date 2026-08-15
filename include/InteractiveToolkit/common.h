@@ -135,7 +135,10 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_u64_(v, i) (v).m128i_u64[i]
 
 #define _mm_i32_read_0(vec) _mm_cvtsi128_si32(vec)
-#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_cvtsi128_si32(vec))
+#define _mm_i32_read(vec, index) _mm_cvtsi128_si32(_mm_shuffle_epi32(vec, _MM_SHUFFLE(index, index, index, index)))
+
+#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_i32_read_0(vec))
+#define _mm_u32_read(vec, index) static_cast<uint32_t>(_mm_i32_read(vec, index))
 
 #define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
 #define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
@@ -151,7 +154,10 @@ static void ITK_SYS_ALIGNED_FREE(void *data)
 #define _mm_f32_(v, i) (v)[i]
 
 #define _mm_i32_read_0(vec) _mm_cvtsi128_si32(vec)
-#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_cvtsi128_si32(vec))
+#define _mm_i32_read(vec, index) _mm_cvtsi128_si32(_mm_shuffle_epi32(vec, _MM_SHUFFLE(index, index, index, index)))
+
+#define _mm_u32_read_0(vec) static_cast<uint32_t>(_mm_i32_read_0(vec))
+#define _mm_u32_read(vec, index) static_cast<uint32_t>(_mm_i32_read(vec, index))
 
 #define _mm_f32_read_0(vec) _mm_cvtss_f32(vec)
 #define _mm_f32_read(vec, index) _mm_cvtss_f32(_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(index, index, index, index)))
@@ -324,13 +330,18 @@ const __m128i _float_info_max_float_u = _mm_set1_epi32((int)0x7F7FFFFF);
 const __m128i _float_info_zero = _mm_set1_epi32((int)0);
 const __m128i _float_info_q_nan = _mm_set1_epi32((int)0x7FC00000);
 
+const __m128i _float_info_mask_1111 = _mm_setr_epi32((int)0xffffffff, (int)0xffffffff, (int)0xffffffff, (int)0xffffffff);
+const __m128i _float_info_mask_1110 = _mm_setr_epi32((int)0xffffffff, (int)0xffffffff, (int)0xffffffff, (int)0);
+const __m128i _float_info_mask_1100 = _mm_setr_epi32((int)0xffffffff, (int)0xffffffff, (int)0, (int)0);
+const __m128i _float_info_mask_1000 = _mm_setr_epi32((int)0xffffffff, (int)0, (int)0, (int)0);
+
 // v == v returns false on NaN
 static inline __m128 _sse2_is_nan_ps(const __m128 &v)
 {
     return _mm_xor_ps(_mm_cmpeq_ps(v, v), _float_info_all_bits_set);
 }
 
-static inline __m128 _sse2_nextafter_ps(const __m128 &x, const __m128 &y)
+static inline __m128 _sse2_nextafter_ps(const __m128 &x, const __m128 &y, const __m128i &_mask_ = _float_info_mask_1111)
 {
     __m128i bits_x = _mm_castps_si128(x);
     __m128i bits_y = _mm_castps_si128(y);
@@ -384,6 +395,8 @@ static inline __m128 _sse2_nextafter_ps(const __m128 &x, const __m128 &y)
     // NaN case
     result = _mm_or_si128(_mm_and_si128(is_nan_mask, _float_info_q_nan),
                           _mm_andnot_si128(is_nan_mask, result));
+
+    result = _mm_and_si128(_mask_, result);
 
     return _mm_castsi128_ps(result);
 }
@@ -493,13 +506,18 @@ const uint32x4_t _float_info_max_float_u = vdupq_n_u32(0x7F7FFFFF);
 const uint32x4_t _float_info_zero = vdupq_n_u32(0);
 const uint32x4_t _float_info_q_nan = vdupq_n_u32(0x7FC00000);
 
+const uint32x4_t _float_info_mask_1111 = (uint32x4_t){0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+const uint32x4_t _float_info_mask_1110 = (uint32x4_t){0xffffffff, 0xffffffff, 0xffffffff, 0};
+const uint32x4_t _float_info_mask_1100 = (uint32x4_t){0xffffffff, 0xffffffff, 0, 0};
+const uint32x4_t _float_info_mask_1000 = (uint32x4_t){0xffffffff, 0, 0, 0};
+
 // v == v returns false on NaN
 static inline uint32x4_t _neon_is_nan_ps(const float32x4_t &v)
 {
     return veorq_u32(vceqq_f32(v, v), _float_info_all_bits_set);
 }
 
-static inline float32x4_t _neon_nextafter_ps(const float32x4_t &x, const float32x4_t &y)
+static inline float32x4_t _neon_nextafter_ps(const float32x4_t &x, const float32x4_t &y, const uint32x4_t &_mask_ = _float_info_mask_1111)
 {
     uint32x4_t bits_x = vreinterpretq_u32_f32(x);
     uint32x4_t bits_y = vreinterpretq_u32_f32(y);
@@ -553,6 +571,8 @@ static inline float32x4_t _neon_nextafter_ps(const float32x4_t &x, const float32
     // NaN case
     result = vorrq_u32(vandq_u32(is_nan_mask, _float_info_q_nan),
                        vandq_u32(vmvnq_u32(is_nan_mask), result));
+
+    result = vandq_u32(_mask_, result);
 
     return vreinterpretq_f32_u32(result);
 }

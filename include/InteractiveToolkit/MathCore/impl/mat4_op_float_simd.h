@@ -30,6 +30,33 @@ namespace MathCore
         using self_type = OP<typeMat4>;
 
     public:
+        static ITK_INLINE typeMat4 next(const typeMat4 &p) noexcept
+        {
+            return typeMat4(
+                OP<type4>::next(p[0]),
+                OP<type4>::next(p[1]),
+                OP<type4>::next(p[2]),
+                OP<type4>::next(p[3]));
+        }
+
+        static ITK_INLINE typeMat4 previous(const typeMat4 &p) noexcept
+        {
+            return typeMat4(
+                OP<type4>::previous(p[0]),
+                OP<type4>::previous(p[1]),
+                OP<type4>::previous(p[2]),
+                OP<type4>::previous(p[3]));
+        }
+
+        static ITK_INLINE typeMat4 next_after(const typeMat4 &p, const typeMat4 &_to) noexcept
+        {
+            return typeMat4(
+                OP<type4>::next_after(p[0], _to[0]),
+                OP<type4>::next_after(p[1], _to[1]),
+                OP<type4>::next_after(p[2], _to[2]),
+                OP<type4>::next_after(p[3], _to[3]));
+        }
+
         static ITK_INLINE typeMat4 clamp(const typeMat4 &value, const typeMat4 &min, const typeMat4 &max) noexcept
         {
             return typeMat4(
@@ -130,7 +157,7 @@ namespace MathCore
         }
 
         static ITK_INLINE typeMat4 blerp(const typeMat4 &A, const typeMat4 &B, const typeMat4 &C, const typeMat4 &D,
-                                          const _type &dx, const _type &dy) noexcept
+                                         const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -164,7 +191,6 @@ namespace MathCore
             // r.array_neon[1] = vsetq_lane_f32(0.0f, r.array_neon[1], 3);
             // r.array_neon[2] = vsetq_lane_f32(0.0f, r.array_neon[2], 3);
 
-
             return r;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
@@ -173,7 +199,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat4 extractRotation_2x2(const typeMat4 &m) noexcept
         {
-            #if defined(ITK_SSE2)
+#if defined(ITK_SSE2)
             __m128 a = _mm_and_ps(m.array_sse[0], _vec2_valid_bits_sse);
             __m128 b = _mm_and_ps(m.array_sse[1], _vec2_valid_bits_sse);
 
@@ -185,8 +211,8 @@ namespace MathCore
 #elif defined(ITK_NEON)
             const float32x2_t _zero_v2 = vdup_n_f32(0.0f);
             typeMat4 r(
-                vcombine_f32(vget_low_f32(m.array_neon[0]),_zero_v2),
-                vcombine_f32(vget_low_f32(m.array_neon[1]),_zero_v2),
+                vcombine_f32(vget_low_f32(m.array_neon[0]), _zero_v2),
+                vcombine_f32(vget_low_f32(m.array_neon[1]), _zero_v2),
                 _neon_0010,
                 _neon_0001);
 
@@ -197,7 +223,6 @@ namespace MathCore
             // r.array_neon[0] = vsetq_lane_f32(0.0f, r.array_neon[0], 3);
             // r.array_neon[1] = vsetq_lane_f32(0.0f, r.array_neon[1], 3);
             // r.array_neon[2] = vsetq_lane_f32(0.0f, r.array_neon[2], 3);
-
 
             return r;
 #else
@@ -373,16 +398,14 @@ namespace MathCore
             float32x4_t AddRes = vaddq_f32(SubRes, MulFacC);
             //__m128 DetCof = _mm_mul_ps(AddRes, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
 
-            //const float32x4_t SignMask = (float32x4_t){1.0f, -1.0f, 1.0f, -1.0f};
+            // const float32x4_t SignMask = (float32x4_t){1.0f, -1.0f, 1.0f, -1.0f};
             const uint32x4_t SignMask = vreinterpretq_u32_f32(
-                (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f}
-            );
+                (float32x4_t){0.0f, -0.0f, 0.0f, -0.0f});
 
             //__m128 DetCof = _mm_mul_ps(AddRes, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
-            //float32x4_t DetCof = vmulq_f32(AddRes, SignMask);
+            // float32x4_t DetCof = vmulq_f32(AddRes, SignMask);
             float32x4_t DetCof = vreinterpretq_f32_u32(
-                veorq_u32(vreinterpretq_u32_f32(AddRes), SignMask)
-            );
+                veorq_u32(vreinterpretq_u32_f32(AddRes), SignMask));
 
             // return m[0][0] * DetCof[0]
             //	 + m[0][1] * DetCof[1]
@@ -391,7 +414,7 @@ namespace MathCore
 
             float32x4_t Det0 = dot_neon_4(m.array_neon[0], DetCof);
 
-            return vgetq_lane_f32(Det0,0);
+            return vgetq_lane_f32(Det0, 0);
 
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option

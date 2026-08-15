@@ -32,6 +32,39 @@ namespace MathCore
         using quatT = quat<_type, _simd>;
 
     public:
+        static ITK_INLINE type3 next(const type3 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_max, _float_info_mask_1110);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_max, _float_info_mask_1110);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type3 previous(const type3 &p) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _vec4_minus_max, _float_info_mask_1110);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _vec4_minus_max, _float_info_mask_1110);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
+        static ITK_INLINE type3 next_after(const type3 &p, const type3 &_to) noexcept
+        {
+#if defined(ITK_SSE2)
+            return _sse2_nextafter_ps(p.array_sse, _to.array_sse, _float_info_mask_1110);
+#elif defined(ITK_NEON)
+            return _neon_nextafter_ps(p.array_neon, _to.array_neon, _float_info_mask_1110);
+#else
+#error Missing ITK_SSE2 or ITK_NEON compile option
+#endif
+        }
+
         /// \brief Clamp values in a component wise fashion
         ///
         /// For each component of the vector, evaluate:
@@ -283,7 +316,6 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-
 
         /// \brief Computes the orientation of four points in 3D space
         ///

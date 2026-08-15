@@ -16,11 +16,32 @@ namespace MathCore
                   std::is_same<_simd, SIMD_TYPE::NONE>::value>::type,
               _algorithm>
     {
-        private:
+    private:
         using typeMat2 = mat2<_type, _simd>;
         using type2 = vec2<_type, _simd>;
         using self_type = OP<typeMat2>;
-        public:
+
+    public:
+        static ITK_INLINE typeMat2 next(const typeMat2 &p) noexcept
+        {
+            return typeMat2(
+                OP<type2>::next(p[0]),
+                OP<type2>::next(p[1]));
+        }
+
+        static ITK_INLINE typeMat2 previous(const typeMat2 &p) noexcept
+        {
+            return typeMat2(
+                OP<type2>::previous(p[0]),
+                OP<type2>::previous(p[1]));
+        }
+
+        static ITK_INLINE typeMat2 next_after(const typeMat2 &p, const typeMat2 &_to) noexcept
+        {
+            return typeMat2(
+                OP<type2>::next_after(p[0], _to[0]),
+                OP<type2>::next_after(p[1], _to[1]));
+        }
 
         static ITK_INLINE typeMat2 clamp(const typeMat2 &value, const typeMat2 &min, const typeMat2 &max) noexcept
         {
@@ -108,7 +129,7 @@ namespace MathCore
         }
 
         static ITK_INLINE typeMat2 blerp(const typeMat2 &A, const typeMat2 &B, const typeMat2 &C, const typeMat2 &D,
-                                          const _type &dx, const _type &dy) noexcept
+                                         const _type &dx, const _type &dy) noexcept
         {
             _type omdx = (_type)1 - dx,
                   omdy = (_type)1 - dy;
@@ -209,7 +230,6 @@ namespace MathCore
             //     OP<type2>::smoothstep(edge0[0], edge1[0], x[0]),
             //     OP<type2>::smoothstep(edge0[1], edge1[1], x[1]));
         }
-
     };
 
 }
