@@ -16,9 +16,10 @@ namespace AlgorithmCore
 
 			enum class Element : uint8_t
 			{
-				NonWalkPlace,
+				NonWalkPlace = 0,
 				WalkPlace,
-				Edge
+				Edge,
+                Count
 			};
 
 			class Area
@@ -205,7 +206,8 @@ namespace AlgorithmCore
 			public:
 				ITKCommon::Matrix<Element> element_matrix;
 				// need to set this before begin gen algorithm
-				std::unordered_map<Element, T> element_map;
+				//std::unordered_map<Element, T> element_map;
+                T element_map[(int)Element::Count];
 				ITKCommon::Matrix<T> final_matrix;
 				
 				std::vector<Area> areas;
@@ -386,7 +388,7 @@ namespace AlgorithmCore
 						for (int col_num = 0; col_num < final_matrix.size.width; col_num++)
 						{
 							Element element = element_matrix[row_num][col_num];
-							final_matrix[row_num][col_num] = element_map[element];
+							final_matrix[row_num][col_num] = element_map[(int)element];
 						}
 					}
 				}
