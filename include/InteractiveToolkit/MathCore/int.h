@@ -88,7 +88,7 @@ namespace MathCore
         using self_type = OP<_type>;
 
         // Integer Ceil of the division a / b
-        inline constexpr _type div_ceil(_type a, _type b)
+        static inline constexpr _type div_ceil(_type a, _type b)
         {
             return (a + b - 1) / b;
         }
