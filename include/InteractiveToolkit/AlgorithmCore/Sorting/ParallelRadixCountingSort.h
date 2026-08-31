@@ -65,6 +65,7 @@ namespace AlgorithmCore
                              const size_t &count,
                              Platform::ThreadPool *threadpool,
                              _type *tmp_array = nullptr,
+                             Platform::Semaphore *completion_semaphore_ = nullptr,
                              int thread_count = -1,
                              uint64_t per_task_max_loop_count = 16 * 1024,
                              uint64_t min_blocks_to_paralelize = 8)
@@ -99,7 +100,9 @@ namespace AlgorithmCore
 
                 // printf("virt_threads_256: %zu virt_blocks_256: %zu\n", virt_threads_256, virt_blocks_256);
 
-                Platform::Semaphore completion_semaphore(0);
+                Platform::Semaphore *completion_semaphore = completion_semaphore_;
+                if (completion_semaphore_ == nullptr)
+                    completion_semaphore = new Platform::Semaphore(0);
 
                 Platform::ObjectBuffer buffer;
 
@@ -160,7 +163,7 @@ namespace AlgorithmCore
                                     thread_count_end = element_count;
                                 if (thread_count_end <= data_index_start)
                                 {
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                     return;
                                 }
                                 thread_count_end -= data_index_start;
@@ -176,11 +179,11 @@ namespace AlgorithmCore
                                     int digit = (int)((data >> shift) & 0xff);
                                     histogram_per_block_out[histogram_index_start + (uint64_t)digit]++;
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
 #if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
                     // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
@@ -214,14 +217,14 @@ namespace AlgorithmCore
 
                                         histogram_reduced_per_proc[curr_block * 256 + bucket] = s_hist_bucket;
                                     }
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                 });
                         }
                     }
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
                         for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                            completion_semaphore.blockingAcquire();
+                            completion_semaphore->blockingAcquire();
 
 #endif
 
@@ -242,12 +245,12 @@ namespace AlgorithmCore
                                     for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
                                         s_hist_total[thread_id] += histogram_to_offset[block_id * 256 + thread_id];
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     }
                     // barrier - prefix sum
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
                     uint32_t sum = 0;
                     for (uint32_t i = 0; i < 256; i++)
                     {
@@ -277,12 +280,12 @@ namespace AlgorithmCore
                                         s_hist_total[thread_id] += hist_count;
                                     }
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     }
                     // barrier - offset
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
 #if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
                     // reverse map blocks from histogram_per_block_out from blocks of histogram_reduced_per_proc
@@ -316,14 +319,14 @@ namespace AlgorithmCore
                                             s_offset_bucket += hist_count;
                                         }
                                     }
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                 });
                         }
                     }
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
                         for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                            completion_semaphore.blockingAcquire();
+                            completion_semaphore->blockingAcquire();
 
 #endif
 
@@ -341,7 +344,7 @@ namespace AlgorithmCore
                                     thread_count_end = element_count;
                                 if (thread_count_end <= data_index_start)
                                 {
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                     return;
                                 }
                                 thread_count_end -= data_index_start;
@@ -356,11 +359,11 @@ namespace AlgorithmCore
                                     uint32_t dest_index = block_digit_offset[digit]++;
                                     data_out[dest_index] = item;
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     // barrier - scatter
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
                     // swap in/out
                     std::swap(data_in, data_out);
@@ -371,6 +374,10 @@ namespace AlgorithmCore
                     // printf("Sorting Not Returning Correctly Warning: copy all data at end\n");
                     memcpy(data, data_in, sizeof(AlgorithmCore::Sorting::SortIndex<_type>) * count);
                 }
+
+                if (completion_semaphore_ == nullptr)
+                    delete completion_semaphore;
+
                 // if (thread_count == -1)
                 // {
                 //     thread_count = 1;
@@ -506,6 +513,7 @@ namespace AlgorithmCore
                                   const size_t &count,
                                   Platform::ThreadPool *threadpool,
                                   AlgorithmCore::Sorting::SortIndex<_type> *tmp_array = nullptr,
+                                  Platform::Semaphore *completion_semaphore_ = nullptr,
                                   int thread_count = -1,
                                   uint64_t per_task_max_loop_count = 16 * 1024,
                                   uint64_t min_blocks_to_paralelize = 8)
@@ -541,7 +549,9 @@ namespace AlgorithmCore
 
                 // printf("virt_threads_256: %zu virt_blocks_256: %zu\n", virt_threads_256, virt_blocks_256);
 
-                Platform::Semaphore completion_semaphore(0);
+                Platform::Semaphore *completion_semaphore = completion_semaphore_;
+                if (completion_semaphore_ == nullptr)
+                    completion_semaphore = new Platform::Semaphore(0);
 
                 Platform::ObjectBuffer buffer;
 
@@ -602,7 +612,7 @@ namespace AlgorithmCore
                                     thread_count_end = element_count;
                                 if (thread_count_end <= data_index_start)
                                 {
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                     return;
                                 }
                                 thread_count_end -= data_index_start;
@@ -617,11 +627,11 @@ namespace AlgorithmCore
                                     int digit = (int)((data >> shift) & 0xff);
                                     histogram_per_block_out[histogram_index_start + (uint64_t)digit]++;
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
 #if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
                     // map blocks from histogram_per_block_out into blocks of histogram_reduced_per_proc
@@ -655,14 +665,14 @@ namespace AlgorithmCore
 
                                         histogram_reduced_per_proc[curr_block * 256 + bucket] = s_hist_bucket;
                                     }
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                 });
                         }
                     }
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
                         for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                            completion_semaphore.blockingAcquire();
+                            completion_semaphore->blockingAcquire();
 
 #endif
 
@@ -683,12 +693,12 @@ namespace AlgorithmCore
                                     for (uint64_t block_id = 0; block_id < histogram_to_offset_block_count; block_id++)
                                         s_hist_total[thread_id] += histogram_to_offset[block_id * 256 + thread_id];
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     }
                     // barrier - prefix sum
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
                     uint32_t sum = 0;
                     for (uint32_t i = 0; i < 256; i++)
@@ -719,12 +729,12 @@ namespace AlgorithmCore
                                         s_hist_total[thread_id] += hist_count;
                                     }
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     }
                     // barrier - offset
                     for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
 #if ParallelRadixCountingSort_mode == ParallelRadixCountingSort_ReductionPass
                     // reverse map blocks from histogram_per_block_out from blocks of histogram_reduced_per_proc
@@ -758,14 +768,14 @@ namespace AlgorithmCore
                                             s_offset_bucket += hist_count;
                                         }
                                     }
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                 });
                         }
                     }
                     // barrier - histogram
                     for (uint64_t curr_block = 0; curr_block < reduced_block_count; curr_block++)
                         for (uint64_t curr_block_256 = 0; curr_block_256 < virt_blocks_256; curr_block_256++)
-                            completion_semaphore.blockingAcquire();
+                            completion_semaphore->blockingAcquire();
 
 #endif
 
@@ -783,7 +793,7 @@ namespace AlgorithmCore
                                     thread_count_end = element_count;
                                 if (thread_count_end <= data_index_start)
                                 {
-                                    completion_semaphore.release();
+                                    completion_semaphore->release();
                                     return;
                                 }
                                 thread_count_end -= data_index_start;
@@ -798,11 +808,11 @@ namespace AlgorithmCore
                                     uint32_t dest_index = block_digit_offset[digit]++;
                                     data_out[dest_index] = item;
                                 }
-                                completion_semaphore.release();
+                                completion_semaphore->release();
                             });
                     // barrier - scatter
                     for (uint64_t curr_block = 0; curr_block < virt_blocks; curr_block++)
-                        completion_semaphore.blockingAcquire();
+                        completion_semaphore->blockingAcquire();
 
                     // swap in/out
                     std::swap(data_in, data_out);
@@ -813,6 +823,9 @@ namespace AlgorithmCore
                     // printf("Sorting Not Returning Correctly Warning: copy all data at end\n");
                     memcpy(data, data_in, sizeof(AlgorithmCore::Sorting::SortIndex<_type>) * count);
                 }
+
+                if (completion_semaphore_ == nullptr)
+                    delete completion_semaphore;
 
                 // if (thread_count == -1)
                 // {
