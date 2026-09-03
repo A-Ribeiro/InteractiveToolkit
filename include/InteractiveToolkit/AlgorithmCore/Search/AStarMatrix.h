@@ -238,6 +238,19 @@ namespace AlgorithmCore
             {
                 // https://en.wikipedia.org/wiki/A*_search_algorithm
 
+                // input validation
+                if (map == nullptr ||
+                    start.x < 0 || start.x >= map->size.width ||
+                    start.y < 0 || start.y >= map->size.height ||
+                    end.x < 0 || end.x >= map->size.width ||
+                    end.y < 0 || end.y >= map->size.height ||
+                    !canWalkOnTile(start) ||
+                    !canWalkOnTile(end))
+                {
+                    result->clear();
+                    return;
+                }
+
                 InternalData clearData;
                 // clearData.already_inserted_in_queue = false;
                 clearData.already_processed = false;
