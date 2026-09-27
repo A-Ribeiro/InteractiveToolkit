@@ -19,6 +19,21 @@
 namespace MathCore
 {
 
+    /// \brief Generic operations specialization for SIMD-optimized float quat.
+    ///
+    /// Provides generic utility functions for the quat class when SIMD
+    /// optimizations are enabled (SIMD_TYPE::SSE or SIMD_TYPE::NEON) and the
+    /// base type is float. This specialization is selected via SFINAE when
+    /// the _type template parameter is float and _simd is either SSE or NEON.
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the quat components; this specialization
+    ///         is selected when _type is float.
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
+    /// \tparam _algorithm The algorithm type.
+    ///
     template <typename _type, typename _simd, typename _algorithm>
     struct OP<quat<_type, _simd>,
               typename std::enable_if<
@@ -28,13 +43,25 @@ namespace MathCore
               _algorithm>
     {
     private:
+        /// \brief Alias for the quaternion type.
+        ///
         using quatT = quat<_type, _simd>;
+        /// \brief Alias for the 2-component vector type.
+        ///
         using type2 = vec2<_type, _simd>;
+        /// \brief Alias for the 3-component vector type.
+        ///
         using type3 = vec3<_type, _simd>;
+        /// \brief Alias for the 4-component vector type.
+        ///
         using type4 = vec4<_type, _simd>;
 
+        /// \brief Alias for the 3x3 matrix type.
+        ///
         using typeMat3 = mat3<_type, _simd>;
 
+        /// \brief Alias for the fully specialized OP struct type.
+        ///
         using self_type = OP<quatT>;
 
     public:
@@ -54,7 +81,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param a Input quaternion
-        /// \return The quat
+        /// \return The conjugate quaternion
         ///
         static ITK_INLINE quatT conjugate(const quatT &a) noexcept
         {
@@ -84,8 +111,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a The first vector
-        /// \param b The second vector
+        /// \param a The first quaternion
+        /// \param b The second quaternion
         /// \return The dot product between the two quaternions
         ///
         static ITK_INLINE _type dot(const quatT &a, const quatT &b) noexcept
@@ -99,7 +126,7 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Make que quaterniom from parameter to become a unity quaternion
+        /// \brief Make the quaternion from parameter become a unit quaternion
         ///
         /// Example:
         ///
@@ -148,8 +175,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a The first quat
-        /// \param b The second quat
+        /// \param a The first quaternion
+        /// \param b The second quaternion
         /// \return The angle in radians between the two quaternions
         ///
         static ITK_INLINE _type angleBetween(const quatT &a, const quatT &b) noexcept
@@ -333,7 +360,9 @@ namespace MathCore
             //     a_factor * a.w + b_factor * _new_b_.w));
         }
 
-        /// \brief Convert the quaternion to an axis angle representation. Notice: Not tested
+        /// \brief Convert the quaternion to an axis angle representation.
+        ///
+        /// \note This function is not fully tested.
         ///
         /// Example:
         ///
@@ -350,7 +379,7 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param q The rotation quaternion
         /// \param axis Output - The axis
-        /// \param angle Output - The angle arount the axis in radians
+        /// \param angle Output - The angle around the axis in radians
         ///
         static ITK_INLINE void extractAxisAngle(const quatT &q, type3 *axis, _type *angle) noexcept
         {
@@ -378,7 +407,9 @@ namespace MathCore
             // *angle = OP<_type>::acos(OP<_type>::clamp(q.w, (_type)-1, (_type)1)) * (_type)2;
         }
 
-        /// \brief Convert the quaternion to Euler representation. Notice: Not found an algorithm that works...
+        /// \brief Convert the quaternion to Euler representation.
+        ///
+        /// \note An algorithm that works correctly has not been found yet.
         ///
         /// Example:
         ///
@@ -517,7 +548,7 @@ namespace MathCore
             OP<typeMat3>::extractEuler(m, roll, pitch, yaw);
         }
 
-        /// \brief Computes the inverse of a quaternion. Notice
+        /// \brief Computes the inverse of a quaternion.
         ///
         /// Example:
         ///

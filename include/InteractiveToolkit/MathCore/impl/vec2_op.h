@@ -5,9 +5,25 @@
 #include "../cvt.h"
 #include "../operator_overload.h"
 
+#include "mat3_op.h"
+
 namespace MathCore
 {
 
+    /// \brief Generic operations specialization for vec2 with no SIMD optimization.
+    ///
+    /// Provides generic (non-SIMD) utility functions for the vec2 class when
+    /// SIMD optimizations are disabled (SIMD_TYPE::NONE). This specialization
+    /// is selected via SFINAE when the _simd template parameter matches
+    /// SIMD_TYPE::NONE.
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the vec2 components (e.g., float, double).
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::NONE.
+    /// \tparam _algorithm The algorithm type.
+    ///
     template <typename _type, typename _simd, typename _algorithm>
     struct OP<vec2<_type, _simd>,
               typename std::enable_if<
@@ -15,10 +31,31 @@ namespace MathCore
               _algorithm>
     {
     private:
+        /// \brief Alias for the 2-component vector type.
+        ///
         using type2 = vec2<_type, _simd>;
+        /// \brief Alias for the fully specialized OP struct type.
+        ///
         using self_type = OP<type2>;
 
     public:
+        /// \brief Returns the next representable floating-point value after each component.
+        ///
+        /// For each component, returns the next floating-point value in the direction of positive infinity.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.0f, 2.0f );
+        ///
+        /// vec2 result = next( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \return The next representable value for each component
+        ///
         static ITK_INLINE type2 next(const type2 &p) noexcept
         {
             return type2(
@@ -26,6 +63,23 @@ namespace MathCore
                 OP<_type>::next(p.y));
         }
 
+        /// \brief Returns the previous representable floating-point value before each component.
+        ///
+        /// For each component, returns the previous floating-point value in the direction of negative infinity.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.0f, 2.0f );
+        ///
+        /// vec2 result = previous( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \return The previous representable value for each component
+        ///
         static ITK_INLINE type2 previous(const type2 &p) noexcept
         {
             return type2(
@@ -33,6 +87,25 @@ namespace MathCore
                 OP<_type>::previous(p.y));
         }
 
+        /// \brief Returns the next representable floating-point value after each component in the direction of a target.
+        ///
+        /// For each component, returns the next floating-point value after p in the direction of _to.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.0f, 2.0f );
+        /// vec2 target = vec2( 3.0f, 0.0f );
+        ///
+        /// vec2 result = next_after( a, target );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \param _to The target direction vector
+        /// \return The next representable value for each component in the direction of _to
+        ///
         static ITK_INLINE type2 next_after(const type2 &p, const type2 &_to) noexcept
         {
             return type2(
@@ -40,7 +113,7 @@ namespace MathCore
                 OP<_type>::next_after(p.y, _to.y));
         }
 
-        /// \brief Clamp values in a component wise fashion
+        /// \brief Clamp values in a component-wise fashion
         ///
         /// For each component of the vector, evaluate:
         /// ```
@@ -107,9 +180,9 @@ namespace MathCore
         ///  |  |
         ///  length of the projection with negative sign
         /// =================================================================
-        /// -The hemisfere side of two vectors:
+        /// -The hemisphere side of two vectors:
         ///    dot(a,b) = dot(b,a) = value
-        ///        -- value < 0 => they are in the opose direction.
+        ///        -- value < 0 => they are in the opposite direction.
         ///        -- value > 0 => they are in the same direction.
         ///        -- value = 0 => they are orthogonal(90 degrees) vectors.
         ///
@@ -186,6 +259,41 @@ namespace MathCore
             return OP<_type>::acos(cosA);
         }
 
+        /// \brief Computes the z-component (magnitude) of the cross product of two 2D vectors
+        ///
+        /// For two 2D vectors a and b, the cross product is a vector along the z-axis:
+        ///
+        /// cross(a, b) = (0, 0, a.x * b.y - a.y * b.x)
+        ///
+        /// This function returns only the z-component (scalar magnitude).
+        ///
+        /// <pre>
+        /// The sign of the result indicates the orientation:
+        ///
+        /// - value > 0 => b is counter-clockwise from a
+        /// - value < 0 => b is clockwise from a
+        /// - value = 0 => a and b are parallel (collinear)
+        ///
+        /// The absolute value equals the area of the parallelogram
+        /// formed by the two vectors: |a| * |b| * sin(angle)
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1, 0 );
+        /// vec2 b = vec2( 0, 1 );
+        ///
+        /// // result = 1 (b is counter-clockwise from a)
+        /// float z = cross_z_mag( a, b );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first vector
+        /// \param b The second vector
+        /// \return The z-component of the cross product of a and b
+        ///
         static ITK_INLINE _type cross_z_mag(const type2 &a, const type2 &b) noexcept
         {
             return (a.x * b.y - a.y * b.x);
@@ -225,9 +333,9 @@ namespace MathCore
         static ITK_INLINE bool point_inside_triangle(const type2 &p,
                                                      const type2 &a, const type2 &b, const type2 &c)
         {
-            float d1 = orientation(p, a, b);
-            float d2 = orientation(p, b, c);
-            float d3 = orientation(p, c, a);
+            _type d1 = orientation(p, a, b);
+            _type d2 = orientation(p, b, c);
+            _type d3 = orientation(p, c, a);
 
             bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
             bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
@@ -235,14 +343,138 @@ namespace MathCore
             return !(has_neg && has_pos);
         }
 
+        /// \brief Computes the vector perpendicular to 'a', rotated 90 degrees counter-clockwise
+        ///
+        /// Equivalent to the cross product of 'a' with the unit z-axis (0, 0, 1),
+        /// projected back to 2D:
+        ///
+        /// cross(a, z) = (-a.y, a.x)
+        ///
+        /// The result has the same length as 'a' and is orthogonal to it.
+        ///
+        /// <pre>
+        ///          result
+        ///            ^
+        ///            |
+        ///            |
+        ///  a --------+------> x
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1, 0 );
+        ///
+        /// // result = vec2( 0, 1 )
+        /// vec2 up = cross_z_up( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The input vector
+        /// \return The vector perpendicular to 'a', rotated 90 degrees counter-clockwise
+        ///
         static ITK_INLINE type2 cross_z_up(const type2 &a) noexcept
         {
             return type2(-a.y, a.x);
         }
 
+        /// \brief Computes the vector perpendicular to 'a', rotated 90 degrees clockwise
+        ///
+        /// Equivalent to the cross product of the unit z-axis (0, 0, 1) with 'a',
+        /// projected back to 2D:
+        ///
+        /// cross(z, a) = (a.y, -a.x)
+        ///
+        /// The result has the same length as 'a' and is orthogonal to it.
+        ///
+        /// <pre>
+        ///  a --------+------> x
+        ///            |
+        ///            |
+        ///            v
+        ///          result
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1, 0 );
+        ///
+        /// // result = vec2( 0, -1 )
+        /// vec2 down = cross_z_down( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The input vector
+        /// \return The vector perpendicular to 'a', rotated 90 degrees clockwise
+        ///
         static ITK_INLINE type2 cross_z_down(const type2 &a) noexcept
         {
             return type2(a.y, -a.x);
+        }
+
+        /// \brief Checks if the origin (0,0) is inside the circle defined by three points
+        ///
+        /// Uses the Circle Inclusion Determinant from Projective Geometry.
+        /// The three points define a unique circle, and the determinant of the
+        /// augmented matrix tells whether the origin lies inside it.
+        ///
+        /// <pre>
+        /// The determinant is computed as:
+        ///
+        ///       | a.x  a.y  |a|^2 |
+        /// det = | b.x  b.y  |b|^2 |
+        ///       | c.x  c.y  |c|^2 |
+        ///
+        /// - det > 0  => origin is inside the circle
+        /// - det == 0 => origin is on the circle border
+        /// - det < 0  => origin is outside the circle
+        /// </pre>
+        ///
+        /// \note The points a, b, c are required to be in counter-clockwise (CCW) orientation.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1, 0 );
+        /// vec2 b = vec2( 0, 1 );
+        /// vec2 c = vec2( -1, 0 );
+        ///
+        /// // the circle passes through a, b, c and contains the origin
+        /// bool inside = is_origin_inside_circle( a, b, c );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The first point on the circle (CCW order)
+        /// \param b The second point on the circle (CCW order)
+        /// \param c The third point on the circle (CCW order)
+        /// \return true if the origin is inside or on the circle, false otherwise
+        ///
+        static ITK_INLINE bool is_origin_inside_circle(const type2 &a, const type2 &b, const type2 &c) noexcept
+        {
+            using typeMat3 = mat3<_type, _simd>;
+            using type3 = vec3<_type, _simd>;
+
+            // from Projective Geometry: Circle Inclusion Determinant
+            // the points a,b,c is required to be in CCW orientation
+            // det > 0 -> inside circle
+            // det == 0 -> in circle border
+            // det < 0 -> outside the circle
+            // float det = OP<mat3_>::determinant(typeMat3(
+            //     a.x, a.y, sqrLength(a),
+            //     b.x, b.y, sqrLength(b),
+            //     c.x, c.y, sqrLength(c)));
+            
+            // det(M) == det(transpose(M))
+            float det = OP<typeMat3>::determinant(typeMat3(
+                type3(a, sqrLength(a)),
+                type3(b, sqrLength(b)),
+                type3(c, sqrLength(c))));
+
+            return det >= 0;
         }
 
         /// \brief Computes the reflected vector 'a' related to a normal N
@@ -286,11 +518,11 @@ namespace MathCore
         /// \brief snell law refraction, vector implementation
         ///
         /// from input ray, normal, ni and nr calculate the refracted vector
-        /// ni = source index of refraction (iOr)
-        /// nr = target index of refraction (iOr)
+        /// ni = source index of refraction (ior)
+        /// nr = target index of refraction (ior)
         ///
-        /// The function can lead to return false when occurs the total internal reflection. <br />
-        /// This case may occurrs when you exit a ray from a more dense environment to a less dense environment.
+        /// The function can lead to return false when the total internal reflection occurs. <br />
+        /// This case may occur when you exit a ray from a more dense environment to a less dense environment.
         ///
         /// Example:
         ///
@@ -336,6 +568,37 @@ namespace MathCore
             return true;
         }
 
+        /// \brief Snell law refraction, vector implementation (branch-less)
+        ///
+        /// From input ray, normal, ni and nr calculate the refracted vector.
+        /// ni = source index of refraction (ior)
+        /// nr = target index of refraction (ior)
+        ///
+        /// This is the branch-less variant of \ref refract_old. When the total
+        /// internal reflection case occurs (exiting a more dense environment to a
+        /// less dense one), the result smoothly falls back to the reflected ray
+        /// instead of returning a failure flag.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float ior_air = 1.0f;
+        /// float ior_water = 1.33f;
+        /// vec2 rayDirection = normalize( vec2( 1 , -1 ) );
+        /// vec2 normal = vec2( 0 ,1 );
+        ///
+        /// // compute the refracted ray that comes from air to the water surface
+        /// vec2 refracted = refract( rayDirection, normal, ior_air, ior_water );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param rayDir Incident ray direction
+        /// \param normal The normal of a surface (unit vector)
+        /// \param ni source index of refraction
+        /// \param nr target index of refraction
+        /// \return The refracted vector, or the reflected vector in the total internal reflection case
+        ///
         static ITK_INLINE type2 refract(const type2 &rayDir, const type2 &normal, const _type &ni, const _type &nr)
         {
 
@@ -391,7 +654,7 @@ namespace MathCore
         ///
         /// |a|
         ///
-        /// This computation uses the sqrtf, and it consumes a lot of cicles to compute.
+        /// This computation uses the sqrtf, and it consumes a lot of cycles to compute.
         ///
         /// Example:
         ///
@@ -413,7 +676,7 @@ namespace MathCore
 
         /// \brief Computes the squared distance between two vectors
         ///
-        /// The squared distance is the euclidian distance, without the square root:
+        /// The squared distance is the Euclidean distance, without the square root:
         ///
         /// |b-a|^2
         ///
@@ -441,17 +704,17 @@ namespace MathCore
 
         /// \brief Computes the distance between two vectors
         ///
-        /// The squared distance is the euclidian distance:
+        /// The squared distance is the Euclidean distance:
         ///
         /// |b-a|
         ///
-        /// This computation uses the sqrtf, and it consumes a lot of cicles to compute.
+        /// This computation uses the sqrtf, and it consumes a lot of cycles to compute.
         ///
         /// Example:
         ///
         /// \code
         ///
-        /// vec3 a, b;
+        /// vec2 a, b;
         ///
         /// float result = distance( a, b );
         /// \endcode
@@ -496,7 +759,7 @@ namespace MathCore
         ///
         static ITK_INLINE type2 parallelComponent(const type2 &a, const type2 &unitV) noexcept
         {
-            return unitV * (self_type::dot(a, unitV)); // dot(a,unitV) É a projeção de a em unitV
+            return unitV * (self_type::dot(a, unitV)); // dot(a,unitV) is the projection of a onto unitV
         }
 
         /// \brief Computes a vector perpendicular to the projection of a vector over a unit vector
@@ -528,7 +791,7 @@ namespace MathCore
         ///
         static ITK_INLINE type2 perpendicularComponent(const type2 &a, const type2 &unitV) noexcept
         {
-            return a - unitV * (self_type::dot(a, unitV)); // unitV*(dot(a,unitV)) É o componenete paralelo
+            return a - unitV * (self_type::dot(a, unitV)); // unitV*(dot(a,unitV)) is the parallel component
         }
 
         /// \brief Computes both: a vector perpendicular and a parallel to the projection of a vector over a unit vector
@@ -551,7 +814,7 @@ namespace MathCore
         ///       o       o           o
         /// </pre>
         ///
-        /// This function do a vector decomposition in two other vectors according the unitV.
+        /// this function does a vector decomposition in two other vectors according the unitV.
         ///
         /// Example:
         ///
@@ -569,8 +832,8 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param a The vector to decompose
         /// \param unitV The base vector (must be unit)
-        /// \param perpendicular It is a return parameter, thats will hold the computed perpendicular vector
-        /// \param parallel It is a return parameter, thats will hold the computed parallel vector
+        /// \param perpendicular It is a return parameter, that will hold the computed perpendicular vector
+        /// \param parallel It is a return parameter, that will hold the computed parallel vector
         ///
         static ITK_INLINE void vecDecomp(const type2 &a, const type2 &unitV,
                                          type2 *perpendicular, type2 *parallel) noexcept
@@ -579,7 +842,7 @@ namespace MathCore
             *perpendicular = a - *parallel;
         }
 
-        /// \brief Test a point and clips its values according the euclidian distance from another point
+        /// \brief Test a point and clips its values according the Euclidean distance from another point
         ///
         /// The quadratic clamp can be used to make limits like circular limits or spherical limits.
         ///
@@ -598,7 +861,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param point The point to clip
-        /// \param center The center to compute the euclidian distance
+        /// \param center The center to compute the Euclidean distance
         /// \param maxRadius The max distance that the point can be from the center
         /// \return The point if it is below the distance or a point in the same line of the point, but with distance from center equals to maxRadius
         ///
@@ -742,7 +1005,7 @@ namespace MathCore
 
         /// \brief Computes the linear interpolation
         ///
-        /// When the fator is between 0 and 1, it returns the convex relation (linear interpolation) between a and b.
+        /// When the factor is between 0 and 1, it returns the convex relation (linear interpolation) between a and b.
         ///
         /// Example:
         ///
@@ -763,7 +1026,7 @@ namespace MathCore
         ///
         static ITK_INLINE type2 lerp(const type2 &a, const type2 &b, const _type &factor) noexcept
         {
-            //  return a+(b-a)*fator;
+            //  return a+(b-a)*factor;
             return a * ((_type)1 - factor) + (b * factor);
         }
 
@@ -783,7 +1046,7 @@ namespace MathCore
         /// \author Alessandro Ribeiro
         /// \param a The source vector
         /// \param b The target vector
-        /// \param lerp The amount of interpolation
+        /// \param _lerp The amount of interpolation
         /// \return The spherical interpolation of the source and target vectors
         ///
         static ITK_INLINE type2 slerp(const type2 &a, const type2 &b, const _type &_lerp) noexcept
@@ -824,9 +1087,9 @@ namespace MathCore
         ///
         /// It is possible to discover the value of 'u' and 'v' by using the triangle area formula.
         ///
-        /// After that it is possible to use this function to interpolate normals, colors, etc... based on the baricentric coorginate uv
+        /// After that it is possible to use this function to interpolate normals, colors, etc... based on the baricentric coordinate uv
         ///
-        /// Note: If the uv were calculated in euclidian space of a triangle, then interpolation of colors, normals or coordinates are not affected by the perspective projection.
+        /// Note: If the uv were calculated in Euclidean space of a triangle, then interpolation of colors, normals or coordinates are not affected by the perspective projection.
         ///
         /// Example:
         ///
@@ -872,7 +1135,7 @@ namespace MathCore
 
         /// \brief Computes the result of the bilinear interpolation over a square patch with 4 points
         ///
-        /// The bilinear interpolation is usefull to compute colors between pixels in a image.
+        /// The bilinear interpolation is useful to compute colors between pixels in an image.
         ///
         /// This implementation considers that the square formed by the four points is a square.
         ///
@@ -922,9 +1185,9 @@ namespace MathCore
             return (omdx * omdy) * A + (omdx * dy) * D + (dx * omdy) * B + (dx * dy) * C;
         }
 
-        /// \brief Computes the result of the spline interpolation using the CatmullRom aproach
+        /// \brief Computes the result of the spline interpolation using the CatmullRom approach
         ///
-        /// The spline is a curve based in four points. The CatmullRom aproach makes the curve walk through the control points.
+        /// The spline is a curve based on four points. The CatmullRom approach makes the curve walk through the control points.
         ///
         /// It can be used to make smooth curves in paths.
         ///
@@ -1052,6 +1315,9 @@ namespace MathCore
         /// \param maxAngleVariation The max amount the current can be modified to reach target
         /// \return the slerp from current to target according max variation
         ///
+        /// \note This function handles the 180-degree case specially to avoid numerical instability
+        ///       when the current and target vectors are nearly opposite.
+        ///
         static ITK_INLINE type2 moveSlerp(const type2 &currentParam, const type2 &targetParam, const _type &maxAngleVariation) noexcept
         {
             type2 current = currentParam;
@@ -1124,6 +1390,20 @@ namespace MathCore
 
         /// \brief The sign of each component. ( v >= 0 ) ? 1 : -1
         ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( -10, 20 );
+        ///
+        /// // result = vec2( -1, 1 )
+        /// vec2 result = sign( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The sign of each component
+        ///
         static ITK_INLINE type2 sign(const type2 &v) noexcept
         {
             return type2(
@@ -1132,6 +1412,22 @@ namespace MathCore
         }
 
         /// \brief The floor of each component.
+        ///
+        /// Returns the largest integer value less than or equal to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.7f, -1.2f );
+        ///
+        /// // result = vec2( 1, -2 )
+        /// vec2 result = floor( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The floor of each component
         ///
         static ITK_INLINE type2 floor(const type2 &v) noexcept
         {
@@ -1142,6 +1438,22 @@ namespace MathCore
 
         /// \brief The ceil of each component.
         ///
+        /// Returns the smallest integer value greater than or equal to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.2f, -1.7f );
+        ///
+        /// // result = vec2( 2, -1 )
+        /// vec2 result = ceil( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The ceil of each component
+        ///
         static ITK_INLINE type2 ceil(const type2 &v) noexcept
         {
             return type2(
@@ -1150,6 +1462,22 @@ namespace MathCore
         }
 
         /// \brief Round each component.
+        ///
+        /// Returns the nearest integer to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 1.5f, -1.5f );
+        ///
+        /// // result = vec2( 2, -2 )
+        /// vec2 result = round( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The rounded value of each component
         ///
         static ITK_INLINE type2 round(const type2 &v) noexcept
         {
@@ -1160,6 +1488,24 @@ namespace MathCore
 
         /// \brief fmod each component.
         ///
+        /// Returns the floating-point remainder of a / b for each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a = vec2( 10, 20 );
+        /// vec2 b = vec2( 3, 7 );
+        ///
+        /// // result = vec2( 1, 6 )
+        /// vec2 result = fmod( a, b );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The dividend vector
+        /// \param b The divisor vector
+        /// \return The fmod of each component pair
+        ///
         static ITK_INLINE type2 fmod(const type2 &a, const type2 &b) noexcept
         {
             return type2(
@@ -1167,15 +1513,62 @@ namespace MathCore
                 OP<_type>::fmod(a.y, b.y));
         }
 
-        /// \brief Step function on each component. ( v >= threshould ) ? 1 : 0
+        /// \brief Step function on each component. ( v >= threshold ) ? 1 : 0
         ///
-        static ITK_INLINE type2 step(const type2 &threshould, const type2 &v) noexcept
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 threshold = vec2( 5, 5 );
+        /// vec2 v = vec2( 3, 7 );
+        ///
+        /// // result = vec2( 0, 1 )
+        /// vec2 result = step( threshold, v );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param threshold The threshold value
+        /// \param v The input vector
+        /// \return 1 where v >= threshold, 0 otherwise, for each component
+        ///
+        static ITK_INLINE type2 step(const type2 &threshold, const type2 &v) noexcept
         {
             return type2(
-                OP<_type>::step(threshould.x, v.x),
-                OP<_type>::step(threshould.y, v.y));
+                OP<_type>::step(threshold.x, v.x),
+                OP<_type>::step(threshold.y, v.y));
         }
 
+        /// \brief Smoothstep interpolation on each component
+        ///
+        /// For each component, computes a smooth (hermite) interpolation between 0 and 1,
+        /// where the transition happens between edge0 and edge1:
+        ///
+        /// <pre>
+        /// t = clamp( (x - edge0) / |edge1 - edge0|, 0, 1 )
+        /// result = t * t * ( 3 - 2 * t )
+        /// </pre>
+        ///
+        /// The result is 0 when x is at or below edge0, 1 when x is at or above edge1,
+        /// and a smooth S-curve in between.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 edge0 = vec2( 0, 0 );
+        /// vec2 edge1 = vec2( 10, 10 );
+        /// vec2 x = vec2( 5, 5 );
+        ///
+        /// // result = vec2( 0.5, 0.5 )
+        /// vec2 result = smoothstep( edge0, edge1, x );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param edge0 The lower edge of the transition
+        /// \param edge1 The upper edge of the transition
+        /// \param x The input value
+        /// \return The smoothstep interpolated value for each component
+        ///
         static ITK_INLINE type2 smoothstep(const type2 &edge0, const type2 &edge1, const type2 &x) noexcept
         {
             using type_info = FloatTypeInfo<_type>;

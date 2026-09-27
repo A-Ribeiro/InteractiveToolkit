@@ -295,7 +295,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat4(const self_type &m)
         {
@@ -337,7 +337,7 @@ namespace MathCore
         /// Initialize the mat4 components from vec4 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d)
         {
@@ -652,8 +652,8 @@ namespace MathCore
 
             __m128i array_0123 = _mm_and_si128(array_01, array_23);
 
-            int test_all_zero = _mm_test_all_ones(array_0123);
-            return (bool)test_all_zero;
+            int test_all_ones = _mm_test_all_ones(array_0123);
+            return (bool)test_all_ones;
 
             // // const __m128 _vec4_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
 

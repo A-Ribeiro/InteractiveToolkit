@@ -344,7 +344,7 @@ namespace CollisionCore
         static inline bool pointInsideSphere(const vec3_type &p, const Sphere<T> &sphere);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
 
         /// \brief Test if a sphere overlaps the AABB

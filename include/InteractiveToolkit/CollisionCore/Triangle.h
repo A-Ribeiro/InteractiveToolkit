@@ -407,7 +407,7 @@ namespace CollisionCore
         static inline bool sphereIntersectsTriangle(const Sphere<T> &sphere, const Triangle<T> &t, vec3_type *penetration);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
         /// \brief Test if a triangle intersects the AABB
         ///

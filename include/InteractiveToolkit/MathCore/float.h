@@ -379,7 +379,7 @@ namespace MathCore
 
         /// \brief Computes the squared distance between two 1D vectors
         ///
-        /// The squared distance is the euclidian distance, without the square root:
+        /// The squared distance is the Euclidean distance, without the square root:
         ///
         /// |b-a|^2
         ///
@@ -407,7 +407,7 @@ namespace MathCore
 
         /// \brief Computes the distance between two 1D vectors
         ///
-        /// The distance is the euclidian distance from a point a to point b:
+        /// The distance is the Euclidean distance from a point a to point b:
         ///
         /// |b-a|
         ///
@@ -493,7 +493,7 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Component wise clamp values
+        /// \brief component-wise clamp values
         ///
         /// For each component of the vector, evaluate:
         /// ```
@@ -591,7 +591,7 @@ namespace MathCore
 
         /// \brief Computes the linear interpolation
         ///
-        /// When the fator is between 0 and 1 it returns the convex relation (linear interpolation) between a and b.
+        /// When the factor is between 0 and 1 it returns the convex relation (linear interpolation) between a and b.
         ///
         /// Example:
         ///
@@ -1003,7 +1003,7 @@ namespace MathCore
 
         /// \brief Computes the squared distance between two 1D vectors
         ///
-        /// The squared distance is the euclidian distance, without the square root:
+        /// The squared distance is the Euclidean distance, without the square root:
         ///
         /// |b-a|^2
         ///
@@ -1031,7 +1031,7 @@ namespace MathCore
 
         /// \brief Computes the distance between two 1D vectors
         ///
-        /// The distance is the euclidian distance from a point a to point b:
+        /// The distance is the Euclidean distance from a point a to point b:
         ///
         /// |b-a|
         ///
@@ -1103,7 +1103,7 @@ namespace MathCore
             return (a < b) ? a : b;
         }
 
-        /// \brief Component wise clamp values
+        /// \brief component-wise clamp values
         ///
         /// For each component of the vector, evaluate:
         /// ```
@@ -1191,7 +1191,7 @@ namespace MathCore
 
         /// \brief Computes the linear interpolation
         ///
-        /// When the fator is between 0 and 1 it returns the convex relation (linear interpolation) between a and b.
+        /// When the factor is between 0 and 1 it returns the convex relation (linear interpolation) between a and b.
         ///
         /// Example:
         ///

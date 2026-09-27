@@ -18,6 +18,21 @@
 namespace MathCore
 {
 
+    /// \brief Generic operations specialization for SIMD-optimized float vec3.
+    ///
+    /// Provides generic utility functions for the vec3 class when SIMD
+    /// optimizations are enabled (SIMD_TYPE::SSE or SIMD_TYPE::NEON) and the
+    /// base type is float. This specialization is selected via SFINAE when
+    /// the _type template parameter is float and _simd is either SSE or NEON.
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the vec3 components; this specialization
+    ///         is selected when _type is float.
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
+    /// \tparam _algorithm The algorithm type.
+    ///
     template <typename _type, typename _simd, typename _algorithm>
     struct OP<vec3<_type, _simd>,
               typename std::enable_if<
@@ -27,11 +42,34 @@ namespace MathCore
               _algorithm>
     {
     private:
+        /// \brief Alias for the 3-component vector type.
+        ///
         using type3 = vec3<_type, _simd>;
+        /// \brief Alias for the fully specialized OP struct type.
+        ///
         using self_type = OP<type3>;
+        /// \brief Alias for the quaternion type.
+        ///
         using quatT = quat<_type, _simd>;
 
     public:
+        /// \brief Returns the next representable floating-point value after each component.
+        ///
+        /// For each component, returns the next floating-point value in the direction of positive infinity.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.0f, 2.0f, 3.0f );
+        ///
+        /// vec3 result = next( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \return The next representable value for each component
+        ///
         static ITK_INLINE type3 next(const type3 &p) noexcept
         {
 #if defined(ITK_SSE2)
@@ -43,6 +81,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Returns the previous representable floating-point value before each component.
+        ///
+        /// For each component, returns the previous floating-point value in the direction of negative infinity.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.0f, 2.0f, 3.0f );
+        ///
+        /// vec3 result = previous( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \return The previous representable value for each component
+        ///
         static ITK_INLINE type3 previous(const type3 &p) noexcept
         {
 #if defined(ITK_SSE2)
@@ -54,6 +109,25 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Returns the next representable floating-point value after each component in the direction of a target.
+        ///
+        /// For each component, returns the next floating-point value after p in the direction of _to.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.0f, 2.0f, 3.0f );
+        /// vec3 target = vec3( 3.0f, 0.0f, 1.0f );
+        ///
+        /// vec3 result = next_after( a, target );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param p The input vector
+        /// \param _to The target direction vector
+        /// \return The next representable value for each component in the direction of _to
+        ///
         static ITK_INLINE type3 next_after(const type3 &p, const type3 &_to) noexcept
         {
 #if defined(ITK_SSE2)
@@ -65,7 +139,7 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Clamp values in a component wise fashion
+        /// \brief Clamp values in a component-wise fashion
         ///
         /// For each component of the vector, evaluate:
         /// ```
@@ -136,9 +210,9 @@ namespace MathCore
         ///  |  |
         ///  length of the projection with negative sign
         /// =================================================================
-        /// -The hemisfere side of two vectors:
+        /// -The hemisphere side of two vectors:
         ///    dot(a,b) = dot(b,a) = value
-        ///        -- value < 0 => they are in the opose direction.
+        ///        -- value < 0 => they are in the opposite direction.
         ///        -- value > 0 => they are in the same direction.
         ///        -- value = 0 => they are orthogonal(90 degrees) vectors.
         ///
@@ -245,7 +319,7 @@ namespace MathCore
         //------------------------------------------------------------------------------
         /// \brief Computes the cross product between two vectors
         ///
-        /// The cross product is an orthogonal vector to the others two vectores, i. e. the vector have 90 degrees to each vector at the same time.
+        /// The cross product is an orthogonal vector to the other two vectors, i. e. the vector has 90 degrees to each vector at the same time.
         ///
         /// The side of the vector is defined by the right hand rule.
         ///
@@ -397,14 +471,14 @@ namespace MathCore
 #endif
         }
 
-        /// \brief snell law refraction, vector implementation
+        /// \brief Snell's law refraction, vector implementation
         ///
-        /// from input ray, normal, ni and nr calculate the refracted vector
-        /// ni = source index of refraction (iOr)
-        /// nr = target index of refraction (iOr)
+        /// From input ray, normal, ni and nr calculate the refracted vector.
+        /// ni = source index of refraction (ior)
+        /// nr = target index of refraction (ior)
         ///
-        /// The function can lead to return false when occurs the total internal reflection. <br />
-        /// This case may occurrs when you exit a ray from a more dense environment to a less dense environment.
+        /// The function can lead to return false when the total internal reflection occurs. <br />
+        /// This case may occur when you exit a ray from a more dense environment to a less dense environment.
         ///
         /// Example:
         ///
@@ -450,6 +524,36 @@ namespace MathCore
             return true;
         }
 
+        /// \brief Snell's law refraction, vector implementation (non-branching)
+        ///
+        /// From input ray, normal, ni and nr calculate the refracted vector.
+        /// ni = source index of refraction (ior)
+        /// nr = target index of refraction (ior)
+        ///
+        /// This branchless version returns the reflected vector when total internal reflection occurs,
+        /// instead of returning a boolean flag.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float ior_air = 1.0f;
+        /// float ior_water = 1.33f;
+        /// vec3 rayDirection = normalize( vec3( 1 , -1 ,0 ) );
+        /// vec3 normal = vec3( 0 ,1 ,0 );
+        ///
+        /// // compute the refracted ray that comes from air to the water surface
+        /// vec3 refracted = refract(rayDirection, normal, ior_air, ior_water);
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param rayDir Incident ray direction
+        /// \param normal The normal of a surface (unit vector)
+        /// \param ni source index of refraction
+        /// \param nr target index of refraction
+        /// \return The refracted vector, or the reflected vector if total internal reflection occurs
+        ///
         static ITK_INLINE type3 refract(const type3 &rayDir, const type3 &normal, const _type &ni, const _type &nr)
         {
 
@@ -505,7 +609,7 @@ namespace MathCore
         ///
         /// |a|
         ///
-        /// This computation uses the sqrtf, and it consumes a lot of cicles to compute.
+        /// This computation uses the sqrt, and it consumes a lot of cycles to compute.
         ///
         /// Example:
         ///
@@ -527,7 +631,7 @@ namespace MathCore
 
         /// \brief Computes the squared distance between two vectors
         ///
-        /// The squared distance is the euclidian distance, without the square root:
+        /// The squared distance is the Euclidean distance, without the square root:
         ///
         /// |b-a|^2
         ///
@@ -555,11 +659,11 @@ namespace MathCore
 
         /// \brief Computes the distance between two vectors
         ///
-        /// The squared distance is the euclidian distance:
+        /// The distance is the Euclidean distance:
         ///
         /// |b-a|
         ///
-        /// This computation uses the sqrtf, and it consumes a lot of cicles to compute.
+        /// This computation uses the sqrt, and it consumes a lot of cycles to compute.
         ///
         /// Example:
         ///
@@ -687,7 +791,7 @@ namespace MathCore
         ///       o       o           o
         /// </pre>
         ///
-        /// This function do a vector decomposition in two other vectors according the unitV.
+        /// this function does a vector decomposition in two other vectors according the unitV.
         ///
         /// Example:
         ///
@@ -730,7 +834,7 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Test a point and clips its values according the euclidian distance from another point
+        /// \brief Test a point and clips its values according the Euclidean distance from another point
         ///
         /// The quadratic clamp can be used to make limits like circular limits or spherical limits.
         ///
@@ -749,7 +853,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param point The point to clip
-        /// \param center The center to compute the euclidian distance
+        /// \param center The center to compute the Euclidean distance
         /// \param maxRadius The max distance that the point can be from the center
         /// \return The point if it is below the distance or a point in the same line of the point, but with distance from center equals to maxRadius
         ///
@@ -923,7 +1027,7 @@ namespace MathCore
 
         /// \brief Computes the linear interpolation
         ///
-        /// When the fator is between 0 and 1, it returns the convex relation (linear interpolation) between a and b.
+        /// When the factor is between 0 and 1, it returns the convex relation (linear interpolation) between a and b.
         ///
         /// Example:
         ///
@@ -944,7 +1048,7 @@ namespace MathCore
         ///
         static ITK_INLINE type3 lerp(const type3 &a, const type3 &b, const _type &factor) noexcept
         {
-            //  return a+(b-a)*fator;
+            //  return a+(b-a)*factor;
             return a * ((_type)1 - factor) + (b * factor);
         }
 
@@ -1005,9 +1109,9 @@ namespace MathCore
         ///
         /// It is possible to discover the value of 'u' and 'v' by using the triangle area formula.
         ///
-        /// After that it is possible to use this function to interpolate normals, colors, etc... based on the baricentric coorginate uv
+        /// After that it is possible to use this function to interpolate normals, colors, etc... based on the baricentric coordinate uv
         ///
-        /// Note: If the uv were calculated in euclidian space of a triangle, then interpolation of colors, normals or coordinates are not affected by the perspective projection.
+        /// Note: If the uv were calculated in Euclidean space of a triangle, then interpolation of colors, normals or coordinates are not affected by the perspective projection.
         ///
         /// Example:
         ///
@@ -1053,7 +1157,7 @@ namespace MathCore
 
         /// \brief Computes the result of the bilinear interpolation over a square patch with 4 points
         ///
-        /// The bilinear interpolation is usefull to compute colors between pixels in a image.
+        /// The bilinear interpolation is useful to compute colors between pixels in a image.
         ///
         /// This implementation considers that the square formed by the four points is a square.
         ///
@@ -1103,9 +1207,9 @@ namespace MathCore
             return (omdx * omdy) * A + (omdx * dy) * D + (dx * omdy) * B + (dx * dy) * C;
         }
 
-        /// \brief Computes the result of the spline interpolation using the CatmullRom aproach
+        /// \brief Computes the result of the spline interpolation using the CatmullRom approach
         ///
-        /// The spline is a curve based in four points. The CatmullRom aproach makes the curve walk through the control points.
+        /// The spline is a curve based on four points. The CatmullRom approach makes the curve walk through the control points.
         ///
         /// It can be used to make smooth curves in paths.
         ///
@@ -1285,6 +1389,22 @@ namespace MathCore
 
         /// \brief The sign of each component. ( v >= 0 ) ? 1 : -1
         ///
+        /// Returns 1.0 for each component that is greater than or equal to zero, and -1.0 otherwise.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( -1.0f, 2.0f, 0.0f );
+        ///
+        /// // result = vec3( -1.0f, 1.0f, 1.0f )
+        /// vec3 result = sign( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return vec3( sign(v.x), sign(v.y), sign(v.z) )
+        ///
         static ITK_INLINE type3 sign(const type3 &v) noexcept
         {
 #if defined(ITK_SSE2)
@@ -1312,6 +1432,22 @@ namespace MathCore
 
         /// \brief The floor of each component.
         ///
+        /// Returns the largest integer value less than or equal to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.7f, -2.3f, 3.0f );
+        ///
+        /// // result = vec3( 1.0f, -3.0f, 3.0f )
+        /// vec3 result = floor( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The floor of each component
+        ///
         static ITK_INLINE type3 floor(const type3 &v) noexcept
         {
 #if defined(ITK_SSE2)
@@ -1336,6 +1472,22 @@ namespace MathCore
         }
 
         /// \brief The ceil of each component.
+        ///
+        /// Returns the smallest integer value greater than or equal to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.7f, -2.3f, 3.0f );
+        ///
+        /// // result = vec3( 2.0f, -2.0f, 3.0f )
+        /// vec3 result = ceil( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The ceil of each component
         ///
         static ITK_INLINE type3 ceil(const type3 &v) noexcept
         {
@@ -1362,6 +1514,22 @@ namespace MathCore
 
         /// \brief Round each component.
         ///
+        /// Rounds each component to the nearest integer value.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 1.5f, -2.3f, 3.7f );
+        ///
+        /// // result = vec3( 2.0f, -2.0f, 4.0f )
+        /// vec3 result = round( a );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The input vector
+        /// \return The rounded value of each component
+        ///
         static ITK_INLINE type3 round(const type3 &v) noexcept
         {
 #if defined(ITK_SSE2)
@@ -1386,6 +1554,24 @@ namespace MathCore
         }
 
         /// \brief fmod each component.
+        ///
+        /// Computes the remainder of the division of each component by the corresponding component of b.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 a = vec3( 10.0f, 7.0f, 5.0f );
+        /// vec3 b = vec3( 3.0f, 2.0f, 4.0f );
+        ///
+        /// // result = vec3( 1.0f, 1.0f, 1.0f )
+        /// vec3 result = fmod( a, b );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a The dividend vector
+        /// \param b The divisor vector
+        /// \return The remainder of each component division
         ///
         static ITK_INLINE type3 fmod(const type3 &a, const type3 &b) noexcept
         {
@@ -1457,23 +1643,41 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Step function on each component. ( v >= threshould ) ? 1 : 0
+        /// \brief Step function on each component. ( v >= threshold ) ? 1 : 0
         ///
-        static ITK_INLINE type3 step(const type3 &threshould, const type3 &v) noexcept
+        /// For each component, returns 1 if the corresponding component of v is greater than or equal to the threshold, otherwise returns 0.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 threshold = vec3( 0.5f, 0.5f, 0.5f );
+        /// vec3 v = vec3( 0.3f, 0.7f, 0.5f );
+        ///
+        /// // result = vec3( 0.0f, 1.0f, 1.0f )
+        /// vec3 result = step( threshold, v );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param threshold The threshold value for each component
+        /// \param v The input vector
+        /// \return 1.0 if v >= threshold, 0.0 otherwise (component-wise)
+        ///
+        static ITK_INLINE type3 step(const type3 &threshold, const type3 &v) noexcept
         {
 #if defined(ITK_SSE2)
-            __m128 _cmp = _mm_cmpge_ps(v.array_sse, threshould.array_sse);
+            __m128 _cmp = _mm_cmpge_ps(v.array_sse, threshold.array_sse);
             __m128 _rc = _mm_and_ps(_cmp, _vec3_one_sse);
             return _rc;
 
-            // type3 _sub = v - threshould;
+            // type3 _sub = v - threshold;
             // type3 _sign = self_type::sign(_sub);
             // return self_type::maximum(_sign, _vec4_zero_sse);
 #elif defined(ITK_NEON)
-            uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshould.array_neon);
+            uint32x4_t _cmp = vcgeq_f32(v.array_neon, threshold.array_neon);
             uint32x4_t _rc = vandq_u32(_cmp, _vec4_one_u);
             return vreinterpretq_f32_u32(_rc);
-            // type3 _sub = v - threshould;
+            // type3 _sub = v - threshold;
             // type3 _sign = self_type::sign(_sub);
             // return self_type::maximum(_sign, _vec4_zero);
 #else
@@ -1481,6 +1685,31 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Smoothly interpolate using the smoothstep function
+        ///
+        /// Returns a smooth Hermite interpolation between 0 and 1 when x is between edge0 and edge1.
+        /// The interpolation uses the polynomial: t^2 * (3 - 2*t), which provides C1 continuity.
+        ///
+        /// Values below edge0 return 0, and values above edge1 return 1.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 edge0 = vec3( 0.0f );
+        /// vec3 edge1 = vec3( 1.0f );
+        /// vec3 x = vec3( 0.5f );
+        ///
+        /// // result = vec3( 0.5f, 0.5f, 0.5f )
+        /// vec3 result = smoothstep( edge0, edge1, x );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param edge0 The lower bound
+        /// \param edge1 The upper bound
+        /// \param x The input value
+        /// \return The smoothstep interpolation result
+        ///
         static ITK_INLINE type3 smoothstep(const type3 &edge0, const type3 &edge1, const type3 &x) noexcept
         {
             using type_info = FloatTypeInfo<_type>;

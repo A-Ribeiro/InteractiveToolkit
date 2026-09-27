@@ -18,7 +18,7 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// vec2 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
@@ -26,35 +26,63 @@ namespace MathCore
     ///
     /// \author Alessandro Ribeiro
     ///
-
+    /// \tparam _BaseType The scalar type of each component (e.g., float, double).
+    /// \tparam _SimdType The SIMD strategy used for the vector; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::NONE (no SIMD optimization).
+    ///
     template <typename _BaseType, typename _SimdType>
     class vec2<_BaseType, _SimdType,
                typename std::enable_if<
                    std::is_same<_SimdType, SIMD_TYPE::NONE>::value>::type>
     {
+        /// \brief Alias for the fully specialized vec2 type.
+        ///
         using self_type = vec2<_BaseType, _SimdType>;
 
     public:
+        /// \brief Number of components stored by the vector (always 2).
+        ///
         static constexpr int array_count = 2;
+        /// \brief Alias for the vector type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
+        /// \brief Union providing multiple views of the two components.
+        ///
+        /// The components can be accessed as a C array (array),
+        /// as named components (x, y) or as size components (width, height).
+        ///
         union
         {
+            /// \brief The components as a C array (index 0 = x, index 1 = y).
+            ///
             _BaseType array[2];
             struct
             {
-                _BaseType x, y;
+                /// \brief The X component of the vector.
+                ///
+                _BaseType x;
+                /// \brief The Y component of the vector.
+                ///
+                _BaseType y;
             };
             struct
             {
-                _BaseType width, height;
+                /// \brief The X component viewed as a width value.
+                ///
+                _BaseType width;
+                /// \brief The Y component viewed as a height value.
+                ///
+                _BaseType height;
             };
         };
 
         /// \brief Construct a ZERO vec2 class
         ///
-        /// The ZERO vec2 class have the point information in the origin (x=0,y=0)
+        /// The ZERO vec2 class has the point information in the origin (x=0,y=0)
         ///
         /// Example:
         ///
@@ -72,7 +100,7 @@ namespace MathCore
         ITK_INLINE vec2() : x(0), y(0) {}
         /// \brief Constructs a bidimensional Vector
         ///
-        /// Initialize the vec2 components with the same float value (by scalar)
+        /// Initialize the vec2 components with the same value (by scalar)
         ///
         /// X = v and Y = v
         ///
@@ -88,6 +116,23 @@ namespace MathCore
         ///
         ITK_INLINE vec2(const _BaseType &_v) : x(_v), y(_v) {}
 
+        /// \brief Constructs a bidimensional Vector
+        ///
+        /// Initialize the vec2 components with the same value (by scalar),
+        /// converting the input value to the base type when necessary.
+        ///
+        /// X = v and Y = v
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec = vec2( 0.5 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -112,6 +157,22 @@ namespace MathCore
         ///
         ITK_INLINE vec2(const _BaseType &_x, const _BaseType &_y) : x(_x), y(_y) {}
 
+        /// \brief Constructs a bidimensional Vector
+        ///
+        /// Initialize the vec2 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec = vec2( 0.1, 0.2 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param x Value to assign to the X component of the vector
+        /// \param y Value to assign to the Y component of the vector
+        ///
         template <typename __x, typename __y,
                   typename std::enable_if<
                       std::is_convertible<__x, _BaseType>::value &&
@@ -126,7 +187,7 @@ namespace MathCore
 
         /// \brief Constructs a bidimensional Vector
         ///
-        /// Initialize the vec2 components from other vec2 instance by copy
+        /// Initialize the vec2 components from another vec2 instance by copy
         ///
         /// Example:
         ///
@@ -143,19 +204,36 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Vector to assign to the instance
+        /// \param v Vector to copy from
         ///
         ITK_INLINE vec2(const self_type &v)
         {
             *this = v;
         }
+        /// \brief Assigns the components of another vec2 to this instance
+        ///
+        /// Copy the X and Y components from another vec2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec_a, vec_b;
+        ///
+        /// vec_a = vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type& operator=(const self_type &v)
         {
             x = v.x;
             y = v.y;
             return *this;
         }
-        /// \brief Constructs a bidimensional Vector from the subtraction b-a
+        /// \brief Constructs a bidimensional Vector from the subtraction b - a
         ///
         /// Initialize the vec2 components from two other vectors using the equation: <br />
         /// this = b - a
@@ -170,8 +248,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a Orign vector
-        /// \param b Destiny vector
+        /// \param a Origin vector
+        /// \param b Destination vector
         ///
         constexpr ITK_INLINE vec2(const self_type &a, const self_type &b) : x(b.x - a.x), y(b.y - a.y) {}
         /// \brief Compare vectors considering #EPSILON (equal)
@@ -210,6 +288,26 @@ namespace MathCore
             return equal;
         }
 
+        /// \brief Compare vectors (equal) for non floating point types
+        ///
+        /// Compare two vectors using strict equality (==) on each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec_a, vec_b;
+        ///
+        /// if ( vec_a == vec_b ){
+        ///     //do something
+        ///     ...
+        /// }
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to compare against
+        /// \return true if the values are the same
+        ///
         template <class _Type = _BaseType,
                   typename std::enable_if<
                   !std::is_floating_point<_Type>::value, bool>::type = true>
@@ -222,6 +320,25 @@ namespace MathCore
             return equal;
         }
 
+        /// \brief Assigns the components of a vec2 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another vec2 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<float> vec_f;
+        /// vec2<double> vec_d;
+        ///
+        /// vec_d = vec_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param vec Vector to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         // inter SIMD types converting...
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
@@ -234,6 +351,22 @@ namespace MathCore
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y);
             return *this;
         }
+        /// \brief Converts the vec2 to another vec2 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new vec2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<float> vec_f;
+        /// vec2<double> vec_d = vec_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A vec2 instance with the converted components
+        ///
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
@@ -249,7 +382,7 @@ namespace MathCore
 
         /// \brief Compare vectors considering #EPSILON (not equal)
         ///
-        /// Compare two vectors using #EPSILON to see if they are the same.
+        /// Compare two vectors using #EPSILON to see if they are different.
         ///
         /// Example:
         ///
@@ -320,9 +453,9 @@ namespace MathCore
             return (*this);
         }
 
-        /// \brief Component-wise minus operator overload
+        /// \brief Component-wise unary minus (negation) operator overload
         ///
-        /// Negates the vector components with the operator minus
+        /// Returns a copy of the vector with all components negated.
         ///
         /// Example:
         ///
@@ -439,7 +572,7 @@ namespace MathCore
 
         /// \brief Single value multiply operator overload
         ///
-        /// Decrement the vector components by a single value (scalar)
+        /// Multiply the vector components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -451,8 +584,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Value to decrement all components of the current vector instance
-        /// \return A reference to the current instance after the decrement
+        /// \param v Value to multiply all components of the current vector instance
+        /// \return A reference to the current instance after the multiply
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -529,6 +662,23 @@ namespace MathCore
         }
 
 
+        /// \brief Component-wise left shift operator overload (integral types only)
+        ///
+        /// Shifts the vector components to the left by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec;
+        ///
+        /// vec <<= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the left
+        /// \return A reference to the current instance after the shift
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator<<=(int shift)
         {
@@ -536,6 +686,23 @@ namespace MathCore
             y <<= shift;
             return *this;
         }
+        /// \brief Component-wise right shift operator overload (integral types only)
+        ///
+        /// Shifts the vector components to the right by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec;
+        ///
+        /// vec >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the right
+        /// \return A reference to the current instance after the shift
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator>>=(int shift)
         {
@@ -543,6 +710,24 @@ namespace MathCore
             y >>= shift;
             return *this;
         }
+        /// \brief Component-wise bitwise AND operator overload (integral types only)
+        ///
+        /// Apply the bitwise AND between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec, vec_b;
+        ///
+        /// vec &= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise AND with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator&=(const self_type& v)
         {
@@ -550,6 +735,24 @@ namespace MathCore
             y &= v.y;
             return *this;
         }
+        /// \brief Component-wise bitwise OR operator overload (integral types only)
+        ///
+        /// Apply the bitwise OR between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec, vec_b;
+        ///
+        /// vec |= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise OR with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator|=(const self_type& v)
         {
@@ -557,6 +760,24 @@ namespace MathCore
             y |= v.y;
             return *this;
         }
+        /// \brief Component-wise bitwise XOR operator overload (integral types only)
+        ///
+        /// Apply the bitwise XOR between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec, vec_b;
+        ///
+        /// vec ^= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise XOR with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator^=(const self_type& v)
         {
@@ -564,6 +785,22 @@ namespace MathCore
             y ^= v.y;
             return *this;
         }
+        /// \brief Component-wise bitwise NOT operator overload (integral types only)
+        ///
+        /// Applies the bitwise NOT (~) operator to each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<int> vec;
+        ///
+        /// vec = ~vec;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A copy of the current instance after the bitwise NOT operation
+        ///
         template <class _Type = _BaseType,typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type operator~() const
         {

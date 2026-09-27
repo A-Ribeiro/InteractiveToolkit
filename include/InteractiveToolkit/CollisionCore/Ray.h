@@ -58,7 +58,7 @@ namespace CollisionCore
         inline Ray(const vec3_type &origin, const vec3_type &dir);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
 
         /// \brief Raycast test against an AABB

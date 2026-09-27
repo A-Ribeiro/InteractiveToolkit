@@ -102,7 +102,7 @@ namespace CollisionCore
         static inline vec3_type closestPointToSegment(const vec3_type &p, const LineSegment<T> &ls);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
         /// \brief Test if a line segment intersects the AABB
         ///

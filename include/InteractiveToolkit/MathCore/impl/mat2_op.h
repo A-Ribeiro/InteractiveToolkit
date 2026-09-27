@@ -118,7 +118,7 @@ namespace MathCore
 
         static ITK_INLINE typeMat2 lerp(const typeMat2 &a, const typeMat2 &b, const _type &factor) noexcept
         {
-            //  return a+(b-a)*fator;
+            //  return a+(b-a)*factor;
             return a * ((_type)1 - factor) + (b * factor);
         }
 

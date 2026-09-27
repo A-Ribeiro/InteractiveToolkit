@@ -10,20 +10,47 @@
 namespace MathCore
 {
 
+    /// \brief Generation operations specialization for quat with no SIMD optimization.
+    ///
+    /// Provides generation (non-SIMD) utility functions for the quat class when
+    /// SIMD optimizations are disabled (SIMD_TYPE::NONE). This specialization
+    /// is selected via SFINAE when the _simd template parameter matches
+    /// SIMD_TYPE::NONE.
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the quat components (e.g., float, double).
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::NONE.
+    ///
     template <typename _type, typename _simd>
     struct GEN<quat<_type, _simd>,
                typename std::enable_if<
                    std::is_same<_simd, SIMD_TYPE::NONE>::value>::type>
     {
     private:
+        /// \brief Alias for the quaternion type.
+        ///
         using quatT = quat<_type, _simd>;
+        /// \brief Alias for the 2-component vector type.
+        ///
         using type2 = vec2<_type, _simd>;
+        /// \brief Alias for the 3-component vector type.
+        ///
         using type3 = vec3<_type, _simd>;
+        /// \brief Alias for the 4-component vector type.
+        ///
         using type4 = vec4<_type, _simd>;
 
+        /// \brief Alias for the 3x3 matrix type.
+        ///
         using typeMat3 = mat3<_type, _simd>;
+        /// \brief Alias for the 4x4 matrix type.
+        ///
         using typeMat4 = mat4<_type, _simd>;
 
+        /// \brief Alias for the fully specialized GEN struct type (with SFINAE).
+        ///
         using self_type = GEN<quatT>;
 
     public:
@@ -69,7 +96,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 3 component vector
+        /// \param vp A 3 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type3 &vp) noexcept
@@ -96,7 +123,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 4 component vector
+        /// \param vp A 4 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type4 &vp) noexcept
@@ -116,7 +143,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 2 component vector
+        /// \param vp A 2 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type2 &vp) noexcept
@@ -168,7 +195,7 @@ namespace MathCore
             return fromAxisAngle(type3(axis, 0), angle_rad);
         }
 
-        /// \brief Constructs a quaternion from euler angles in radians.
+        /// \brief Constructs a quaternion from Euler angles in radians.
         ///
         /// Example:
         ///
@@ -207,9 +234,9 @@ namespace MathCore
                 cosRoll * cosPitchCosYaw + sinRoll * sinPitchSinYaw);
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction (right-handed coordinate system).
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node orientation.
         ///
         /// Example:
         ///
@@ -221,14 +248,13 @@ namespace MathCore
         /// vec3 front = normalize( otherObjPos - objPos );
         /// vec3 up = vec3(0,1,0);
         ///
-        /// quat object_rotation = lookAtRotationRH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationRH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return The quat representing the rotation.
         ///
         static ITK_INLINE quatT lookAtRotationRH(const type3 &front, const type3 &up) noexcept
         {
@@ -240,9 +266,9 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction (left-handed coordinate system).
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node orientation.
         ///
         /// Example:
         ///
@@ -254,14 +280,13 @@ namespace MathCore
         /// vec3 front = normalize( otherObjPos - objPos );
         /// vec3 up = vec3(0,1,0);
         ///
-        /// quat object_rotation = lookAtRotationLH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationLH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return The quat representing the rotation.
         ///
         static ITK_INLINE quatT lookAtRotationLH(const type3 &front, const type3 &up) noexcept
         {
@@ -273,9 +298,9 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction (right-handed coordinate system).
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node orientation.
         ///
         /// Example:
         ///
@@ -287,14 +312,13 @@ namespace MathCore
         /// vec4 front = normalize( otherObjPos - objPos );
         /// vec4 up = vec4(0,1,0,0);
         ///
-        /// quat object_rotation = lookAtRotationRH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationLH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return The quat representing the rotation.
         ///
         static ITK_INLINE quatT lookAtRotationRH(const type4 &front, const type4 &up) noexcept
         {
@@ -306,9 +330,9 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction (left-handed coordinate system).
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node orientation.
         ///
         /// Example:
         ///
@@ -320,14 +344,13 @@ namespace MathCore
         /// vec4 front = normalize( otherObjPos - objPos );
         /// vec4 up = vec4(0,1,0,0);
         ///
-        /// quat object_rotation = lookAtRotationLH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationLH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return The quat representing the rotation.
         ///
         static ITK_INLINE quatT lookAtRotationLH(const type4 &front, const type4 &up) noexcept
         {
@@ -339,7 +362,7 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Extracts a quaternion from any matrix that have rotation information
+        /// \brief Extracts a quaternion from any 3x3 matrix that has rotation information.
         ///
         /// Example:
         ///
@@ -352,8 +375,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m The transformation 4x4 matrix
-        /// \return The quat with the rotation information
+        /// \param mp The transformation 3x3 matrix.
+        /// \return The quat with the rotation information.
         ///
         static ITK_INLINE quatT fromMat3(const typeMat3 &mp) noexcept
         {
@@ -403,7 +426,7 @@ namespace MathCore
             }
         }
 
-        /// \brief Extracts a quaternion from any matrix that have rotation information
+        /// \brief Extracts a quaternion from any 4x4 matrix that has rotation information.
         ///
         /// Example:
         ///
@@ -416,8 +439,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m The transformation 4x4 matrix
-        /// \return The quat with the rotation information
+        /// \param mp The transformation 4x4 matrix.
+        /// \return The quat with the rotation information.
         ///
         static ITK_INLINE quatT fromMat4(const typeMat4 &mp) noexcept
         {

@@ -262,7 +262,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat3(const self_type &m)
         {
@@ -300,7 +300,7 @@ namespace MathCore
         /// Initialize the mat3 components from vec3 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c)
         {
@@ -611,8 +611,8 @@ namespace MathCore
 
             array_012 = _mm_or_si128(array_012, mask_to_complete_ones);
 
-            int test_all_zero = _mm_test_all_ones(array_012);
-            return (bool)test_all_zero;
+            int test_all_ones = _mm_test_all_ones(array_012);
+            return (bool)test_all_ones;
 
             // // const __m128 _vec3_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
 

@@ -209,7 +209,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat3(const self_type &m)
         {
@@ -238,7 +238,7 @@ namespace MathCore
         /// Initialize the mat3 components from vec3 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         /*ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c)
         {

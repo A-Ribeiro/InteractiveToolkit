@@ -1,7 +1,7 @@
 #pragma once
 
 #if !defined(ITK_SSE2) && !defined(ITK_NEON)
-#error Invalid header 'vec2_float_simd.h' included. \
+#error Invalid header 'vec2_fixed32_simd.h' included. \
         Need at least one of the following build flags set: \
         ITK_SSE2, ITK_NEON
 #endif
@@ -22,18 +22,23 @@ namespace MathCore
     ///
     /// The arithmetic operations are available through #INLINE_OPERATION_IMPLEMENTATION
     ///
-    /// It is possible to use any arithmetic with vec2 and float combinations.
+    /// It is possible to use any arithmetic with vec2 and fixed point combinations.
     ///
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// vec2 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
     /// \endcode
     ///
     /// \author Alessandro Ribeiro
+    ///
+    /// \tparam store_type The integer storage type of each fixed point component (int32_t or uint32_t).
+    /// \tparam frac_bits The number of fractional bits of the fixed point representation.
+    /// \tparam _SimdType The SIMD strategy used for the vector; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
     ///
     template <typename store_type, int frac_bits, typename _SimdType>
     class alignas(16) vec2<FixedPoint::fixed_t<store_type, frac_bits>, _SimdType,
@@ -42,42 +47,108 @@ namespace MathCore
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
                                 std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief The fixed point scalar type of each component.
+        ///
         using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
+        /// \brief Alias for the fully specialized vec2 type.
+        ///
         using self_type = vec2<_BaseType, _SimdType>;
 
+        /// \brief The NEON SIMD register type holding two fixed point components.
+        ///
 #if defined(ITK_NEON)
         using neon_type = typename iNeonOps<store_type>::type_v2;
 #endif
 
     public:
+        /// \brief Number of components stored by the vector (always 2).
+        ///
         static constexpr int array_count = 2;
+        /// \brief Alias for the vector type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
+        /// \brief Union providing multiple views of the two components.
+        ///
+        /// The components can be accessed as a C array (array),
+        /// as named components (x, y), as size components (width, height)
+        /// or as the raw SIMD register (array_sse / array_neon).
+        ///
         union
         {
+            /// \brief The components as a C array (index 0 = x, index 1 = y).
+            ///
             _BaseType array[2];
             struct
             {
-                _BaseType x, y;
+                /// \brief The X component of the vector.
+                ///
+                _BaseType x;
+                /// \brief The Y component of the vector.
+                ///
+                _BaseType y;
             };
             struct
             {
-                _BaseType width, height;
+                /// \brief The X component viewed as a width value.
+                ///
+                _BaseType width;
+                /// \brief The Y component viewed as a height value.
+                ///
+                _BaseType height;
             };
 #if defined(ITK_SSE2)
+            /// \brief The components as a raw SSE SIMD register.
+            ///
             __m128i array_sse;
 #elif defined(ITK_NEON)
+            /// \brief The components as a raw NEON SIMD register.
+            ///
             neon_type array_neon;
 #endif
         };
 
 #if defined(ITK_SSE2)
+        /// \brief Constructs a vec2 from a raw SIMD register
+        ///
+        /// Initialize the vec2 components directly from a SIMD register
+        /// holding the two fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// __m128i reg = _mm_setr_epi32(0, 1, 0, 0);
+        /// vec2 vec = vec2( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the two components
+        ///
         ITK_INLINE vec2(const __m128i &v)
         {
             array_sse = v;
         }
 #elif defined(ITK_NEON)
+        /// \brief Constructs a vec2 from a raw SIMD register
+        ///
+        /// Initialize the vec2 components directly from a SIMD register
+        /// holding the two fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// neon_type reg = {0, 1};
+        /// vec2 vec = vec2( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the two components
+        ///
         ITK_INLINE vec2(const neon_type &v)
         {
             array_neon = v;
@@ -86,7 +157,7 @@ namespace MathCore
 
         /// \brief Construct a ZERO vec2 class
         ///
-        /// The ZERO vec2 class have the point information in the origin (x=0,y=0)
+        /// The ZERO vec2 class has the point information in the origin (x=0,y=0)
         ///
         /// Example:
         ///
@@ -110,7 +181,7 @@ namespace MathCore
         /*constexpr ITK_INLINE vec2() :x(0), y(0) {}*/
         /// \brief Constructs a bidimensional Vector
         ///
-        /// Initialize the vec2 components with the same float value (by scalar)
+        /// Initialize the vec2 components with the same value (by scalar)
         ///
         /// X = v and Y = v
         ///
@@ -135,6 +206,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a bidimensional Vector
+        ///
+        /// Initialize the vec2 components with the same value (by scalar),
+        /// converting the input value to the base type when necessary.
+        ///
+        /// X = v and Y = v
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec = vec2( 0.5 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -169,6 +257,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a bidimensional Vector
+        ///
+        /// Initialize the vec2 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec = vec2( 0.1, 0.2 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param x Value to assign to the X component of the vector
+        /// \param y Value to assign to the Y component of the vector
+        ///
         template <typename __x, typename __y,
                   typename std::enable_if<
                       std::is_convertible<__x, _BaseType>::value &&
@@ -184,7 +288,7 @@ namespace MathCore
         /*constexpr ITK_INLINE vec2(const _BaseType& _x, const _BaseType& _y) :x(_x), y(_y) {}*/
         /// \brief Constructs a bidimensional Vector
         ///
-        /// Initialize the vec2 components from other vec2 instance by copy
+        /// Initialize the vec2 components from another vec2 instance by copy
         ///
         /// Example:
         ///
@@ -201,7 +305,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Vector to assign to the instance
+        /// \param v Vector to copy from
         ///
         ITK_INLINE vec2(const self_type &v)
         {
@@ -213,6 +317,23 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+        /// \brief Assigns the components of another vec2 to this instance
+        ///
+        /// Copy the X and Y components from another vec2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec_a, vec_b;
+        ///
+        /// vec_a = vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type &operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -240,8 +361,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a Orign vector
-        /// \param b Destiny vector
+        /// \param a Origin vector
+        /// \param b Destination vector
         ///
         ITK_INLINE vec2(const self_type &a, const self_type &b)
         {
@@ -294,6 +415,25 @@ namespace MathCore
         }
 
         // inter SIMD types converting...
+        /// \brief Assigns the components of a vec2 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another vec2 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<float> vec_f;
+        /// vec2<FixedPoint::fixed_t<int32_t, 8>> vec_fixed;
+        ///
+        /// vec_fixed = vec_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param vec Vector to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -305,6 +445,22 @@ namespace MathCore
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y);
             return *this;
         }
+        /// \brief Converts the vec2 to another vec2 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new vec2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2<FixedPoint::fixed_t<int32_t, 8>> vec_fixed;
+        /// vec2<float> vec_f = vec_fixed;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A vec2 instance with the converted components
+        ///
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
@@ -470,6 +626,23 @@ namespace MathCore
             return (*this);
         }
 
+        /// \brief Component-wise multiply operator overload (unsigned types)
+        ///
+        /// Multiply the vector by the components of another vector using unsigned arithmetic.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec, vec_b;
+        ///
+        /// vec *= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to multiply the current vector instance
+        /// \return A reference to the current instance after the multiplication
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, uint32_t>::value,
@@ -587,7 +760,7 @@ namespace MathCore
 
         /// \brief Single value multiply operator overload
         ///
-        /// Decrement the vector components by a single value (scalar)
+        /// Multiply the vector components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -599,8 +772,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Value to decrement all components of the current vector instance
-        /// \return A reference to the current instance after the decrement
+        /// \param v Value to multiply all components of the current vector instance
+        /// \return A reference to the current instance after the multiplication
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -691,6 +864,23 @@ namespace MathCore
         }
 
 
+        /// \brief Component-wise left shift operator overload (integral types only)
+        ///
+        /// Shifts the vector components to the left by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec;
+        ///
+        /// vec <<= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the left
+        /// \return A reference to the current instance after the shift
+        ///
         ITK_INLINE self_type &operator<<=(int shift)
         {
 #if defined(ITK_SSE2)
@@ -707,6 +897,23 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise right shift operator overload (signed integral types only)
+        ///
+        /// Shifts the vector components to the right by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec;
+        ///
+        /// vec >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the right
+        /// \return A reference to the current instance after the shift
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, int32_t>::value,
@@ -727,6 +934,23 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise right shift operator overload (unsigned integral types only)
+        ///
+        /// Shifts the vector components to the right by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec;
+        ///
+        /// vec >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the right
+        /// \return A reference to the current instance after the shift
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, uint32_t>::value,
@@ -747,6 +971,24 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise bitwise AND operator overload (integral types only)
+        ///
+        /// Apply the bitwise AND between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec, vec_b;
+        ///
+        /// vec &= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise AND with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator&=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -762,6 +1004,24 @@ namespace MathCore
 #endif
             return *this;
         }
+        /// \brief Component-wise bitwise OR operator overload (integral types only)
+        ///
+        /// Apply the bitwise OR between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec, vec_b;
+        ///
+        /// vec |= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise OR with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator|=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -777,6 +1037,24 @@ namespace MathCore
 #endif
             return *this;
         }
+        /// \brief Component-wise bitwise XOR operator overload (integral types only)
+        ///
+        /// Apply the bitwise XOR between the vector components and the components
+        /// of another vector
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec, vec_b;
+        ///
+        /// vec ^= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to apply the bitwise XOR with the current vector instance
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator^=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -793,6 +1071,22 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise bitwise NOT operator overload (integral types only)
+        ///
+        /// Negates the vector components with the bitwise NOT operator
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 vec;
+        ///
+        /// vec = ~vec;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A copy of the current instance after the bitwise NOT operation
+        ///
         ITK_INLINE self_type operator~() const
         {
 #if defined(ITK_SSE2)

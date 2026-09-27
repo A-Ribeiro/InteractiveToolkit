@@ -233,7 +233,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat2(const self_type &m)
         {
@@ -257,7 +257,7 @@ namespace MathCore
         /// Initialize the mat2 components from vec2 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat2(const vec2_compatible_type &a, const vec2_compatible_type &b)
         {
@@ -406,8 +406,8 @@ namespace MathCore
 
             __m128i array_01 = compare_almost_eq_ps(array_sse, v.array_sse);
 
-            int test_all_zero = _mm_test_all_ones(array_01);
-            return (bool)test_all_zero;
+            int test_all_ones = _mm_test_all_ones(array_01);
+            return (bool)test_all_ones;
 
             // // const __m128 _vec2_sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
 

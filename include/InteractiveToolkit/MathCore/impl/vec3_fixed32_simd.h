@@ -1,7 +1,7 @@
 #pragma once
 
 #if !defined(ITK_SSE2) && !defined(ITK_NEON)
-#error Invalid header 'vec3_float_simd.h' included. \
+#error Invalid header 'vec3_fixed32_simd.h' included. \
         Need at least one of the following build flags set: \
         ITK_SSE2, ITK_NEON
 #endif
@@ -30,13 +30,18 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// vec3 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
     /// \endcode
     ///
     /// \author Alessandro Ribeiro
+    ///
+    /// \tparam store_type The integer storage type of each fixed point component (int32_t or uint32_t).
+    /// \tparam frac_bits The number of fractional bits of the fixed point representation.
+    /// \tparam _SimdType The SIMD strategy used for the vector; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
     ///
     template <typename store_type, int frac_bits, typename _SimdType>
     class alignas(16) vec3<FixedPoint::fixed_t<store_type, frac_bits>, _SimdType,
@@ -45,43 +50,117 @@ namespace MathCore
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
                                 std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief The fixed point scalar type of each component.
+        ///
         using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
+        /// \brief Alias for the fully specialized vec3 type.
+        ///
         using self_type = vec3<_BaseType, _SimdType>;
+        /// \brief Alias for the compatible vec2 type used in vec3 constructors.
+        ///
         using vec2_compatible_type = vec2<_BaseType, _SimdType>;
 
 #if defined(ITK_NEON)
+        /// \brief The NEON vector type for the store_type.
+        ///
         using neon_type = typename iNeonOps<store_type>::type;
 #endif
 
     public:
+        /// \brief Number of components stored by the vector (always 3).
+        ///
         static constexpr int array_count = 3;
+        /// \brief Alias for the vector type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
+        /// \brief Union providing multiple views of the three components.
+        ///
+        /// The components can be accessed as a C array (array),
+        /// as named components (x, y, z), as color components (r, g, b)
+        /// or as the raw SIMD register (array_sse / array_neon).
+        ///
         union
         {
+            /// \brief The components as a C array (index 0 = x, index 1 = y, index 2 = z).
+            ///
             _BaseType array[3];
             struct
             {
-                _BaseType x, y, z;
+                /// \brief The X component of the vector.
+                ///
+                _BaseType x;
+                /// \brief The Y component of the vector.
+                ///
+                _BaseType y;
+                /// \brief The Z component of the vector.
+                ///
+                _BaseType z;
             };
             struct
             {
-                _BaseType r, g, b;
+                /// \brief The X component viewed as a red color value.
+                ///
+                _BaseType r;
+                /// \brief The Y component viewed as a green color value.
+                ///
+                _BaseType g;
+                /// \brief The Z component viewed as a blue color value.
+                ///
+                _BaseType b;
             };
 #if defined(ITK_SSE2)
+            /// \brief The components as a raw SSE SIMD register.
+            ///
             __m128i array_sse;
 #elif defined(ITK_NEON)
+            /// \brief The components as a raw NEON SIMD register.
+            ///
             neon_type array_neon;
 #endif
         };
 
 #if defined(ITK_SSE2)
+        /// \brief Constructs a vec3 from a raw SIMD register
+        ///
+        /// Initialize the vec3 components directly from a SIMD register
+        /// holding the three fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// __m128i reg = _mm_setr_epi32(0, 1, 2, 0);
+        /// vec3 vec = vec3( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the three components
+        ///
         ITK_INLINE vec3(const __m128i &v)
         {
             array_sse = v;
         }
 #elif defined(ITK_NEON)
+        /// \brief Constructs a vec3 from a raw SIMD register
+        ///
+        /// Initialize the vec3 components directly from a SIMD register
+        /// holding the three fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// neon_type reg = {0, 1, 2, 0};
+        /// vec3 vec = vec3( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the three components
+        ///
         ITK_INLINE vec3(const neon_type &v)
         {
             array_neon = v;
@@ -90,7 +169,7 @@ namespace MathCore
 
         /// \brief Construct a ZERO vec3 class
         ///
-        /// The ZERO vec3 class have the point information in the origin (x=0,y=0,z=0)
+        /// The ZERO vec3 class has the point information in the origin (x=0,y=0,z=0)
         ///
         /// Example:
         ///
@@ -114,7 +193,7 @@ namespace MathCore
         /*constexpr ITK_INLINE vec3() :array{ 0, 0, 0, 0 }{}*/
         /// \brief Constructs a tridimensional Vector
         ///
-        /// Initialize the vec3 components with the same float value (by scalar)
+        /// Initialize the vec3 components with the same value (by scalar)
         ///
         /// X = v, Y = v and Z = v
         ///
@@ -139,6 +218,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a tridimensional Vector from a convertible scalar type
+        ///
+        /// Initializes the vec3 components with the same value converted from
+        /// an input type that is convertible to the base fixed-point type.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 vec = vec3( 0.5f );
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -174,6 +269,25 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a tridimensional Vector from three convertible scalar types
+        ///
+        /// Initializes the vec3 components from three parameters that are each
+        /// convertible to the base fixed-point type. This overload is selected
+        /// when not all three types are exactly _BaseType.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 vec = vec3( 0.1f, 0.2f, 0.3f );
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x Value to assign to the X component of the vector
+        /// \param _y Value to assign to the Y component of the vector
+        /// \param _z Value to assign to the Z component of the vector
+        ///
         template <typename __x, typename __y, typename __z,
                   typename std::enable_if<
                       std::is_convertible<__x, _BaseType>::value &&
@@ -219,6 +333,26 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a tridimensional Vector from a vec2 and a convertible scalar
+        ///
+        /// Initializes the vec3 components from a vec2 xy and an isolated z value.
+        /// This overload is selected when the types are convertible but not exact matches.
+        ///
+        /// this->xy = xy <br />
+        /// this->z = z
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 vec = vec3( vec2( 0.1f, 0.2f ), 0.3f );
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _xy Vector 2D to assign to the components x and y of the instance respectively
+        /// \param _z Value to assign to the component z of the instance
+        ///
         template <typename __BT, typename __V2T,
                   typename std::enable_if<
 
@@ -264,6 +398,26 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a tridimensional Vector from a scalar and a vec2
+        ///
+        /// Initializes the vec3 components from an isolated x value and a vec2 yz.
+        /// This overload is selected when the types are convertible but not exact matches.
+        ///
+        /// this->x = x <br />
+        /// this->yz = yz
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 vec = vec3( 0.1f, vec2( 0.2f, 0.3f ) );
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x Value to assign to the component x of the instance
+        /// \param _yz Vector 2D to assign to the components y and z of the instance respectively
+        ///
         template <typename __BT, typename __V2T,
                   typename std::enable_if<
 
@@ -280,7 +434,7 @@ namespace MathCore
         /*constexpr ITK_INLINE vec3(const _BaseType& _x, const vec2_compatible_type& _yz) :array{ x, _yz.x, _yz.y, 0 } {}*/
         /// \brief Constructs a tridimensional Vector
         ///
-        /// Initialize the vec3 components from other vec3 instance by copy
+        /// Initialize the vec3 components from another vec3 instance by copy
         ///
         /// Example:
         ///
@@ -297,7 +451,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Vector to assign to the instance
+        /// \param v Vector to copy from
         ///
         ITK_INLINE vec3(const self_type &v)
         {
@@ -309,6 +463,22 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+        /// \brief Copy assignment operator
+        ///
+        /// Copies the components from another vec3 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 vec_a, vec_b;
+        /// vec_a = vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to copy from
+        /// \return A reference to the current instance after the copy
+        ///
         ITK_INLINE self_type &operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -335,8 +505,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a Orign vector
-        /// \param b Destiny vector
+        /// \param a Origin vector
+        /// \param b Destination vector
         ///
         ITK_INLINE vec3(const self_type &a, const self_type &b)
         {
@@ -348,9 +518,9 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
-        /// \brief Compare vectors considering #EPSILON (equal)
+        /// \brief Compare vectors for equality (exact comparison)
         ///
-        /// Compare two vectors using #EPSILON to see if they are the same.
+        /// Compare two vectors using exact integer comparison to see if they are the same.
         ///
         /// Example:
         ///
@@ -366,7 +536,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param v Vector to compare against
-        /// \return true if the values are the same considering #EPSILON
+        /// \return true if the values are exactly the same
         ///
         ITK_INLINE bool operator==(const self_type &v) const
         {
@@ -387,7 +557,25 @@ namespace MathCore
 #endif
         }
 
-        // inter SIMD types converting...
+        /// \brief Inter-SIMD type conversion assignment operator
+        ///
+        /// Assigns a vec3 from a different SIMD type, converting each component
+        /// to the base type.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3<float, SIMD_TYPE::SSE> a;
+        /// vec3<float, SIMD_TYPE::NEON> b;
+        /// a = b;
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param vec Vector to copy from (different SIMD type)
+        /// \return A reference to the current instance after the conversion
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -399,7 +587,22 @@ namespace MathCore
             *this = self_type((_BaseType)vec.x, (_BaseType)vec.y, (_BaseType)vec.z);
             return *this;
         }
-        // inter SIMD types converting...
+        /// \brief Inter-SIMD type conversion operator
+        ///
+        /// Converts the current vec3 to a different SIMD type.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3<float, SIMD_TYPE::SSE> a;
+        /// vec3<float, SIMD_TYPE::NEON> b = a;
+        ///
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A new vec3 instance with the different SIMD type
+        ///
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
@@ -412,9 +615,9 @@ namespace MathCore
                 (_OutputType)x, (_OutputType)y, (_OutputType)z);
         }
 
-        /// \brief Compare vectors considering #EPSILON (not equal)
+        /// \brief Compare vectors for inequality (exact comparison)
         ///
-        /// Compare two vectors using #EPSILON to see if they are the same.
+        /// Compare two vectors using exact integer comparison to see if they are not the same.
         ///
         /// Example:
         ///
@@ -430,7 +633,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param v Vector to compare against
-        /// \return true if the values are not the same considering #EPSILON
+        /// \return true if the values are not exactly the same
         ///
         ITK_INLINE bool operator!=(const self_type &v) const
         {
@@ -713,7 +916,7 @@ namespace MathCore
         }
         /// \brief Single value multiply operator overload
         ///
-        /// Decrement the vector components by a single value (scalar)
+        /// Multiply the vector components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -725,8 +928,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Value to decrement all components of the current vector instance
-        /// \return A reference to the current instance after the decrement
+        /// \param v Value to multiply all components of the current vector instance
+        /// \return A reference to the current instance after the multiplication
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -779,9 +982,9 @@ namespace MathCore
         ///
         /// vec3 vec;
         ///
-        /// float x = vec[0];
+        /// auto x = vec[0];
         ///
-        /// vec[1] = 1.0f;
+        /// vec[1] = _BaseType(1.0f);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -793,14 +996,14 @@ namespace MathCore
             return array[v];
         }
 
-        /// \brief Index the components of the vec3 as a C array
+        /// \brief Index the components of the vec3 as a C array (const)
         ///
         /// Example:
         ///
         /// \code
         ///
         /// void process_vec( const vec3 &vec ) {
-        ///     float x = vec[0];
+        ///     auto x = vec[0];
         ///     ...
         /// }
         /// \endcode
@@ -814,6 +1017,14 @@ namespace MathCore
             return array[v];
         }
 
+        /// \brief Left shift assignment operator
+        ///
+        /// Shifts all components left by the specified number of bits.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift
+        /// \return A reference to the current instance after the shift
+        ///
         ITK_INLINE self_type &operator<<=(int shift)
         {
 #if defined(ITK_SSE2)
@@ -823,7 +1034,6 @@ namespace MathCore
             // x <<= shift;
             // y <<= shift;
             // z <<= shift;
-            // w <<= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -843,7 +1053,6 @@ namespace MathCore
             // x >>= shift;
             // y >>= shift;
             // z >>= shift;
-            // w >>= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
@@ -863,13 +1072,20 @@ namespace MathCore
             // x >>= shift;
             // y >>= shift;
             // z >>= shift;
-            // w >>= shift;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
             return *this;
         }
 
+        /// \brief Bitwise AND assignment operator
+        ///
+        /// Performs a component-wise bitwise AND operation.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector with operands for the AND operation
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator&=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -879,12 +1095,19 @@ namespace MathCore
             // x &= v.x;
             // y &= v.y;
             // z &= v.z;
-            // w &= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
             return *this;
         }
+        /// \brief Bitwise OR assignment operator
+        ///
+        /// Performs a component-wise bitwise OR operation.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector with operands for the OR operation
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator|=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -894,12 +1117,19 @@ namespace MathCore
             // x |= v.x;
             // y |= v.y;
             // z |= v.z;
-            // w |= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
             return *this;
         }
+        /// \brief Bitwise XOR assignment operator
+        ///
+        /// Performs a component-wise bitwise XOR operation.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector with operands for the XOR operation
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator^=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -909,13 +1139,19 @@ namespace MathCore
             // x ^= v.x;
             // y ^= v.y;
             // z ^= v.z;
-            // w ^= v.w;
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
             return *this;
         }
 
+        /// \brief Bitwise NOT operator
+        ///
+        /// Performs a component-wise bitwise NOT operation.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A new vec3 with the bitwise NOT of each component
+        ///
         ITK_INLINE self_type operator~() const
         {
 #if defined(ITK_SSE2)
@@ -923,7 +1159,7 @@ namespace MathCore
             return self_type(result);
 #elif defined(ITK_NEON)
             return iNeonOps<store_type>::vmvnq(array_neon);
-            // return self_type(~x, ~y, ~z, ~w);
+            // return self_type(~x, ~y, ~z);
 #else
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif

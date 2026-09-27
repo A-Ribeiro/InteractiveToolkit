@@ -193,7 +193,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat2(const self_type &m)
         {
@@ -214,7 +214,7 @@ namespace MathCore
         /// Initialize the mat2 components from vec2 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         /*ITK_INLINE mat2(const vec2_compatible_type &a, const vec2_compatible_type &b)
         {

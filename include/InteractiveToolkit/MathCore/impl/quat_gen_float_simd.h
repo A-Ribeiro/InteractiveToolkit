@@ -18,6 +18,20 @@
 namespace MathCore
 {
 
+    /// \brief Generation operations specialization for SIMD-optimized float quat.
+    ///
+    /// Provides generation utility functions for the quat class when SIMD
+    /// optimizations are enabled (SIMD_TYPE::SSE or SIMD_TYPE::NEON) and the
+    /// base type is float. This specialization is selected via SFINAE when
+    /// the _type template parameter is float and _simd is either SSE or NEON.
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the quat components; this specialization
+    ///         is selected when _type is float.
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
+    ///
     template <typename _type, typename _simd>
     struct GEN<quat<_type, _simd>,
                typename std::enable_if<
@@ -26,14 +40,28 @@ namespace MathCore
                     std::is_same<_simd, SIMD_TYPE::NEON>::value)>::type>
     {
     private:
+        /// \brief Alias for the quaternion type.
+        ///
         using quatT = quat<_type, _simd>;
+        /// \brief Alias for the 2-component vector type.
+        ///
         using type2 = vec2<_type, _simd>;
+        /// \brief Alias for the 3-component vector type.
+        ///
         using type3 = vec3<_type, _simd>;
+        /// \brief Alias for the 4-component vector type.
+        ///
         using type4 = vec4<_type, _simd>;
 
+        /// \brief Alias for the 3x3 matrix type.
+        ///
         using typeMat3 = mat3<_type, _simd>;
+        /// \brief Alias for the 4x4 matrix type.
+        ///
         using typeMat4 = mat4<_type, _simd>;
 
+        /// \brief Alias for the fully specialized GEN struct type.
+        ///
         using self_type = GEN<quatT>;
 
     public:
@@ -85,7 +113,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 3 component vector
+        /// \param vp A 3 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type3 &vp) noexcept
@@ -100,7 +128,7 @@ namespace MathCore
         //     return quatT::fromAxisAngle(vp, (_type)0);
         // }
 
-        /// \brief Convert a vec3 to a unity quaternion pointing to the vec3 axis.
+        /// \brief Convert a vec4 to a unity quaternion pointing to the vec3 axis.
         ///
         /// Example:
         ///
@@ -112,7 +140,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 4 component vector
+        /// \param vp A 4 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type4 &vp) noexcept
@@ -132,7 +160,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v A 2 component vector
+        /// \param vp A 2 component vector
         /// \return The quaternion
         ///
         // static ITK_INLINE quatT fromAxis(const type2 &vp) noexcept
@@ -184,7 +212,7 @@ namespace MathCore
             return fromAxisAngle(type3(axis, 0), angle_rad);
         }
 
-        /// \brief Constructs a quaternion from euler angles in radians.
+        /// \brief Constructs a quaternion from Euler angles in radians.
         ///
         /// Example:
         ///
@@ -194,10 +222,11 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param pitch radians
-        /// \param yaw radians
-        /// \param roll radians
-        /// \return The quaternion
+        ///
+        /// \param roll Rotation around the X axis in radians.
+        /// \param pitch Rotation around the Y axis in radians.
+        /// \param yaw Rotation around the Z axis in radians.
+        /// \return The quaternion representing the combined Euler rotation.
         ///
         static ITK_INLINE quatT fromEuler(_type roll, _type pitch, _type yaw) noexcept
         {
@@ -269,9 +298,10 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction.
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node's
+        /// orientation. Uses right-handed coordinate system.
         ///
         /// Example:
         ///
@@ -283,14 +313,14 @@ namespace MathCore
         /// vec3 front = normalize( otherObjPos - objPos );
         /// vec3 up = vec3(0,1,0);
         ///
-        /// quat object_rotation = lookAtRotationRH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationRH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        ///
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return A quaternion representing the orientation.
         ///
         static ITK_INLINE quatT lookAtRotationRH(const type3 &front, const type3 &up) noexcept
         {
@@ -302,9 +332,10 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction.
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node's
+        /// orientation. Uses left-handed coordinate system.
         ///
         /// Example:
         ///
@@ -316,14 +347,14 @@ namespace MathCore
         /// vec3 front = normalize( otherObjPos - objPos );
         /// vec3 up = vec3(0,1,0);
         ///
-        /// quat object_rotation = lookAtRotationLH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationLH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        ///
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return A quaternion representing the orientation.
         ///
         static ITK_INLINE quatT lookAtRotationLH(const type3 &front, const type3 &up) noexcept
         {
@@ -335,9 +366,10 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction.
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node's
+        /// orientation. Uses right-handed coordinate system.
         ///
         /// Example:
         ///
@@ -349,14 +381,14 @@ namespace MathCore
         /// vec4 front = normalize( otherObjPos - objPos );
         /// vec4 up = vec4(0,1,0,0);
         ///
-        /// quat object_rotation = lookAtRotationRH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationRH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        ///
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return A quaternion representing the orientation.
         ///
         static ITK_INLINE quatT lookAtRotationRH(const type4 &front, const type4 &up) noexcept
         {
@@ -368,9 +400,10 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Creates a quaternion looking to any direction
+        /// \brief Creates a quaternion looking in any direction.
         ///
-        /// This matrix can be used as base to an object node
+        /// This quaternion can be used as a base for an object node's
+        /// orientation. Uses left-handed coordinate system.
         ///
         /// Example:
         ///
@@ -382,14 +415,14 @@ namespace MathCore
         /// vec4 front = normalize( otherObjPos - objPos );
         /// vec4 up = vec4(0,1,0,0);
         ///
-        /// quat object_rotation = lookAtRotationLH(front, up, objPos);
+        /// quat object_rotation = lookAtRotationLH(front, up);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param front A vector pointing to the direction you want
-        /// \param up A vector to indicate the up orientation
-        /// \param position A point to be used as origin
-        /// \return A 4x4 matrix
+        ///
+        /// \param front A vector pointing to the direction you want.
+        /// \param up A vector to indicate the up orientation.
+        /// \return A quaternion representing the orientation.
         ///
         static ITK_INLINE quatT lookAtRotationLH(const type4 &front, const type4 &up) noexcept
         {
@@ -401,7 +434,9 @@ namespace MathCore
             return self_type::fromMat3(typeMat3(x, y, z));
         }
 
-        /// \brief Extracts a quaternion from any matrix that have rotation information
+        /// \brief Extracts a quaternion from a 3x3 matrix that contains rotation information.
+        ///
+        /// The rotation part of the matrix is normalized before extraction.
         ///
         /// Example:
         ///
@@ -414,8 +449,9 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m The transformation 4x4 matrix
-        /// \return The quat with the rotation information
+        ///
+        /// \param mp The transformation 3x3 matrix.
+        /// \return The quat with the rotation information extracted from the matrix.
         ///
         static ITK_INLINE quatT fromMat3(const typeMat3 &mp) noexcept
         {
@@ -435,14 +471,14 @@ namespace MathCore
 
             __m128 _1st = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[0], m.array_sse[0], _MM_SHUFFLE(0, 0, 0, 0)), _inva);
             __m128 _2nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[1], m.array_sse[1], _MM_SHUFFLE(1, 1, 1, 1)), _invb);
-            __m128 _3nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
+            __m128 _3rd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
 
             // __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
             // __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
-            // __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
+            // __m128 _3rd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
 
             __m128 sum_a = _mm_add_ps(_vec4_one_sse, _1st);
-            __m128 sum_b = _mm_add_ps(_2nd, _3nd);
+            __m128 sum_b = _mm_add_ps(_2nd, _3rd);
 
             __m128 sum = _mm_add_ps(sum_a, sum_b);
 
@@ -520,17 +556,17 @@ namespace MathCore
 
             type4 _1st(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_0000(m.array_neon[0])), _inva)));
             type4 _2nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_1111(m.array_neon[1])), _invb)));
-            type4 _3nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
+            type4 _3rd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
 
             // type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
             // type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
-            // type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
+            // type4 _3rd(m.c3, -m.c3, -m.c3, m.c3);
 
             const type4 t4_all_one(1.0f);
 
             //type4 sum_a = type4(1.0f) + _1st;
             type4 sum_a = t4_all_one + _1st;
-            type4 sum_b = _2nd + _3nd;
+            type4 sum_b = _2nd + _3rd;
 
             type4 sum = sum_a + sum_b;
 
@@ -604,7 +640,7 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Extracts a quaternion from any matrix that have rotation information
+        /// \brief Extracts a quaternion from any matrix that has rotation information.
         ///
         /// Example:
         ///
@@ -637,14 +673,14 @@ namespace MathCore
 
             __m128 _1st = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[0], m.array_sse[0], _MM_SHUFFLE(0, 0, 0, 0)), _inva);
             __m128 _2nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[1], m.array_sse[1], _MM_SHUFFLE(1, 1, 1, 1)), _invb);
-            __m128 _3nd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
+            __m128 _3rd = _mm_xor_ps(_mm_shuffle_ps(m.array_sse[2], m.array_sse[2], _MM_SHUFFLE(2, 2, 2, 2)), _invc);
 
             // __m128 _1st = _mm_xor_ps(_mm_set1_ps(m.a1), _inva);
             // __m128 _2nd = _mm_xor_ps(_mm_set1_ps(m.b2), _invb);
-            // __m128 _3nd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
+            // __m128 _3rd = _mm_xor_ps(_mm_set1_ps(m.c3), _invc);
 
             __m128 sum_a = _mm_add_ps(_vec4_one_sse, _1st);
-            __m128 sum_b = _mm_add_ps(_2nd, _3nd);
+            __m128 sum_b = _mm_add_ps(_2nd, _3rd);
 
             __m128 sum = _mm_add_ps(sum_a, sum_b);
 
@@ -722,16 +758,16 @@ namespace MathCore
 
             type4 _1st(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_0000(m.array_neon[0])), _inva)));
             type4 _2nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_1111(m.array_neon[1])), _invb)));
-            type4 _3nd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
+            type4 _3rd(vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(vshuffle_2222(m.array_neon[2])), _invc)));
 
             // type4 _1st(m.a1, m.a1, -m.a1, -m.a1);
             // type4 _2nd(m.b2, -m.b2, m.b2, -m.b2);
-            // type4 _3nd(m.c3, -m.c3, -m.c3, m.c3);
+            // type4 _3rd(m.c3, -m.c3, -m.c3, m.c3);
 
             const type4 t4_all_one(1.0f);
 
             type4 sum_a = t4_all_one + _1st;
-            type4 sum_b = _2nd + _3nd;
+            type4 sum_b = _2nd + _3rd;
 
             type4 sum = sum_a + sum_b;
 

@@ -236,7 +236,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         ITK_INLINE mat4(const self_type &m)
         {
@@ -280,7 +280,7 @@ namespace MathCore
         /// Initialize the mat4 components from vec4 parameters
         ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to assign to the instance
+        /// \param m Matrix to copy from
         ///
         /*ITK_INLINE mat4(const vec4_compatible_type& a, const vec4_compatible_type& b, const vec4_compatible_type& c, const vec4_compatible_type& d)
         {

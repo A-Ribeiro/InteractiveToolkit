@@ -40,6 +40,7 @@ namespace MathCore
     const __m128 _vec2_zero_sse = _mm_set1_ps(0.0f);
     const __m128 _vec2_sign_mask_sse = _mm_setr_ps(-0.f, -0.f, 0.f, 0.0f);
     const __m128 _vec2_one_sse = _mm_setr_ps(1.0f, 1.0f, 0.0f, 0.0f);
+    const __m128 _vec2_two_sse = _mm_setr_ps(2.0f, 2.0f, 0.0f, 0.0f);
     const __m128 _vec2_minus_one_sse = _mm_setr_ps(-1.0f, -1.0f, 0.0f, 0.0f);
     const __m128 _vec2_valid_bits_sse = _mm_castsi128_ps(_mm_set_epi32(0, 0, (int)0xffffffff, (int)0xffffffff));
 

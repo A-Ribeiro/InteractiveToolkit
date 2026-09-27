@@ -520,7 +520,7 @@ namespace CollisionCore
     }
 
     //
-    // Cloned methods from other collision classes
+    // Cloned methods from another collision classes
     //
 
     template <typename T> inline

@@ -20,23 +20,28 @@ namespace MathCore
 
     /// \brief Homogeneous 3D (vec4)
     ///
-    /// Stores three components(x,y,z,w) to represent a tridimensional vector with the homogeneous component w. <br/>
+    /// Stores four components(x,y,z,w) to represent a tridimensional vector with the homogeneous component w. <br/>
     /// It can be used to represent points or vectors in 3D.
     ///
     /// The arithmetic operations are available through #INLINE_OPERATION_IMPLEMENTATION
     ///
-    /// It is possible to use any arithmetic with vec3 and float combinations.
+    /// It is possible to use any arithmetic with vec4 and float combinations.
     ///
     /// Example:
     ///
     /// \code
-            ///
-    /// vec3 a, b, result;
+    ///
+    /// vec4 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
     /// \endcode
     ///
     /// \author Alessandro Ribeiro
+    ///
+    /// \tparam store_type The integer storage type of each fixed point component (int32_t or uint32_t).
+    /// \tparam frac_bits The number of fractional bits of the fixed point representation.
+    /// \tparam _SimdType The SIMD strategy used for the vector; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
     ///
     template <typename store_type, int frac_bits, typename _SimdType>
     class alignas(16) vec4<FixedPoint::fixed_t<store_type, frac_bits>, _SimdType,
@@ -44,52 +49,152 @@ namespace MathCore
                                (std::is_same<store_type, int32_t>::value || std::is_same<store_type, uint32_t>::value) &&
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value || std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief The fixed point scalar type of each component.
+        ///
         using _BaseType = FixedPoint::fixed_t<store_type, frac_bits>;
+        /// \brief Alias for the fully specialized vec4 type.
+        ///
         using self_type = vec4<_BaseType, _SimdType>;
+        /// \brief Alias for the vec3 type with the same base type and SIMD strategy.
+        ///
         using vec3_compatible_type = vec3<_BaseType, _SimdType>;
+        /// \brief Alias for the vec2 type with the same base type and SIMD strategy.
+        ///
         using vec2_compatible_type = vec2<_BaseType, _SimdType>;
 
 #if defined(ITK_NEON)
+        /// \brief The NEON SIMD vector type for the store type.
+        ///
         using neon_type = typename iNeonOps<store_type>::type;
 #endif
 
     public:
+        /// \brief Number of components stored by the vector (always 4).
+        ///
         static constexpr int array_count = 4;
+        /// \brief Alias for the vector type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
+        /// \brief Union providing multiple views of the four components.
+        ///
+        /// The components can be accessed as a C array (array),
+        /// as named components (x, y, z, w), as color components (r, g, b, a),
+        /// as rectangle components (left, top, width, height),
+        /// as corner components (right, bottom)
+        /// or as the raw SIMD register (array_sse / array_neon).
+        ///
         union
         {
+            /// \brief The components as a C array (index 0 = x, index 1 = y, index 2 = z, index 3 = w).
+            ///
             _BaseType array[4];
             struct
             {
-                _BaseType x, y, z, w;
+                /// \brief The X component of the vector.
+                ///
+                _BaseType x;
+                /// \brief The Y component of the vector.
+                ///
+                _BaseType y;
+                /// \brief The Z component of the vector.
+                ///
+                _BaseType z;
+                /// \brief The W (homogeneous) component of the vector.
+                ///
+                _BaseType w;
             };
             struct
             {
-                _BaseType r, g, b, a;
+                /// \brief The X component viewed as a red color value.
+                ///
+                _BaseType r;
+                /// \brief The Y component viewed as a green color value.
+                ///
+                _BaseType g;
+                /// \brief The Z component viewed as a blue color value.
+                ///
+                _BaseType b;
+                /// \brief The W component viewed as an alpha color value.
+                ///
+                _BaseType a;
             };
             struct
             {
-                _BaseType left, top, width, height;
+                /// \brief The X component viewed as a left coordinate value.
+                ///
+                _BaseType left;
+                /// \brief The Y component viewed as a top coordinate value.
+                ///
+                _BaseType top;
+                /// \brief The Z component viewed as a width value.
+                ///
+                _BaseType width;
+                /// \brief The W component viewed as a height value.
+                ///
+                _BaseType height;
             };
             struct
             {
-                _BaseType right, bottom;
+                /// \brief The X component viewed as a right coordinate value.
+                ///
+                _BaseType right;
+                /// \brief The Y component viewed as a bottom coordinate value.
+                ///
+                _BaseType bottom;
             };
 #if defined(ITK_SSE2)
+            /// \brief The components as a raw SSE SIMD register.
+            ///
             __m128i array_sse;
 #elif defined(ITK_NEON)
+            /// \brief The components as a raw NEON SIMD register.
+            ///
             neon_type array_neon;
 #endif
         };
 
 #if defined(ITK_SSE2)
+        /// \brief Constructs a vec4 from a raw SIMD register
+        ///
+        /// Initialize the vec4 components directly from a SIMD register
+        /// holding the four fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// __m128i reg = _mm_setr_epi32(0, 1, 2, 3);
+        /// vec4 vec = vec4( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the four components
+        ///
         ITK_INLINE vec4(const __m128i &v)
         {
             array_sse = v;
         }
 #elif defined(ITK_NEON)
+        /// \brief Constructs a vec4 from a raw SIMD register
+        ///
+        /// Initialize the vec4 components directly from a SIMD register
+        /// holding the four fixed point values.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// neon_type reg = {0, 1, 2, 3};
+        /// vec4 vec = vec4( reg );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v SIMD register holding the four components
+        ///
         ITK_INLINE vec4(const neon_type &v)
         {
             array_neon = v;
@@ -98,7 +203,7 @@ namespace MathCore
 
         /// \brief Construct a ZERO vec4 class
         ///
-        /// The ZERO vec4 class have the point information in the origin as a vector (x=0,y=0,z=0,w=0)
+        /// The ZERO vec4 class has the point information in the origin as a vector (x=0,y=0,z=0,w=0)
         ///
         /// Example:
         ///
@@ -123,7 +228,7 @@ namespace MathCore
         /*constexpr ITK_INLINE vec4() :array{ 0,0,0,0 } {}*/
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
-        /// Initialize the vec3 components with the same float value (by scalar)
+        /// Initialize the vec3 components with the same value (by scalar)
         ///
         /// X = v, Y = v, Z = v and W = v
         ///
@@ -148,6 +253,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a vec4 with all components set to the same value.
+        ///
+        /// Initialize the components with the same value (by scalar),
+        /// converting the input value to the base type when necessary.
+        ///
+        /// X = v, Y = v, Z = v and W = v
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec = vec4( 0.5f );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -183,6 +305,24 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a vec4 from four convertible component values.
+        ///
+        /// Initialize the vec4 components from the parameters, converting
+        /// each to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec = vec4( 0.1f, 0.2f, 0.3f, 1.0f );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x Value to assign to the X component of the vector
+        /// \param _y Value to assign to the Y component of the vector
+        /// \param _z Value to assign to the Z component of the vector
+        /// \param _w Value to assign to the W component of the vector
+        ///
         template <typename __x, typename __y, typename __z, typename __w,
                   typename std::enable_if<
                       std::is_convertible<__x, _BaseType>::value &&
@@ -234,6 +374,29 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a vec4 from a vec3 and a convertible w value.
+        ///
+        /// Initialize the vec4 components from a vec3 xyz and an isolated w value,
+        /// converting each to the base type when necessary.
+        ///
+        /// this->xyz = xyz <br />
+        /// this->w = w
+        ///
+        /// If the w is 0 the class represent a vector. <br />
+        /// If the w is 1 the class represent a point. <br />
+        /// Otherwise it might have a result of a projection
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec = vec4( vec3( 0.1f, 0.2f, 0.3f ), 1.0f );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _xyz Vector 3D to assign to the components x, y and Z of the instance respectively
+        /// \param _w Value to assign to the component w of the instance
+        ///
         template <typename __BT, typename __V3T,
                   typename std::enable_if<
 
@@ -278,6 +441,25 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a vec4 from a convertible x value and a vec3 yzw.
+        ///
+        /// Initialize the vec4 components from an isolated x value and a vec3 yzw,
+        /// converting each to the base type when necessary.
+        ///
+        /// this->x = x <br />
+        /// this->yzw = yzw
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec = vec4( 0.1f, vec3( 0.2f, 0.3f, 1.0f ) );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x Value to assign to the component x of the instance
+        /// \param _yzw Vector 3D to assign to the components y, z and w of the instance respectively
+        ///
         template <typename __BT, typename __V3T,
                   typename std::enable_if<
 
@@ -312,6 +494,25 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a vec4 from two vec2 instances.
+        ///
+        /// Initialize the vec4 components from two vec2 instances.
+        ///
+        /// this->x = a.x, this->y = a.y, this->z = b.x, this->w = b.y
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 a( 0.1f, 0.2f );
+        /// vec2 b( 0.3f, 0.4f );
+        /// vec4 vec( a, b );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a First vec2 whose components become x and y
+        /// \param b Second vec2 whose components become z and w
+        ///
         template <typename __V2A, typename __V2B,
                   typename std::enable_if<
 
@@ -327,7 +528,7 @@ namespace MathCore
 
         /// \brief Constructs a tridimensional Vector with homogeneous component
         ///
-        /// Initialize the vec4 components from other vec4 instance by copy
+        /// Initialize the vec4 components from another vec4 instance by copy
         ///
         /// Example:
         ///
@@ -344,7 +545,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Vector to assign to the instance
+        /// \param v Vector to copy from
         ///
         ITK_INLINE vec4(const self_type &v)
         {
@@ -357,6 +558,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Assigns the components of another vec4 to this instance
+        ///
+        /// Copy the X, Y, Z and W components from another vec4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec_a, vec_b;
+        ///
+        /// vec_a = vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type& operator=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -386,8 +604,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param a Orign point
-        /// \param b Destiny point
+        /// \param a Origin point
+        /// \param b Destination point
         ///
         ITK_INLINE vec4(const self_type &a, const self_type &b)
         {
@@ -439,6 +657,25 @@ namespace MathCore
         }
 
         // inter SIMD types converting...
+        /// \brief Assigns the components of a vec4 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another vec4 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4<float> vec_f;
+        /// vec4<FixedPoint::fixed_t<int32_t, 8>> vec_fixed;
+        ///
+        /// vec_fixed = vec_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param vec Vector to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -451,6 +688,22 @@ namespace MathCore
             return *this;
         }
         // inter SIMD types converting...
+        /// \brief Converts the vec4 to another vec4 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new vec4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4<FixedPoint::fixed_t<int32_t, 8>> vec_fixed;
+        /// vec4<float> vec_f = vec_fixed;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A vec4 instance with the converted components
+        ///
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
@@ -589,7 +842,6 @@ namespace MathCore
         /// \param v Vector to multiply the current vector instance
         /// \return A reference to the current instance after the multiplication
         ///
-
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, int32_t>::value,
@@ -638,6 +890,23 @@ namespace MathCore
             return (*this);
         }
 
+        /// \brief Component-wise multiply operator overload (unsigned)
+        ///
+        /// Multiply the vector by the components of another vector (unsigned variant).
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec, vec_b;
+        ///
+        /// vec *= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to multiply the current vector instance
+        /// \return A reference to the current instance after the multiplication
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, uint32_t>::value,
@@ -783,7 +1052,7 @@ namespace MathCore
         }
         /// \brief Single value multiply operator overload
         ///
-        /// Decrement the vector components by a single value (scalar)
+        /// Multiply the vector components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -795,8 +1064,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v Value to decrement all components of the current vector instance
-        /// \return A reference to the current instance after the decrement
+        /// \param v Value to multiply all components of the current vector instance
+        /// \return A reference to the current instance after the multiplication
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -884,6 +1153,23 @@ namespace MathCore
             return array[v];
         }
 
+        /// \brief Component-wise left shift operator overload
+        ///
+        /// Shifts all components left by the specified number of bits.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec;
+        ///
+        /// vec <<= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift each component left
+        /// \return A reference to the current instance after the shift
+        ///
         ITK_INLINE self_type &operator<<=(int shift)
         {
 #if defined(ITK_SSE2)
@@ -900,6 +1186,23 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise signed right shift operator overload
+        ///
+        /// Shifts all components right by the specified number of bits (signed).
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec;
+        ///
+        /// vec >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift each component right
+        /// \return A reference to the current instance after the shift
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, int32_t>::value,
@@ -920,6 +1223,23 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise unsigned right shift operator overload
+        ///
+        /// Shifts all components right by the specified number of bits (unsigned).
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec;
+        ///
+        /// vec >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift each component right
+        /// \return A reference to the current instance after the shift
+        ///
         template <typename _internal_type = store_type,
                   typename std::enable_if<
                       std::is_same<_internal_type, uint32_t>::value,
@@ -940,6 +1260,24 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise bitwise AND operator overload
+        ///
+        /// Performs a bitwise AND on each component with the corresponding
+        /// component of another vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec, vec_b;
+        ///
+        /// vec &= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to perform bitwise AND with
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator&=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -955,6 +1293,24 @@ namespace MathCore
 #endif
             return *this;
         }
+        /// \brief Component-wise bitwise OR operator overload
+        ///
+        /// Performs a bitwise OR on each component with the corresponding
+        /// component of another vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec, vec_b;
+        ///
+        /// vec |= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to perform bitwise OR with
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator|=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -970,6 +1326,24 @@ namespace MathCore
 #endif
             return *this;
         }
+        /// \brief Component-wise bitwise XOR operator overload
+        ///
+        /// Performs a bitwise XOR on each component with the corresponding
+        /// component of another vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec, vec_b;
+        ///
+        /// vec ^= vec_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Vector to perform bitwise XOR with
+        /// \return A reference to the current instance after the operation
+        ///
         ITK_INLINE self_type &operator^=(const self_type &v)
         {
 #if defined(ITK_SSE2)
@@ -986,6 +1360,22 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise bitwise NOT operator overload
+        ///
+        /// Performs a bitwise NOT on each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 vec;
+        ///
+        /// vec4 result = ~vec;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A new vec4 instance with each component bitwise NOT'd
+        ///
         ITK_INLINE self_type operator~() const
         {
 #if defined(ITK_SSE2)

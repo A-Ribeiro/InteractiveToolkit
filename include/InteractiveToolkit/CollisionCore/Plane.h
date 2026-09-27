@@ -315,7 +315,7 @@ namespace CollisionCore
         static inline bool intersectPlanes(const Plane<T> &p1, const Plane<T> &p2, const Plane<T> &p3, vec3_type *outP);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
 
         /// \brief Test if a plane intersects the AABB

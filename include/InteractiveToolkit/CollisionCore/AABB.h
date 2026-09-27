@@ -32,7 +32,7 @@ namespace CollisionCore
         //--------------------------------------------------------------------------
         /// \brief Construct a ZERO AABB class
         ///
-        /// The ZERO AABB class have both points in the origin (0,0,0)
+        /// The ZERO AABB class has both points in the origin (0,0,0)
         ///
         /// Example:
         ///
@@ -542,7 +542,7 @@ namespace CollisionCore
         static inline bool triangleIntersectsAABB(const Triangle<T> &t, const AABB<T> &aabb);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
 
         /// \brief Test if a frustum overlaps the aabb

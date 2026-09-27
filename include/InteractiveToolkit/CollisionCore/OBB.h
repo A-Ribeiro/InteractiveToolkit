@@ -43,7 +43,7 @@ namespace CollisionCore
         //--------------------------------------------------------------------------
         /// \brief Construct a ZERO OBB class
         ///
-        /// The ZERO OBB class have center in the origin (0,0,0)
+        /// The ZERO OBB class has center in the origin (0,0,0)
         /// orientation on quaternion identity (0,0,0,1)
         /// dimension_2 in zero (0,0,0)
         ///
@@ -503,7 +503,7 @@ namespace CollisionCore
         static inline bool triangleIntersectsOBB(const Triangle<T> &t, const OBB<T> &obb);
 
         //
-        // Cloned methods from other collision classes
+        // Cloned methods from another collision classes
         //
 
         /// \brief Test if a frustum overlaps the obb
