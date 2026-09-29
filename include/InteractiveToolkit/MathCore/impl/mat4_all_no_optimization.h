@@ -7,21 +7,6 @@
 namespace MathCore
 {
 
-    /*
-    struct  {
-                float _11, _21, _31, _41,
-                    _12, _22, _32, _42,
-                    _13, _23, _33, _43,
-                    _14, _24, _34, _44;
-            };
-            struct  {
-                float a1, a2, a3, a4,
-                    b1, b2, b3, b4,
-                    c1, c2, c3, c4,
-                    d1, d2, d3, d4;
-            };
-    */
-
     /// \brief Matrix with 4x4 components
     ///
     /// Matrix definition to work with rigid transformations
@@ -33,7 +18,7 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// mat4 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
@@ -42,22 +27,41 @@ namespace MathCore
     ///
     /// \author Alessandro Ribeiro
     ///
+    /// \tparam _BaseType The scalar type of each component (e.g., float, double).
+    /// \tparam _SimdType The SIMD strategy used for the matrix; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::NONE (no SIMD optimization).
+    ///
     template <typename _BaseType, typename _SimdType>
     class mat4<_BaseType, _SimdType,
                typename std::enable_if<
                    std::is_same<_SimdType, SIMD_TYPE::NONE>::value>::type>
     {
+        /// \brief Alias for the fully specialized mat4 type.
+        ///
         using self_type = mat4<_BaseType, _SimdType>;
+        // force set vec4 to normal operation...
         using vec4_compatible_type = vec4<_BaseType, _SimdType>;
 
     public:
+        /// \brief Number of rows of the matrix (always 4).
+        ///
         static constexpr int rows = 4;
+        /// \brief Number of columns of the matrix (always 4).
+        ///
         static constexpr int cols = 4;
 
+        /// \brief Total number of components stored by the matrix (always 16).
+        ///
         static constexpr int array_count = 16;
+        /// \brief Number of components per column (always 4).
+        ///
         static constexpr int array_stride = 4;
 
+        /// \brief Alias for the matrix type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
         union
@@ -99,15 +103,6 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         ///
-        /*ITK_INLINE mat4()
-        {
-            const self_type mat4_IdentityMatrix(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1);
-            *this = mat4_IdentityMatrix;
-        }*/
         ITK_INLINE mat4() : array{1, 0, 0, 0,
                                   0, 1, 0, 0,
                                   0, 0, 1, 0,
@@ -132,6 +127,21 @@ namespace MathCore
                                                     v, v, v, v,
                                                     v, v, v, v} {}
 
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize all components of the matrix with the same value,
+        /// converting the input value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix = mat4( 10.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -164,6 +174,22 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _d1 Value to assign to the d1 component (row 0, column 3)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _d2 Value to assign to the d2 component (row 1, column 3)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
+        /// \param _d3 Value to assign to the d3 component (row 2, column 3)
+        /// \param _a4 Value to assign to the a4 component (row 3, column 0)
+        /// \param _b4 Value to assign to the b4 component (row 3, column 1)
+        /// \param _c4 Value to assign to the c4 component (row 3, column 2)
+        /// \param _d4 Value to assign to the d4 component (row 3, column 3)
         ///
         ITK_INLINE mat4(const _BaseType &_a1, const _BaseType &_b1, const _BaseType &_c1, const _BaseType &_d1,
                         const _BaseType &_a2, const _BaseType &_b2, const _BaseType &_c2, const _BaseType &_d2,
@@ -173,6 +199,48 @@ namespace MathCore
                                                                                                                         _c1, _c2, _c3, _c4,
                                                                                                                         _d1, _d2, _d3, _d4} {}
 
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize the mat4 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// The visual is related to the matrix column major order.
+        ///
+        /// <pre>
+        /// | a1 b1 c1 d1 |
+        /// | a2 b2 c2 d2 |
+        /// | a3 b3 c3 d3 |
+        /// | a4 b4 c4 d4 |
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix = mat4( 1.0, 0.0, 0.0, 0.0,
+        ///                     0.0, 1.0, 0.0, 0.0,
+        ///                     0.0, 0.0, 1.0, 0.0,
+        ///                     0.0, 0.0, 0.0, 1.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _d1 Value to assign to the d1 component (row 0, column 3)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _d2 Value to assign to the d2 component (row 1, column 3)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
+        /// \param _d3 Value to assign to the d3 component (row 2, column 3)
+        /// \param _a4 Value to assign to the a4 component (row 3, column 0)
+        /// \param _b4 Value to assign to the b4 component (row 3, column 1)
+        /// \param _c4 Value to assign to the c4 component (row 3, column 2)
+        /// \param _d4 Value to assign to the d4 component (row 3, column 3)
+        ///
         template <typename __a1, typename __b1, typename __c1, typename __d1,
                   typename __a2, typename __b2, typename __c2, typename __d2,
                   typename __a3, typename __b3, typename __c3, typename __d3,
@@ -242,6 +310,24 @@ namespace MathCore
         {
             *this = m;
         }
+        /// \brief Assigns the components of another mat4 to this instance
+        ///
+        /// Copy the a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3
+        /// and d4 components from another mat4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix_a, matrix_b;
+        ///
+        /// matrix_a = matrix_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type &operator=(const self_type &m)
         {
             a1 = m.a1;
@@ -266,45 +352,33 @@ namespace MathCore
 
             return *this;
         }
-
-        /*constexpr ITK_INLINE mat4(const self_type& m) :
-            array{ m.a1, m.a2, m.a3, m.a4,
-            m.b1, m.b2, m.b3, m.b4,
-            m.c1, m.c2, m.c3, m.c4,
-            m.d1, m.d2, m.d3, m.d4 }
-        {}*/
-
         //---------------------------------------------------------------------------
         /// \brief Constructs a 4x4 matrix
         ///
         /// Initialize the mat4 components from vec4 parameters
         ///
-        /// \author Alessandro Ribeiro
-        /// \param m Matrix to copy from
+        /// The first vec4 fills the first column, the second vec4 fills the
+        /// second column, the third vec4 fills the third column and the fourth
+        /// vec4 fills the fourth column of the matrix.
         ///
-        /*ITK_INLINE mat4(const vec4_compatible_type& a, const vec4_compatible_type& b, const vec4_compatible_type& c, const vec4_compatible_type& d)
-        {
-            a1 = a.x;
-            a2 = a.y;
-            a3 = a.z;
-            a4 = a.w;
-
-            b1 = b.x;
-            b2 = b.y;
-            b3 = b.z;
-            b4 = b.w;
-
-            c1 = c.x;
-            c2 = c.y;
-            c3 = c.z;
-            c4 = c.w;
-
-            d1 = d.x;
-            d2 = d.y;
-            d3 = d.z;
-            d4 = d.w;
-        }*/
-
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 col_a( 1.0f, 0.0f, 0.0f, 0.0f );
+        /// vec4 col_b( 0.0f, 1.0f, 0.0f, 0.0f );
+        /// vec4 col_c( 0.0f, 0.0f, 1.0f, 0.0f );
+        /// vec4 col_d( 0.0f, 0.0f, 0.0f, 1.0f );
+        ///
+        /// mat4 matrix = mat4( col_a, col_b, col_c, col_d );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a vec4 used to fill the first column of the matrix
+        /// \param b vec4 used to fill the second column of the matrix
+        /// \param c vec4 used to fill the third column of the matrix
+        /// \param d vec4 used to fill the fourth column of the matrix
+        ///
         ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d) : array{a.x, a.y, a.z, a.w,
                                                                                                                                                             b.x, b.y, b.z, b.w,
                                                                                                                                                             c.x, c.y, c.z, c.w,
@@ -392,14 +466,30 @@ namespace MathCore
         {
             return array[_col * 4 + _row];
         }
+        /// \brief Matrix access based on X (row) and Y (column)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// const mat4 matrix;
+        ///
+        /// float v = matrix(3,3);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _row The row to get the element at index
+        /// \param _col The column to get the element at index
+        /// \return A reference to the matrix element
+        ///
         ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 4 + _row];
         }
         //---------------------------------------------------------------------------
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec4 type
+        /// Access one of the 4 columns of the matrix as a vec4 type
         ///
         /// Example:
         ///
@@ -415,16 +505,16 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec4
+        /// \return A reference to the matrix column as vec4
         ///
         ITK_INLINE vec4_compatible_type &operator[](const int _col)
         {
             return *((vec4_compatible_type *)&array[_col * 4]);
         }
 
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec4 type
+        /// Access one of the 4 columns of the matrix as a vec4 type
         ///
         /// Example:
         ///
@@ -438,14 +528,16 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec4
+        /// \return A reference to the matrix column as vec4
         ///
         ITK_INLINE const vec4_compatible_type &operator[](const int _col) const
         {
             return *((vec4_compatible_type *)&array[_col * 4]);
         }
         //---------------------------------------------------------------------------
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are the same.
         ///
         /// Example:
         ///
@@ -460,8 +552,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are the same considering #EPSILON
         ///
         template <class _Type = _BaseType,
                   typename std::enable_if<
@@ -479,6 +571,26 @@ namespace MathCore
             return equal;
         }
 
+        /// \brief Compare matrices (equal) for non floating point types
+        ///
+        /// Compare two matrices using strict equality (==) on each component.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix_a, matrix_b;
+        ///
+        /// if ( matrix_a == matrix_b ){
+        ///     //do something
+        ///     ...
+        /// }
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Matrix to compare against
+        /// \return true if the values are the same
+        ///
         template <class _Type = _BaseType,
                   typename std::enable_if<
                       !std::is_floating_point<_Type>::value, bool>::type = true>
@@ -491,6 +603,25 @@ namespace MathCore
             return equal;
         }
 
+        /// \brief Assigns the components of a mat4 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another mat4 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<float> mat_f;
+        /// mat4<double> mat_d;
+        ///
+        /// mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         // inter SIMD types converting...
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
@@ -507,6 +638,22 @@ namespace MathCore
                 (_BaseType)m.a4, (_BaseType)m.b4, (_BaseType)m.c4, (_BaseType)m.d4);
             return *this;
         }
+        /// \brief Converts the mat4 to another mat4 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new mat4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<float> mat_f;
+        /// mat4<double> mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A mat4 instance with the converted components
+        ///
         // inter SIMD types converting...
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
@@ -523,7 +670,9 @@ namespace MathCore
                 (_OutputType)a4, (_OutputType)b4, (_OutputType)c4, (_OutputType)d4);
         }
 
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (not equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are different.
         ///
         /// Example:
         ///
@@ -538,15 +687,17 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is not equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are not the same considering #EPSILON
         ///
         ITK_INLINE bool operator!=(const self_type &v) const
         {
             return !((*this) == v);
         }
 
-        /// \brief Component-wise add elements of the matrix
+        /// \brief Component-wise sum (add) operator overload
+        ///
+        /// Increment the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -558,8 +709,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to add values
-        /// \return The matrix with the sum result
+        /// \param v Matrix to increment the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const self_type &v)
         {
@@ -585,7 +736,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise subtract elements of the matrix
+        /// \brief Component-wise subtract operator overload
+        ///
+        /// Decrement the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -597,8 +750,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to subtract values
-        /// \return The matrix with the subtract result
+        /// \param v Matrix to decrement the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const self_type &v)
         {
@@ -624,9 +777,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise change signal
+        /// \brief Component-wise unary minus (negation) operator overload
         ///
-        /// Change the signal of each element in the matrix
+        /// Returns a copy of the matrix with all components negated.
         ///
         /// Example:
         ///
@@ -638,7 +791,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the signal changed
+        /// \return A copy of the current instance after the negation operation
         ///
         ITK_INLINE self_type operator-() const
         {
@@ -648,9 +801,9 @@ namespace MathCore
                              -a4, -b4, -c4, -d4);
         }
 
-        /// \brief Component-wise divide element
+        /// \brief Component-wise divide operator overload
         ///
-        /// Make the division operation on each element of the matrix
+        /// Divide the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -662,7 +815,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division result
+        /// \param v Matrix to divide the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
@@ -670,10 +824,24 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Compute the inverse of the matrix
+        ///
+        /// Returns the inverse matrix using the determinant.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv = matrix.inverse();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return The inverse of the current matrix
+        ///
         ITK_INLINE self_type inverse() const
         {
-            // adapted from https://github.com/g-truc/glm/blob/master/glm/detail/func_matrix.inl
-
             _BaseType Coef00 = c3 * d4 - d3 * c4;
             _BaseType Coef02 = b3 * d4 - d3 * b4;
             _BaseType Coef03 = b3 * c4 - c3 * b4;
@@ -733,10 +901,24 @@ namespace MathCore
             return Inverse * _1_over_det;
         }
 
-        //
-        // can be used for inverse
-        // transpose rotation+scale mat4 representations
-        //
+        /// \brief Compute the inverse transpose of the 3x3 upper-left sub-matrix
+        ///
+        /// Returns a matrix with the inverse transpose of the upper-left 3x3
+        /// portion, which can be used for inverse transpose rotation+scale
+        /// mat4 representations.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv_transpose = matrix.inverse_transpose_3x3();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A matrix with the inverse transpose of the 3x3 sub-matrix
+        ///
         ITK_INLINE mat4 inverse_transpose_3x3() const
         {
             _BaseType aux1 = c3 * b2 - b3 * c2;
@@ -759,6 +941,24 @@ namespace MathCore
                 0, 0, 0, 1);
         }
 
+        /// \brief Compute the inverse transpose of the 2x2 upper-left sub-matrix
+        ///
+        /// Returns a matrix with the inverse transpose of the upper-left 2x2
+        /// portion, which can be used for inverse transpose rotation+scale
+        /// mat4 representations.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv_transpose = matrix.inverse_transpose_2x2();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A matrix with the inverse transpose of the 2x2 sub-matrix
+        ///
         ITK_INLINE mat4 inverse_transpose_2x2() const
         {
             _BaseType det = (a1 * b2 - b1 * a2);
@@ -775,7 +975,9 @@ namespace MathCore
                              0, 0, 0, 1);
         }
 
-        /// \brief Add (sum) matrix with a scalar
+        /// \brief Single value increment (add, sum) operator overload
+        ///
+        /// Increment the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -787,7 +989,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the sum of the elements
+        /// \param v Value to increment all components of the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const _BaseType &v)
         {
@@ -813,7 +1016,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Subtract matrix with a scalar
+        /// \brief Single value decrement (subtract) operator overload
+        ///
+        /// Decrement the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -825,7 +1030,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the subtract of the elements
+        /// \param v Value to decrement all components of the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const _BaseType &v)
         {
@@ -851,7 +1057,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Multiply matrix elements with a scalar
+        /// \brief Single value multiply operator overload
+        ///
+        /// Multiply the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -863,7 +1071,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the multiplication of the elements
+        /// \param v Value to multiply all components of the current matrix instance
+        /// \return A reference to the current instance after the multiply
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -889,7 +1098,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Divide matrix elements with a scalar
+        /// \brief Single value division operator overload
+        ///
+        /// Divides the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -901,8 +1112,53 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division of the elements
+        /// \param v Value to divide all components of the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
+        template <class _Type = _BaseType, typename std::enable_if<std::is_floating_point<_Type>::value, bool>::type = true>
+        ITK_INLINE self_type &operator/=(const _BaseType &v)
+        {
+            _BaseType factor = _BaseType(1) / v;
+
+            a1 *= factor;
+            a2 *= factor;
+            a3 *= factor;
+            a4 *= factor;
+
+            b1 *= factor;
+            b2 *= factor;
+            b3 *= factor;
+            b4 *= factor;
+
+            c1 *= factor;
+            c2 *= factor;
+            c3 *= factor;
+            c4 *= factor;
+
+            d1 *= factor;
+            d2 *= factor;
+            d3 *= factor;
+            d4 *= factor;
+            return *this;
+        }
+        /// \brief Single value division operator overload (integral types only)
+        ///
+        /// Divides the matrix components by a single value (scalar)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// matrix /= 5.0f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to divide all components of the current matrix instance
+        /// \return A reference to the current instance after the division
+        ///
+        template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator/=(const _BaseType &v)
         {
             a1 /= v;
@@ -927,6 +1183,23 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Component-wise left shift operator overload (integral types only)
+        ///
+        /// Shifts the matrix components to the left by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix <<= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the left
+        /// \return A reference to the current instance after the shift
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator<<=(int shift)
         {
@@ -951,6 +1224,23 @@ namespace MathCore
             d4 <<= shift;
             return *this;
         }
+        /// \brief Component-wise right shift operator overload (integral types only)
+        ///
+        /// Shifts the matrix components to the right by the given number of bits
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix >>= 2;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param shift Number of bits to shift the components to the right
+        /// \return A reference to the current instance after the shift
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator>>=(int shift)
         {
@@ -975,6 +1265,23 @@ namespace MathCore
             d4 >>= shift;
             return *this;
         }
+        /// \brief Component-wise bitwise AND operator overload (integral types only)
+        ///
+        /// Apply the bitwise AND between the matrix components and a single value
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix &= 0xFF;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to apply the bitwise AND with the current matrix instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator&=(const _BaseType &v)
         {
@@ -999,6 +1306,23 @@ namespace MathCore
             d4 &= v;
             return *this;
         }
+        /// \brief Component-wise bitwise OR operator overload (integral types only)
+        ///
+        /// Apply the bitwise OR between the matrix components and a single value
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix |= 0xFF;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to apply the bitwise OR with the current matrix instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator|=(const _BaseType &v)
         {
@@ -1023,6 +1347,23 @@ namespace MathCore
             d4 |= v;
             return *this;
         }
+        /// \brief Component-wise bitwise XOR operator overload (integral types only)
+        ///
+        /// Apply the bitwise XOR between the matrix components and a single value
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix ^= 0xFF;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to apply the bitwise XOR with the current matrix instance
+        /// \return A reference to the current instance after the operation
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type &operator^=(const _BaseType &v)
         {
@@ -1047,6 +1388,22 @@ namespace MathCore
             d4 ^= v;
             return *this;
         }
+        /// \brief Component-wise bitwise NOT (complement) operator overload (integral types only)
+        ///
+        /// Returns a copy of the matrix with all components bit-inverted.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<int> matrix;
+        ///
+        /// matrix = ~matrix;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A copy of the current instance after the complement operation
+        ///
         template <class _Type = _BaseType, typename std::enable_if<!std::is_floating_point<_Type>::value, bool>::type = true>
         ITK_INLINE self_type operator~() const
         {

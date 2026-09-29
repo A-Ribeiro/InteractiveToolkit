@@ -15,7 +15,7 @@
 namespace MathCore
 {
 
-    /// \brief Matrix with 4x4 components
+    /// \brief Matrix with 2x2 components
     ///
     /// Matrix definition to work with rigid transformations
     ///
@@ -26,14 +26,18 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// mat2 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
     /// \endcode
     ///
-    ///
     /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _BaseType The scalar type of each component (e.g., float, double).
+    /// \tparam _SimdType The SIMD strategy used for the matrix; this specialization
+    ///         is selected when _BaseType is float and _SimdType is
+    ///         SIMD_TYPE::SSE or SIMD_TYPE::NEON (SIMD float optimization).
     ///
     template <typename _BaseType, typename _SimdType>
     class alignas(16) mat2<_BaseType, _SimdType,
@@ -42,18 +46,36 @@ namespace MathCore
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
                                 std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief Alias for the fully specialized mat2 type.
+        ///
         using self_type = mat2<_BaseType, _SimdType>;
+        /// \brief vec2 type compatible with the matrix SIMD strategy.
+        ///
         using vec2_compatible_type = vec2<_BaseType, _SimdType>;
+        /// \brief vec2 type used to extract columns (no SIMD optimization).
+        ///
         using vec2_extract_type = vec2<_BaseType, SIMD_TYPE::NONE>;
 
     public:
+        /// \brief Number of rows of the matrix (always 2).
+        ///
         static constexpr int rows = 2;
+        /// \brief Number of columns of the matrix (always 2).
+        ///
         static constexpr int cols = 2;
 
+        /// \brief Total number of components stored by the matrix (always 4).
+        ///
         static constexpr int array_count = 4;
+        /// \brief Number of components per column (always 2).
+        ///
         static constexpr int array_stride = 2;
 
+        /// \brief Alias for the matrix type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
         union
@@ -77,6 +99,21 @@ namespace MathCore
 #endif
         };
 
+        /// \brief Constructs a 2x2 matrix from a SIMD vector
+        ///
+        /// Initialize all components of the matrix by copying the four
+        /// lanes of a SIMD vector (SSE or NEON).
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2 matrix = mat2( simd_vector );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a SIMD vector used to initialize the components
+        ///
 #if defined(ITK_SSE2)
         ITK_INLINE mat2(const __m128 &a)
         {
@@ -90,15 +127,13 @@ namespace MathCore
 #endif
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs an identity matrix 4x4
+        /// \brief Constructs an identity matrix 2x2
         ///
-        /// This construct an identity matrix
+        /// This constructs an identity matrix
         ///
         /// <pre>
-        /// | 1 0 0 0 |
-        /// | 0 1 0 0 |
-        /// | 0 0 1 0 |
-        /// | 0 0 0 1 |
+        /// | 1 0 |
+        /// | 0 1 |
         /// </pre>
         ///
         /// Example:
@@ -125,7 +160,7 @@ namespace MathCore
 #endif
         }
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 2x2 matrix
         ///
         /// Initialize all components of the matrix with the same value
         ///
@@ -137,7 +172,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param value Value to initialize the components
+        /// \param v Value to initialize the components
         ///
         ITK_INLINE mat2(const _BaseType &value)
         {
@@ -150,6 +185,21 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 2x2 matrix
+        ///
+        /// Initialize all components of the matrix with the same value,
+        /// converting the input value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2 matrix = mat2( 10.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -158,30 +208,30 @@ namespace MathCore
         ITK_INLINE mat2(const _InputType &v) : self_type((_BaseType)v) {}
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 2x2 matrix
         ///
         /// Initialize the mat2 components from the parameters
         ///
         /// The visual is related to the matrix column major order.
         ///
         /// <pre>
-        /// | a1 b1 c1 d1 |
-        /// | a2 b2 c2 d2 |
-        /// | a3 b3 c3 d3 |
-        /// | a4 b4 c4 d4 |
+        /// | a1 b1 |
+        /// | a2 b2 |
         /// </pre>
         ///
         /// Example:
         ///
         /// \code
         ///
-        /// mat2 matrix = mat2( 1.0f, 0.0f, 0.0f, 0.0f,
-        ///                     0.0f, 1.0f, 0.0f, 0.0f,
-        ///                     0.0f, 0.0f, 1.0f, 0.0f,
-        ///                     0.0f, 0.0f, 0.0f, 1.0f);
+        /// mat2 matrix = mat2( 1.0f, 0.0f,
+        ///                     0.0f, 1.0f );
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
         ///
         ITK_INLINE mat2(
             const _BaseType &a1, const _BaseType &b1,
@@ -196,6 +246,32 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 2x2 matrix
+        ///
+        /// Initialize the mat2 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// The visual is related to the matrix column major order.
+        ///
+        /// <pre>
+        /// | a1 b1 |
+        /// | a2 b2 |
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2 matrix = mat2( 1.0, 0.0,
+        ///                     0.0, 1.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        ///
         template <typename _InputType_a1, typename _InputType_b1,
                   typename _InputType_a2, typename _InputType_b2,
                   typename std::enable_if<
@@ -211,7 +287,7 @@ namespace MathCore
                                                                                         (_BaseType)_a2, (_BaseType)_b2) {}
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 2x2 matrix
         ///
         /// Initialize the mat2 components by copying other mat2 instance
         ///
@@ -219,10 +295,8 @@ namespace MathCore
         ///
         /// \code
         ///
-        /// mat2 matrix_src = mat2( 1.0f, 0.0f, 0.0f, 0.0f,
-        ///                         0.0f, 1.0f, 0.0f, 0.0f,
-        ///                         0.0f, 0.0f, 1.0f, 0.0f,
-        ///                         0.0f, 0.0f, 0.0f, 1.0f);
+        /// mat2 matrix_src = mat2( 1.0f, 0.0f,
+        ///                         0.0f, 1.0f );
         ///
         /// mat2 matrix = mat2( matrix_src );
         ///
@@ -239,6 +313,23 @@ namespace MathCore
         {
             *this = m;
         }
+        /// \brief Assigns the components of another mat2 to this instance
+        ///
+        /// Copy the a1, a2, b1 and b2 components from another mat2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2 matrix_a, matrix_b;
+        ///
+        /// matrix_a = matrix_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type &operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
@@ -252,12 +343,26 @@ namespace MathCore
         }
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 2x2 matrix
         ///
         /// Initialize the mat2 components from vec2 parameters
         ///
+        /// The first vec2 fills the first column and the second vec2
+        /// fills the second column of the matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec2 col_a( 1.0f, 0.0f );
+        /// vec2 col_b( 0.0f, 1.0f );
+        ///
+        /// mat2 matrix = mat2( col_a, col_b );
+        /// \endcode
+        ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to copy from
+        /// \param a vec2 used to fill the first column of the matrix
+        /// \param b vec2 used to fill the second column of the matrix
         ///
         ITK_INLINE mat2(const vec2_compatible_type &a, const vec2_compatible_type &b)
         {
@@ -273,7 +378,7 @@ namespace MathCore
         //---------------------------------------------------------------------------
         /// \brief Matrix multiplication
         ///
-        /// Makes the full 4x4 matrix multiplication
+        /// Makes the full 2x2 matrix multiplication
         ///
         /// Example:
         ///
@@ -314,9 +419,9 @@ namespace MathCore
         ///
         /// mat2 matrix;
         ///
-        /// matrix(3,0) = 1.0f;
+        /// matrix(1,0) = 1.0f;
         ///
-        /// float v = matrix(3,3);
+        /// float v = matrix(1,1);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -328,14 +433,30 @@ namespace MathCore
         {
             return array[_col * 2 + _row];
         }
+        /// \brief Matrix access based on X (row) and Y (column)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// const mat2 matrix;
+        ///
+        /// float v = matrix(1,1);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _row The row to get the element at index
+        /// \param _col The column to get the element at index
+        /// \return A reference to the matrix element
+        ///
         ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 2 + _row];
         }
         //---------------------------------------------------------------------------
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec2 type
+        /// Access one of the 2 columns of the matrix as a vec2 type
         ///
         /// Example:
         ///
@@ -344,44 +465,46 @@ namespace MathCore
         /// mat2 matrix;
         /// vec2 translate_vec;
         ///
-        /// vec2 forward = matrix[2];
+        /// vec2 forward = matrix[0];
         ///
-        /// matrix[3] = toPtn4( translate_vec );
+        /// matrix[1] = translate_vec;
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec2
+        /// \return A reference to the matrix column as vec2
         ///
         ITK_INLINE vec2_extract_type &operator[](const int _col)
         {
             return *((vec2_extract_type *)&array[_col * 2]);
         }
 
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec2 type
+        /// Access one of the 2 columns of the matrix as a vec2 type
         ///
         /// Example:
         ///
         /// \code
         ///
         /// void process_matrix( const mat2 &matrix ) {
-        ///     vec2 forward = matrix[2];
+        ///     vec2 forward = matrix[0];
         ///     ...
         /// }
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec2
+        /// \return A reference to the matrix column as vec2
         ///
         ITK_INLINE const vec2_extract_type &operator[](const int _col) const
         {
             return *((vec2_extract_type *)&array[_col * 2]);
         }
         //---------------------------------------------------------------------------
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are the same.
         ///
         /// Example:
         ///
@@ -396,8 +519,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are the same considering #EPSILON
         ///
         ITK_INLINE bool operator==(const self_type &v) const
         {
@@ -440,7 +563,25 @@ namespace MathCore
 #endif
         }
 
-        // inter SIMD types converting...
+        /// \brief Assigns the components of a mat2 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another mat2 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2<float> mat_f;
+        /// mat2<double> mat_d;
+        ///
+        /// mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -454,7 +595,22 @@ namespace MathCore
                 (_BaseType)m.a2, (_BaseType)m.b2);
             return *this;
         }
-        // inter SIMD types converting...
+        /// \brief Converts the mat2 to another mat2 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new mat2 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2<float> mat_f;
+        /// mat2<double> mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A mat2 instance with the converted components
+        ///
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
@@ -468,7 +624,9 @@ namespace MathCore
                 (_OutputType)a2, (_OutputType)b2);
         }
 
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (not equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are different.
         ///
         /// Example:
         ///
@@ -483,15 +641,17 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is not equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are not the same considering #EPSILON
         ///
         ITK_INLINE bool operator!=(const self_type &v) const
         {
             return !((*this) == v);
         }
 
-        /// \brief Component-wise add elements of the matrix
+        /// \brief Component-wise sum (add) operator overload
+        ///
+        /// Increment the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -503,8 +663,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to add values
-        /// \return The matrix with the sum result
+        /// \param v Matrix to increment the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const self_type &v)
         {
@@ -521,7 +681,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise subtract elements of the matrix
+        /// \brief Component-wise subtract operator overload
+        ///
+        /// Decrement the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -533,8 +695,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to subtract values
-        /// \return The matrix with the subtract result
+        /// \param v Matrix to decrement the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const self_type &v)
         {
@@ -551,9 +713,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise change signal
+        /// \brief Component-wise unary minus (negation) operator overload
         ///
-        /// Change the signal of each element in the matrix
+        /// Returns a copy of the matrix with all components negated.
         ///
         /// Example:
         ///
@@ -565,7 +727,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the signal changed
+        /// \return A copy of the current instance after the negation operation
         ///
         ITK_INLINE self_type operator-() const
         {
@@ -583,9 +745,9 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Component-wise divide element
+        /// \brief Component-wise divide operator overload
         ///
-        /// Make the division operation on each element of the matrix
+        /// Divide the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -597,7 +759,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division result
+        /// \param v Matrix to divide the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
@@ -605,6 +768,22 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Compute the inverse of the matrix
+        ///
+        /// Returns the inverse matrix using the determinant.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat2 matrix;
+        ///
+        /// mat2 inv = matrix.inverse();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return The inverse of the current matrix
+        ///
         ITK_INLINE self_type inverse() const
         {
             _BaseType det = (a1 * b2 - b1 * a2);
@@ -621,7 +800,9 @@ namespace MathCore
             //                  -a2 * det, +a1 * det);
         }
 
-        /// \brief Add (sum) matrix with a scalar
+        /// \brief Single value increment (add, sum) operator overload
+        ///
+        /// Increment the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -633,7 +814,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the sum of the elements
+        /// \param v Value to increment all components of the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const _BaseType &v)
         {
@@ -649,7 +831,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Subtract matrix with a scalar
+        /// \brief Single value decrement (subtract) operator overload
+        ///
+        /// Decrement the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -661,7 +845,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the subtract of the elements
+        /// \param v Value to decrement all components of the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const _BaseType &v)
         {
@@ -677,7 +862,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Multiply matrix elements with a scalar
+        /// \brief Single value multiply operator overload
+        ///
+        /// Multiply the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -689,7 +876,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the multiplication of the elements
+        /// \param v Value to multiply all components of the current matrix instance
+        /// \return A reference to the current instance after the multiply
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -705,7 +893,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Divide matrix elements with a scalar
+        /// \brief Single value division operator overload
+        ///
+        /// Divides the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -717,7 +907,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division of the elements
+        /// \param v Value to divide all components of the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
         ITK_INLINE self_type &operator/=(const _BaseType &v)
         {

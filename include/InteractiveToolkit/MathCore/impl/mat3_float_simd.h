@@ -15,7 +15,7 @@
 namespace MathCore
 {
 
-    /// \brief Matrix with 4x4 components
+    /// \brief Matrix with 3x3 components
     ///
     /// Matrix definition to work with rigid transformations
     ///
@@ -26,14 +26,17 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// mat3 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
     /// \endcode
     ///
-    ///
     /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _BaseType The scalar type of each component (float for this specialization).
+    /// \tparam _SimdType The SIMD strategy used for the matrix; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
     ///
     template <typename _BaseType, typename _SimdType>
     class alignas(16) mat3<_BaseType, _SimdType,
@@ -42,17 +45,33 @@ namespace MathCore
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
                                 std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief Alias for the fully specialized mat3 type.
+        ///
         using self_type = mat3<_BaseType, _SimdType>;
+        /// \brief Alias for the vec3 type compatible with this matrix.
+        ///
         using vec3_compatible_type = vec3<_BaseType, _SimdType>;
 
     public:
+        /// \brief Number of rows of the matrix (always 3).
+        ///
         static constexpr int rows = 3;
+        /// \brief Number of columns of the matrix (always 3).
+        ///
         static constexpr int cols = 3;
 
+        /// \brief Total number of components stored by the matrix (12, including padding).
+        ///
         static constexpr int array_count = 12;
+        /// \brief Number of components per column (4, including padding).
+        ///
         static constexpr int array_stride = 4;
 
+        /// \brief Alias for the matrix type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
         union
@@ -78,6 +97,15 @@ namespace MathCore
         };
 
 #if defined(ITK_SSE2)
+        /// \brief Constructs a 3x3 matrix from raw SIMD vectors
+        ///
+        /// Initialize the mat3 columns directly from three SSE vectors.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a SIMD vector used to fill the first column of the matrix
+        /// \param b SIMD vector used to fill the second column of the matrix
+        /// \param c SIMD vector used to fill the third column of the matrix
+        ///
         ITK_INLINE mat3(const __m128 &a, const __m128 &b, const __m128 &c)
         {
             array_sse[0] = a;
@@ -85,6 +113,15 @@ namespace MathCore
             array_sse[2] = c;
         }
 #elif defined(ITK_NEON)
+        /// \brief Constructs a 3x3 matrix from raw SIMD vectors
+        ///
+        /// Initialize the mat3 columns directly from three NEON vectors.
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a SIMD vector used to fill the first column of the matrix
+        /// \param b SIMD vector used to fill the second column of the matrix
+        /// \param c SIMD vector used to fill the third column of the matrix
+        ///
         ITK_INLINE mat3(const float32x4_t &a, const float32x4_t &b, const float32x4_t &c)
         {
             array_neon[0] = a;
@@ -94,15 +131,14 @@ namespace MathCore
 #endif
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs an identity matrix 4x4
+        /// \brief Constructs an identity matrix 3x3
         ///
-        /// This construct an identity matrix
+        /// This constructs an identity matrix
         ///
         /// <pre>
-        /// | 1 0 0 0 |
-        /// | 0 1 0 0 |
-        /// | 0 0 1 0 |
-        /// | 0 0 0 1 |
+        /// | 1 0 0 |
+        /// | 0 1 0 |
+        /// | 0 0 1 |
         /// </pre>
         ///
         /// Example:
@@ -129,7 +165,7 @@ namespace MathCore
 #endif
         }
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 3x3 matrix
         ///
         /// Initialize all components of the matrix with the same value
         ///
@@ -160,6 +196,21 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 3x3 matrix
+        ///
+        /// Initialize all components of the matrix with the same value,
+        /// converting the input value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3 matrix = mat3( 10.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -168,30 +219,37 @@ namespace MathCore
         ITK_INLINE mat3(const _InputType &v) : self_type((_BaseType)v) {}
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 3x3 matrix
         ///
         /// Initialize the mat3 components from the parameters
         ///
         /// The visual is related to the matrix column major order.
         ///
         /// <pre>
-        /// | a1 b1 c1 d1 |
-        /// | a2 b2 c2 d2 |
-        /// | a3 b3 c3 d3 |
-        /// | a4 b4 c4 d4 |
+        /// | a1 b1 c1 |
+        /// | a2 b2 c2 |
+        /// | a3 b3 c3 |
         /// </pre>
         ///
         /// Example:
         ///
         /// \code
         ///
-        /// mat3 matrix = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
-        ///                     0.0f, 1.0f, 0.0f, 0.0f,
-        ///                     0.0f, 0.0f, 1.0f, 0.0f,
-        ///                     0.0f, 0.0f, 0.0f, 1.0f);
+        /// mat3 matrix = mat3( 1.0f, 0.0f, 0.0f,
+        ///                     0.0f, 1.0f, 0.0f,
+        ///                     0.0f, 0.0f, 1.0f );
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
         ///
         ITK_INLINE mat3(
             const _BaseType &a1, const _BaseType &b1, const _BaseType &c1,
@@ -211,6 +269,39 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 3x3 matrix
+        ///
+        /// Initialize the mat3 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// The visual is related to the matrix column major order.
+        ///
+        /// <pre>
+        /// | a1 b1 c1 |
+        /// | a2 b2 c2 |
+        /// | a3 b3 c3 |
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3 matrix = mat3( 1.0, 0.0, 0.0,
+        ///                     0.0, 1.0, 0.0,
+        ///                     0.0, 0.0, 1.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
+        ///
         template <typename __a1, typename __b1, typename __c1,
                   typename __a2, typename __b2, typename __c2,
                   typename __a3, typename __b3, typename __c3,
@@ -240,7 +331,7 @@ namespace MathCore
         }
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 3x3 matrix
         ///
         /// Initialize the mat3 components by copying other mat3 instance
         ///
@@ -248,10 +339,9 @@ namespace MathCore
         ///
         /// \code
         ///
-        /// mat3 matrix_src = mat3( 1.0f, 0.0f, 0.0f, 0.0f,
-        ///                         0.0f, 1.0f, 0.0f, 0.0f,
-        ///                         0.0f, 0.0f, 1.0f, 0.0f,
-        ///                         0.0f, 0.0f, 0.0f, 1.0f);
+        /// mat3 matrix_src = mat3( 1.0f, 0.0f, 0.0f,
+        ///                         0.0f, 1.0f, 0.0f,
+        ///                         0.0f, 0.0f, 1.0f );
         ///
         /// mat3 matrix = mat3( matrix_src );
         ///
@@ -278,6 +368,24 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+        /// \brief Assigns the components of another mat3 to this instance
+        ///
+        /// Copy the a1, a2, a3, b1, b2, b3, c1, c2 and c3 components
+        /// from another mat3 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3 matrix_a, matrix_b;
+        ///
+        /// matrix_a = matrix_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type &operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
@@ -295,12 +403,28 @@ namespace MathCore
         }
 
         //---------------------------------------------------------------------------
-        /// \brief Constructs a 4x4 matrix
+        /// \brief Constructs a 3x3 matrix
         ///
         /// Initialize the mat3 components from vec3 parameters
         ///
+        /// The first vec3 fills the first column, the second vec3 fills the
+        /// second column and the third vec3 fills the third column of the matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec3 col_a( 1.0f, 0.0f, 0.0f );
+        /// vec3 col_b( 0.0f, 1.0f, 0.0f );
+        /// vec3 col_c( 0.0f, 0.0f, 1.0f );
+        ///
+        /// mat3 matrix = mat3( col_a, col_b, col_c );
+        /// \endcode
+        ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to copy from
+        /// \param a vec3 used to fill the first column of the matrix
+        /// \param b vec3 used to fill the second column of the matrix
+        /// \param c vec3 used to fill the third column of the matrix
         ///
         ITK_INLINE mat3(const vec3_compatible_type &a, const vec3_compatible_type &b, const vec3_compatible_type &c)
         {
@@ -320,7 +444,7 @@ namespace MathCore
         //---------------------------------------------------------------------------
         /// \brief Matrix multiplication
         ///
-        /// Makes the full 4x4 matrix multiplication
+        /// Makes the full 3x3 matrix multiplication
         ///
         /// Example:
         ///
@@ -510,9 +634,9 @@ namespace MathCore
         ///
         /// mat3 matrix;
         ///
-        /// matrix(3,0) = 1.0f;
+        /// matrix(1,0) = 1.0f;
         ///
-        /// float v = matrix(3,3);
+        /// float v = matrix(2,2);
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
@@ -524,14 +648,30 @@ namespace MathCore
         {
             return array[_col * 4 + _row];
         }
+        /// \brief Matrix access based on X (row) and Y (column)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// const mat3 matrix;
+        ///
+        /// float v = matrix(1,1);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _row The row to get the element at index
+        /// \param _col The column to get the element at index
+        /// \return A reference to the matrix element
+        ///
         ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 4 + _row];
         }
         //---------------------------------------------------------------------------
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec3 type
+        /// Access one of the 3 columns of the matrix as a vec3 type
         ///
         /// Example:
         ///
@@ -542,21 +682,21 @@ namespace MathCore
         ///
         /// vec3 forward = matrix[2];
         ///
-        /// matrix[3] = toPtn4( translate_vec );
+        /// matrix[1] = translate_vec;
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec3
+        /// \return A reference to the matrix column as vec3
         ///
         ITK_INLINE vec3_compatible_type &operator[](const int _col)
         {
             return *((vec3_compatible_type *)&array[_col * 4]);
         }
 
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec3 type
+        /// Access one of the 3 columns of the matrix as a vec3 type
         ///
         /// Example:
         ///
@@ -570,14 +710,16 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec3
+        /// \return A reference to the matrix column as vec3
         ///
         ITK_INLINE const vec3_compatible_type &operator[](const int _col) const
         {
             return *((vec3_compatible_type *)&array[_col * 4]);
         }
         //---------------------------------------------------------------------------
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are the same.
         ///
         /// Example:
         ///
@@ -592,8 +734,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are the same considering #EPSILON
         ///
         ITK_INLINE bool operator==(const self_type &v) const
         {
@@ -682,7 +824,25 @@ namespace MathCore
 #endif
         }
 
-        // inter SIMD types converting...
+        /// \brief Assigns the components of a mat3 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another mat3 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3<float, SIMD_TYPE::SSE> mat_sse;
+        /// mat3<float, SIMD_TYPE::NEON> mat_neon;
+        ///
+        /// mat_neon = mat_sse;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -697,7 +857,22 @@ namespace MathCore
                 (_BaseType)m.a3, (_BaseType)m.b3, (_BaseType)m.c3);
             return *this;
         }
-        // inter SIMD types converting...
+        /// \brief Converts the mat3 to another mat3 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new mat3 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3<float, SIMD_TYPE::SSE> mat_sse;
+        /// mat3<float, SIMD_TYPE::NEON> mat_neon = mat_sse;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A mat3 instance with the converted components
+        ///
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
@@ -712,7 +887,9 @@ namespace MathCore
                 (_OutputType)a3, (_OutputType)b3, (_OutputType)c3);
         }
 
-        /// \brief Compare two matrix using the #EPSILON constant
+        /// \brief Compare matrices considering #EPSILON (not equal)
+        ///
+        /// Compare two matrices using #EPSILON to see if they are different.
         ///
         /// Example:
         ///
@@ -727,15 +904,17 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix to compare with
-        /// \return true: the matrix is not equal, considering the #EPSILON
+        /// \param v Matrix to compare against
+        /// \return true if the values are not the same considering #EPSILON
         ///
         ITK_INLINE bool operator!=(const self_type &v) const
         {
             return !((*this) == v);
         }
 
-        /// \brief Component-wise add elements of the matrix
+        /// \brief Component-wise sum (add) operator overload
+        ///
+        /// Increment the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -747,8 +926,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to add values
-        /// \return The matrix with the sum result
+        /// \param v Matrix to increment the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const self_type &v)
         {
@@ -769,7 +948,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise subtract elements of the matrix
+        /// \brief Component-wise subtract operator overload
+        ///
+        /// Decrement the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -781,8 +962,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \param v The other matrix used to subtract values
-        /// \return The matrix with the subtract result
+        /// \param v Matrix to decrement the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const self_type &v)
         {
@@ -803,9 +984,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Component-wise change signal
+        /// \brief Component-wise unary minus (negation) operator overload
         ///
-        /// Change the signal of each element in the matrix
+        /// Returns a copy of the matrix with all components negated.
         ///
         /// Example:
         ///
@@ -817,7 +998,7 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the signal changed
+        /// \return A copy of the current instance after the negation operation
         ///
         ITK_INLINE self_type operator-() const
         {
@@ -844,9 +1025,9 @@ namespace MathCore
 #endif
         }
 
-        /// \brief Component-wise divide element
+        /// \brief Component-wise divide operator overload
         ///
-        /// Make the division operation on each element of the matrix
+        /// Divide the matrix by the components of another matrix
         ///
         /// Example:
         ///
@@ -858,7 +1039,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division result
+        /// \param v Matrix to divide the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
         ITK_INLINE self_type &operator/=(const self_type &v)
         {
@@ -866,6 +1048,22 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Compute the inverse of the matrix
+        ///
+        /// Returns the inverse matrix using the determinant.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3 matrix;
+        ///
+        /// mat3 inv = matrix.inverse();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return The inverse of the current matrix
+        ///
         ITK_INLINE self_type inverse() const
         {
             // original implementation
@@ -924,10 +1122,24 @@ namespace MathCore
             return result * det;
         }
 
-        //
-        // can be used for inverse
-        // transpose rotation+scale mat3 representations
-        //
+        /// \brief Compute the inverse transpose of the 2x2 sub-matrix
+        ///
+        /// Returns the inverse transpose of the upper-left 2x2 sub-matrix,
+        /// keeping the third row and column as the identity. This is useful
+        /// for inverting rotation+scale mat3 representations.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat3 matrix;
+        ///
+        /// mat3 inv = matrix.inverse_transpose_2x2();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return The inverse transpose of the 2x2 sub-matrix
+        ///
         ITK_INLINE mat3 inverse_transpose_2x2() const
         {
             _BaseType det = (a1 * b2 - b1 * a2);
@@ -942,7 +1154,9 @@ namespace MathCore
                              0, 0, 1);
         }
 
-        /// \brief Add (sum) matrix with a scalar
+        /// \brief Single value increment (add, sum) operator overload
+        ///
+        /// Increment the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -954,7 +1168,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the sum of the elements
+        /// \param v Value to increment all components of the current matrix instance
+        /// \return A reference to the current instance after the increment
         ///
         ITK_INLINE self_type &operator+=(const _BaseType &v)
         {
@@ -979,7 +1194,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Subtract matrix with a scalar
+        /// \brief Single value decrement (subtract) operator overload
+        ///
+        /// Decrement the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -991,7 +1208,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the subtract of the elements
+        /// \param v Value to decrement all components of the current matrix instance
+        /// \return A reference to the current instance after the decrement
         ///
         ITK_INLINE self_type &operator-=(const _BaseType &v)
         {
@@ -1016,7 +1234,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Multiply matrix elements with a scalar
+        /// \brief Single value multiply operator overload
+        ///
+        /// Multiply the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -1028,7 +1248,8 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the multiplication of the elements
+        /// \param v Value to multiply all components of the current matrix instance
+        /// \return A reference to the current instance after the multiply
         ///
         ITK_INLINE self_type &operator*=(const _BaseType &v)
         {
@@ -1053,7 +1274,9 @@ namespace MathCore
             return *this;
         }
 
-        /// \brief Divide matrix elements with a scalar
+        /// \brief Single value division operator overload
+        ///
+        /// Divides the matrix components by a single value (scalar)
         ///
         /// Example:
         ///
@@ -1065,16 +1288,23 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
-        /// \return The matrix with the division of the elements
+        /// \param v Value to divide all components of the current matrix instance
+        /// \return A reference to the current instance after the division
         ///
         ITK_INLINE self_type &operator/=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            __m128 tmp = _mm_set1_ps(v);
+            // __m128 tmp = _mm_set1_ps(v);
 
-            array_sse[0] = _mm_div_ps(array_sse[0], tmp);
-            array_sse[1] = _mm_div_ps(array_sse[1], tmp);
-            array_sse[2] = _mm_div_ps(array_sse[2], tmp);
+            // array_sse[0] = _mm_div_ps(array_sse[0], tmp);
+            // array_sse[1] = _mm_div_ps(array_sse[1], tmp);
+            // array_sse[2] = _mm_div_ps(array_sse[2], tmp);
+
+            __m128 tmp = _mm_set1_ps(1.0f / v);
+
+            array_sse[0] = _mm_mul_ps(array_sse[0], tmp);
+            array_sse[1] = _mm_mul_ps(array_sse[1], tmp);
+            array_sse[2] = _mm_mul_ps(array_sse[2], tmp);
 
 #elif defined(ITK_NEON)
 

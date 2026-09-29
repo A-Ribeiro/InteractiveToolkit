@@ -341,14 +341,14 @@ namespace MathCore
         template <class _Type = _type,
                   typename std::enable_if<
                       std::is_signed<_Type>::value, bool>::type = true>
-        static ITK_INLINE _type step(const _type &threshould, const _type &v) noexcept
+        static ITK_INLINE _type step(const _type &threshold, const _type &v) noexcept
         {
-            // _type _sub = v - threshould;
+            // _type _sub = v - threshold;
             // _type _sign = self_type::sign(_sub);
             // _sign = self_type::maximum(_sign, (_type)0);
             // return _sign;
 
-            return (v >= threshould);
+            return (v >= threshold);
         }
 
         template <class _Type = _type,

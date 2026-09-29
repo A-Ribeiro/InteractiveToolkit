@@ -26,7 +26,7 @@ namespace MathCore
     /// Example:
     ///
     /// \code
-            ///
+    ///
     /// mat4 a, b, result;
     ///
     /// result = ( a * 0.25f + b * 0.75f ) * 2.0f + 1.0f;
@@ -35,6 +35,11 @@ namespace MathCore
     ///
     /// \author Alessandro Ribeiro
     ///
+    /// \tparam _BaseType The scalar type of each component (e.g., float, double).
+    /// \tparam _SimdType The SIMD strategy used for the matrix; this specialization
+    ///         is selected when _SimdType is SIMD_TYPE::SSE or SIMD_TYPE::NEON
+    ///         (SIMD float optimization).
+    ///
     template <typename _BaseType, typename _SimdType>
     class alignas(16) mat4<_BaseType, _SimdType,
                            typename std::enable_if<
@@ -42,17 +47,33 @@ namespace MathCore
                                (std::is_same<_SimdType, SIMD_TYPE::SSE>::value ||
                                 std::is_same<_SimdType, SIMD_TYPE::NEON>::value)>::type>
     {
+        /// \brief Alias for the fully specialized mat4 type.
+        ///
         using self_type = mat4<_BaseType, _SimdType>;
+        /// \brief Alias for the vec4 type compatible with this matrix's SIMD strategy.
+        ///
         using vec4_compatible_type = vec4<_BaseType, _SimdType>;
 
     public:
+        /// \brief Number of rows of the matrix (always 4).
+        ///
         static constexpr int rows = 4;
+        /// \brief Number of columns of the matrix (always 4).
+        ///
         static constexpr int cols = 4;
 
+        /// \brief Total number of components stored by the matrix (always 16).
+        ///
         static constexpr int array_count = 16;
+        /// \brief Number of components per column (always 4).
+        ///
         static constexpr int array_stride = 4;
 
+        /// \brief Alias for the matrix type itself.
+        ///
         using type = self_type;
+        /// \brief The scalar type of each component.
+        ///
         using element_type = _BaseType;
 
         union
@@ -79,6 +100,29 @@ namespace MathCore
         };
 
 #if defined(ITK_SSE2)
+        /// \brief Constructs a 4x4 matrix from SIMD vectors
+        ///
+        /// Initialize the mat4 components from four SSE vectors, each filling
+        /// one column of the matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// __m128 col_a = _mm_setr_ps(1.0f, 0.0f, 0.0f, 0.0f);
+        /// __m128 col_b = _mm_setr_ps(0.0f, 1.0f, 0.0f, 0.0f);
+        /// __m128 col_c = _mm_setr_ps(0.0f, 0.0f, 1.0f, 0.0f);
+        /// __m128 col_d = _mm_setr_ps(0.0f, 0.0f, 0.0f, 1.0f);
+        ///
+        /// mat4 matrix = mat4( col_a, col_b, col_c, col_d );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a SIMD vector used to fill the first column of the matrix
+        /// \param b SIMD vector used to fill the second column of the matrix
+        /// \param c SIMD vector used to fill the third column of the matrix
+        /// \param d SIMD vector used to fill the fourth column of the matrix
+        ///
         ITK_INLINE mat4(const __m128 &a, const __m128 &b, const __m128 &c, const __m128 &d)
         {
             array_sse[0] = a;
@@ -87,6 +131,29 @@ namespace MathCore
             array_sse[3] = d;
         }
 #elif defined(ITK_NEON)
+        /// \brief Constructs a 4x4 matrix from SIMD vectors
+        ///
+        /// Initialize the mat4 components from four NEON vectors, each filling
+        /// one column of the matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float32x4_t col_a = (float32x4_t){1.0f, 0.0f, 0.0f, 0.0f};
+        /// float32x4_t col_b = (float32x4_t){0.0f, 1.0f, 0.0f, 0.0f};
+        /// float32x4_t col_c = (float32x4_t){0.0f, 0.0f, 1.0f, 0.0f};
+        /// float32x4_t col_d = (float32x4_t){0.0f, 0.0f, 0.0f, 1.0f};
+        ///
+        /// mat4 matrix = mat4( col_a, col_b, col_c, col_d );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param a SIMD vector used to fill the first column of the matrix
+        /// \param b SIMD vector used to fill the second column of the matrix
+        /// \param c SIMD vector used to fill the third column of the matrix
+        /// \param d SIMD vector used to fill the fourth column of the matrix
+        ///
         ITK_INLINE mat4(const float32x4_t &a, const float32x4_t &b, const float32x4_t &c, const float32x4_t &d)
         {
             array_neon[0] = a;
@@ -99,7 +166,7 @@ namespace MathCore
         //---------------------------------------------------------------------------
         /// \brief Constructs an identity matrix 4x4
         ///
-        /// This construct an identity matrix
+        /// This constructs an identity matrix
         ///
         /// <pre>
         /// | 1 0 0 0 |
@@ -171,6 +238,21 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize all components of the matrix with the same value,
+        /// converting the input value to the base type when necessary.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix = mat4( 10.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v Value to initialize the components
+        ///
         template <typename _InputType,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -203,6 +285,22 @@ namespace MathCore
         /// \endcode
         ///
         /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _d1 Value to assign to the d1 component (row 0, column 3)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _d2 Value to assign to the d2 component (row 1, column 3)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
+        /// \param _d3 Value to assign to the d3 component (row 2, column 3)
+        /// \param _a4 Value to assign to the a4 component (row 3, column 0)
+        /// \param _b4 Value to assign to the b4 component (row 3, column 1)
+        /// \param _c4 Value to assign to the c4 component (row 3, column 2)
+        /// \param _d4 Value to assign to the d4 component (row 3, column 3)
         ///
         ITK_INLINE mat4(
             const _BaseType &a1, const _BaseType &b1, const _BaseType &c1, const _BaseType &d1,
@@ -225,6 +323,48 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Constructs a 4x4 matrix
+        ///
+        /// Initialize the mat4 components from the parameters, converting
+        /// each value to the base type when necessary.
+        ///
+        /// The visual is related to the matrix column major order.
+        ///
+        /// <pre>
+        /// | a1 b1 c1 d1 |
+        /// | a2 b2 c2 d2 |
+        /// | a3 b3 c3 d3 |
+        /// | a4 b4 c4 d4 |
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix = mat4( 1.0, 0.0, 0.0, 0.0,
+        ///                     0.0, 1.0, 0.0, 0.0,
+        ///                     0.0, 0.0, 1.0, 0.0,
+        ///                     0.0, 0.0, 0.0, 1.0 );
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _a1 Value to assign to the a1 component (row 0, column 0)
+        /// \param _b1 Value to assign to the b1 component (row 0, column 1)
+        /// \param _c1 Value to assign to the c1 component (row 0, column 2)
+        /// \param _d1 Value to assign to the d1 component (row 0, column 3)
+        /// \param _a2 Value to assign to the a2 component (row 1, column 0)
+        /// \param _b2 Value to assign to the b2 component (row 1, column 1)
+        /// \param _c2 Value to assign to the c2 component (row 1, column 2)
+        /// \param _d2 Value to assign to the d2 component (row 1, column 3)
+        /// \param _a3 Value to assign to the a3 component (row 2, column 0)
+        /// \param _b3 Value to assign to the b3 component (row 2, column 1)
+        /// \param _c3 Value to assign to the c3 component (row 2, column 2)
+        /// \param _d3 Value to assign to the d3 component (row 2, column 3)
+        /// \param _a4 Value to assign to the a4 component (row 3, column 0)
+        /// \param _b4 Value to assign to the b4 component (row 3, column 1)
+        /// \param _c4 Value to assign to the c4 component (row 3, column 2)
+        /// \param _d4 Value to assign to the d4 component (row 3, column 3)
+        ///
         template <typename __a1, typename __b1, typename __c1, typename __d1,
                   typename __a2, typename __b2, typename __c2, typename __d2,
                   typename __a3, typename __b3, typename __c3, typename __d3,
@@ -313,6 +453,24 @@ namespace MathCore
 #error Missing ITK_SSE2 or ITK_NEON compile option
 #endif
         }
+        /// \brief Assigns the components of another mat4 to this instance
+        ///
+        /// Copy the a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3
+        /// and d4 components from another mat4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix_a, matrix_b;
+        ///
+        /// matrix_a = matrix_b;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from
+        /// \return A reference to the current instance after the assignment
+        ///
         ITK_INLINE self_type &operator=(const self_type &m)
         {
 #if defined(ITK_SSE2)
@@ -336,8 +494,27 @@ namespace MathCore
         ///
         /// Initialize the mat4 components from vec4 parameters
         ///
+        /// The first vec4 fills the first column, the second vec4 fills the
+        /// second column, the third vec4 fills the third column and the fourth
+        /// vec4 fills the fourth column of the matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// vec4 col_a( 1.0f, 0.0f, 0.0f, 0.0f );
+        /// vec4 col_b( 0.0f, 1.0f, 0.0f, 0.0f );
+        /// vec4 col_c( 0.0f, 0.0f, 1.0f, 0.0f );
+        /// vec4 col_d( 0.0f, 0.0f, 0.0f, 1.0f );
+        ///
+        /// mat4 matrix = mat4( col_a, col_b, col_c, col_d );
+        /// \endcode
+        ///
         /// \author Alessandro Ribeiro
-        /// \param m Matrix to copy from
+        /// \param a vec4 used to fill the first column of the matrix
+        /// \param b vec4 used to fill the second column of the matrix
+        /// \param c vec4 used to fill the third column of the matrix
+        /// \param d vec4 used to fill the fourth column of the matrix
         ///
         ITK_INLINE mat4(const vec4_compatible_type &a, const vec4_compatible_type &b, const vec4_compatible_type &c, const vec4_compatible_type &d)
         {
@@ -566,14 +743,30 @@ namespace MathCore
         {
             return array[_col * 4 + _row];
         }
+        /// \brief Matrix access based on X (row) and Y (column)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// const mat4 matrix;
+        ///
+        /// float v = matrix(3,3);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _row The row to get the element at index
+        /// \param _col The column to get the element at index
+        /// \return A reference to the matrix element
+        ///
         ITK_INLINE const _BaseType &operator()(const int _row, const int _col) const
         {
             return array[_col * 4 + _row];
         }
         //---------------------------------------------------------------------------
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec4 type
+        /// Access one of the 4 columns of the matrix as a vec4 type
         ///
         /// Example:
         ///
@@ -589,16 +782,16 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec4
+        /// \return A reference to the matrix column as vec4
         ///
         ITK_INLINE vec4_compatible_type &operator[](const int _col)
         {
             return *((vec4_compatible_type *)&array[_col * 4]);
         }
 
-        /// \brief Matrix row access based
+        /// \brief Matrix column access based
         ///
-        /// Acess one of the 4 columns of the matrix as a vec4 type
+        /// Access one of the 4 columns of the matrix as a vec4 type
         ///
         /// Example:
         ///
@@ -612,7 +805,7 @@ namespace MathCore
         ///
         /// \author Alessandro Ribeiro
         /// \param _col The column to get
-        /// \return A reference to the matrix row as vec4
+        /// \return A reference to the matrix column as vec4
         ///
         ITK_INLINE const vec4_compatible_type &operator[](const int _col) const
         {
@@ -722,7 +915,25 @@ namespace MathCore
 #endif
         }
 
-        // inter SIMD types converting...
+        /// \brief Assigns the components of a mat4 with a different type/SIMD strategy
+        ///
+        /// Convert the components of another mat4 instance (different base type
+        /// and/or SIMD strategy) to this instance's base type and assign them.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<float> mat_f;
+        /// mat4<double> mat_d;
+        ///
+        /// mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m Matrix to copy the components from (converted to the base type)
+        /// \return A reference to the current instance after the assignment
+        ///
         template <typename _InputType, typename _InputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_InputType, _BaseType>::value &&
@@ -738,7 +949,22 @@ namespace MathCore
                 (_BaseType)m.a4, (_BaseType)m.b4, (_BaseType)m.c4, (_BaseType)m.d4);
             return *this;
         }
-        // inter SIMD types converting...
+        /// \brief Converts the mat4 to another mat4 with a different type/SIMD strategy
+        ///
+        /// Implicit conversion operator that converts the components to the
+        /// output base type and returns a new mat4 instance.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4<float> mat_f;
+        /// mat4<double> mat_d = mat_f;
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A mat4 instance with the converted components
+        ///
         template <typename _OutputType, typename _OutputSimdTypeAux,
                   typename std::enable_if<
                       std::is_convertible<_BaseType, _OutputType>::value &&
@@ -915,6 +1141,22 @@ namespace MathCore
             return *this;
         }
 
+        /// \brief Compute the inverse of the matrix
+        ///
+        /// Returns the inverse matrix using the determinant.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv = matrix.inverse();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return The inverse of the current matrix
+        ///
         ITK_INLINE self_type inverse() const
         {
 #if defined(ITK_SSE2)
@@ -1403,10 +1645,24 @@ namespace MathCore
 #endif
         }
 
-        //
-        // can be used for inverse
-        // transpose rotation+scale mat4 representations
-        //
+        /// \brief Compute the inverse transpose of the 3x3 upper-left sub-matrix
+        ///
+        /// Returns a matrix with the inverse transpose of the upper-left 3x3
+        /// portion, which can be used for inverse transpose rotation+scale
+        /// mat4 representations.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv_transpose = matrix.inverse_transpose_3x3();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A matrix with the inverse transpose of the 3x3 sub-matrix
+        ///
         ITK_INLINE mat4 inverse_transpose_3x3() const
         {
 
@@ -1491,6 +1747,24 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Compute the inverse transpose of the 2x2 upper-left sub-matrix
+        ///
+        /// Returns a matrix with the inverse transpose of the upper-left 2x2
+        /// portion, which can be used for inverse transpose rotation+scale
+        /// mat4 representations.
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// mat4 matrix;
+        ///
+        /// mat4 inv_transpose = matrix.inverse_transpose_2x2();
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \return A matrix with the inverse transpose of the 2x2 sub-matrix
+        ///
         ITK_INLINE mat4 inverse_transpose_2x2() const
         {
             _BaseType det = (a1 * b2 - b1 * a2);
@@ -1641,12 +1915,18 @@ namespace MathCore
         ITK_INLINE self_type &operator/=(const _BaseType &v)
         {
 #if defined(ITK_SSE2)
-            __m128 tmp = _mm_set1_ps(v);
+            // __m128 tmp = _mm_set1_ps(v);
 
-            array_sse[0] = _mm_div_ps(array_sse[0], tmp);
-            array_sse[1] = _mm_div_ps(array_sse[1], tmp);
-            array_sse[2] = _mm_div_ps(array_sse[2], tmp);
-            array_sse[3] = _mm_div_ps(array_sse[3], tmp);
+            // array_sse[0] = _mm_div_ps(array_sse[0], tmp);
+            // array_sse[1] = _mm_div_ps(array_sse[1], tmp);
+            // array_sse[2] = _mm_div_ps(array_sse[2], tmp);
+            // array_sse[3] = _mm_div_ps(array_sse[3], tmp);
+            __m128 tmp = _mm_set1_ps(1.0f / v);
+
+            array_sse[0] = _mm_mul_ps(array_sse[0], tmp);
+            array_sse[1] = _mm_mul_ps(array_sse[1], tmp);
+            array_sse[2] = _mm_mul_ps(array_sse[2], tmp);
+            array_sse[3] = _mm_mul_ps(array_sse[3], tmp);
 
 #elif defined(ITK_NEON)
 

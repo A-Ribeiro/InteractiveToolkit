@@ -16,6 +16,34 @@
 namespace MathCore
 {
 
+    /// \brief Generation operations specialization for mat4 with float SIMD optimization.
+    ///
+    /// Provides generation (SIMD) utility functions for the mat4 class when the
+    /// scalar type is float and SIMD optimizations are enabled (SSE or NEON).
+    /// This specialization is selected via SFINAE when the _type template
+    /// parameter is float and the _simd template parameter matches
+    /// SIMD_TYPE::SSE or SIMD_TYPE::NEON.
+    ///
+    /// The static factory methods build common 4x4 matrices: homogeneous
+    /// translations and scales, axis-aligned rotations, Euler-angle rotations,
+    /// arbitrary axis-angle rotations, perspective/frustum/orthographic
+    /// projection matrices, look-at matrices, and conversions from quaternions
+    /// and other matrix types.
+    ///
+    /// Example:
+    ///
+    /// \code
+    /// mat4<float, SIMD_TYPE::SSE> m;
+    /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::translateHomogeneous(1.0f, 2.0f, 3.0f);
+    /// \endcode
+    ///
+    /// \author Alessandro Ribeiro
+    ///
+    /// \tparam _type The scalar type of the mat4 components; this specialization
+    ///         is selected when _type is float.
+    /// \tparam _simd The SIMD strategy type; this specialization is selected when
+    ///         _simd is SIMD_TYPE::SSE or SIMD_TYPE::NEON.
+    ///
     template <typename _type, typename _simd>
     struct GEN<mat4<_type, _simd>,
                typename std::enable_if<
@@ -24,16 +52,50 @@ namespace MathCore
                     std::is_same<_simd, SIMD_TYPE::NEON>::value)>::type>
     {
     private:
+        /// \brief Alias for the fully specialized mat4 type.
+        ///
         using typeMat4 = mat4<_type, _simd>;
+        /// \brief Alias for the fully specialized mat2 type.
+        ///
         using typeMat2 = mat2<_type, _simd>;
+        /// \brief Alias for the fully specialized mat3 type.
+        ///
         using typeMat3 = mat3<_type, _simd>;
+        /// \brief Alias for the fully specialized vec4 type.
+        ///
         using typeVec4 = vec4<_type, _simd>;
+        /// \brief Alias for the fully specialized vec3 type.
+        ///
         using typeVec3 = vec3<_type, _simd>;
+        /// \brief Alias for the fully specialized vec2 type.
+        ///
         using typeVec2 = vec2<_type, _simd>;
+        /// \brief Alias for the fully specialized quat type.
+        ///
         using quatT = quat<_type, _simd>;
+        /// \brief Alias for the GEN specialization type.
+        ///
         using self_type = GEN<typeMat4>;
 
     public:
+        /// \brief Build a homogeneous 3D translation matrix from scalar components.
+        ///
+        /// Returns a 4x4 matrix that translates a point by (_x_, _y_, _z_) in
+        /// the x, y and z axes respectively. The z translation defaults to 0.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::translateHomogeneous(1.0f, 2.0f, 3.0f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x_ Translation amount along the x axis.
+        /// \param _y_ Translation amount along the y axis.
+        /// \param _z_ Translation amount along the z axis. Defaults to 0.
+        /// \return A 4x4 homogeneous translation matrix.
+        ///
         static ITK_INLINE typeMat4 translateHomogeneous(const _type &_x_, const _type &_y_, const _type &_z_ = 0) noexcept
         {
 #if defined(ITK_SSE2)
@@ -51,6 +113,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D translation matrix from a vec2.
+        ///
+        /// Returns a 4x4 matrix that translates a point by the x and y
+        /// components of the given vector, leaving the z axis unchanged.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::translateHomogeneous(vec2<float, SIMD_TYPE::SSE>(1.0f, 2.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Translation vector; its x and y components are used.
+        /// \return A 4x4 homogeneous translation matrix.
+        ///
         static ITK_INLINE typeMat4 translateHomogeneous(const typeVec2 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -76,6 +154,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D translation matrix from a vec3.
+        ///
+        /// Returns a 4x4 matrix that translates a point by the x, y and z
+        /// components of the given vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::translateHomogeneous(vec3<float, SIMD_TYPE::SSE>(1.0f, 2.0f, 3.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Translation vector; its x, y and z components are used.
+        /// \return A 4x4 homogeneous translation matrix.
+        ///
         static ITK_INLINE typeMat4 translateHomogeneous(const typeVec3 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -102,6 +196,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D translation matrix from a vec4.
+        ///
+        /// Returns a 4x4 matrix that translates a point by the x, y and z
+        /// components of the given vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::translateHomogeneous(vec4<float, SIMD_TYPE::SSE>(1.0f, 2.0f, 3.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Translation vector; its x, y and z components are used.
+        /// \return A 4x4 homogeneous translation matrix.
+        ///
         static ITK_INLINE typeMat4 translateHomogeneous(const typeVec4 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -128,6 +238,24 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D scale matrix from scalar components.
+        ///
+        /// Returns a 4x4 matrix that scales a point by _x_, _y_ and _z_ along
+        /// the x, y and z axes respectively. The z scale defaults to 1.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::scaleHomogeneous(2.0f, 3.0f, 4.0f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _x_ Scale factor along the x axis.
+        /// \param _y_ Scale factor along the y axis.
+        /// \param _z_ Scale factor along the z axis. Defaults to 1.
+        /// \return A 4x4 homogeneous scale matrix.
+        ///
         static ITK_INLINE typeMat4 scaleHomogeneous(const _type &_x_, const _type &_y_, const _type &_z_ = (_type)1) noexcept
         {
 #if defined(ITK_SSE2)
@@ -146,6 +274,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D scale matrix from a vec2.
+        ///
+        /// Returns a 4x4 matrix that scales a point by the x and y components
+        /// of the given vector along the x and y axes, leaving the z axis
+        /// unchanged.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::scaleHomogeneous(vec2<float, SIMD_TYPE::SSE>(2.0f, 3.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Scale vector; its x and y components are used.
+        /// \return A 4x4 homogeneous scale matrix.
+        ///
         static ITK_INLINE typeMat4 scaleHomogeneous(const typeVec2 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -164,6 +309,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D scale matrix from a vec3.
+        ///
+        /// Returns a 4x4 matrix that scales a point by the x, y and z
+        /// components of the given vector along the x, y and z axes
+        /// respectively.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::scaleHomogeneous(vec3<float, SIMD_TYPE::SSE>(2.0f, 3.0f, 4.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Scale vector; its x, y and z components are used.
+        /// \return A 4x4 homogeneous scale matrix.
+        ///
         static ITK_INLINE typeMat4 scaleHomogeneous(const typeVec3 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -182,6 +344,23 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D scale matrix from a vec4.
+        ///
+        /// Returns a 4x4 matrix that scales a point by the x, y and z
+        /// components of the given vector along the x, y and z axes
+        /// respectively.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::scaleHomogeneous(vec4<float, SIMD_TYPE::SSE>(2.0f, 3.0f, 4.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _v_ Scale vector; its x, y and z components are used.
+        /// \return A 4x4 homogeneous scale matrix.
+        ///
         static ITK_INLINE typeMat4 scaleHomogeneous(const typeVec4 &_v_) noexcept
         {
 #if defined(ITK_SSE2)
@@ -200,6 +379,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix about the x axis.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _phi_ radians about
+        /// the x axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::xRotateHomogeneous(3.14159f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _phi_ Rotation angle in radians about the x axis.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 xRotateHomogeneous(const _type &_phi_) noexcept
         {
             _type c = OP<_type>::cos(_phi_);
@@ -220,6 +415,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix about the y axis.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _theta_ radians about
+        /// the y axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::yRotateHomogeneous(3.14159f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _theta_ Rotation angle in radians about the y axis.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 yRotateHomogeneous(const _type &_theta_) noexcept
         {
             _type c = OP<_type>::cos(_theta_);
@@ -240,6 +451,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix about the z axis.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _psi_ radians about
+        /// the z axis.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::zRotateHomogeneous(3.14159f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _psi_ Rotation angle in radians about the z axis.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 zRotateHomogeneous(const _type &_psi_) noexcept
         {
             _type c = OP<_type>::cos(_psi_);
@@ -260,11 +487,50 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix from Euler angles.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by the given Euler
+        /// angles. The rotation is applied in the order roll (x), then pitch
+        /// (y), then yaw (z), i.e. yaw * pitch * roll.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::fromEulerHomogeneous(0.1f, 0.2f, 0.3f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param roll Rotation angle in radians about the x axis.
+        /// \param pitch Rotation angle in radians about the y axis.
+        /// \param yaw Rotation angle in radians about the z axis.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 fromEulerHomogeneous(const _type &roll, const _type &pitch, const _type &yaw) noexcept
         {
             return self_type::zRotateHomogeneous(yaw) * self_type::yRotateHomogeneous(pitch) * self_type::xRotateHomogeneous(roll);
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix from an axis and angle.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _ang_ radians about
+        /// the axis defined by the scalar components (_x, _y, _z). The axis
+        /// is normalized internally.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::rotateHomogeneous(3.14159f, 0.0f, 0.0f, 1.0f);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _ang_ Rotation angle in radians.
+        /// \param _x x component of the rotation axis.
+        /// \param _y y component of the rotation axis.
+        /// \param _z z component of the rotation axis.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 rotateHomogeneous(const _type &_ang_, const _type &_x, const _type &_y, const _type &_z) noexcept
         {
             _type x = _x;
@@ -300,16 +566,68 @@ namespace MathCore
             //                    0        ,        0        ,      0        ,   1  );
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix from an axis and angle.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _ang_ radians about
+        /// the axis defined by the x and y components of the given vector,
+        /// with the z component set to 0.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::rotateHomogeneous(3.14159f, vec2<float, SIMD_TYPE::SSE>(0.0f, 1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _ang_ Rotation angle in radians.
+        /// \param axis Rotation axis; its x and y components are used.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 rotateHomogeneous(const _type &_ang_, const typeVec2 &axis) noexcept
         {
             return self_type::rotateHomogeneous(_ang_, axis.x, axis.y, 0);
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix from an axis and angle.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _ang_ radians about
+        /// the axis defined by the x, y and z components of the given vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::rotateHomogeneous(3.14159f, vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _ang_ Rotation angle in radians.
+        /// \param axis Rotation axis; its x, y and z components are used.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 rotateHomogeneous(const _type &_ang_, const typeVec3 &axis) noexcept
         {
             return self_type::rotateHomogeneous(_ang_, axis.x, axis.y, axis.z);
         }
 
+        /// \brief Build a homogeneous 3D rotation matrix from an axis and angle.
+        ///
+        /// Returns a 4x4 matrix that rotates a point by _ang_ radians about
+        /// the axis defined by the x, y and z components of the given vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::rotateHomogeneous(3.14159f, vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _ang_ Rotation angle in radians.
+        /// \param axis Rotation axis; its x, y and z components are used.
+        /// \return A 4x4 homogeneous rotation matrix.
+        ///
         static ITK_INLINE typeMat4 rotateHomogeneous(const _type &_ang_, const typeVec4 &axis) noexcept
         {
             return self_type::rotateHomogeneous(_ang_, axis.x, axis.y, axis.z);
@@ -319,7 +637,7 @@ namespace MathCore
         ///
         /// <pre>
         /// f=cotangent(FieldOfView/2)
-        /// matriz:
+        /// matrix:
         ///
         /// f/aspect  0      0                           0
         /// 0         f      0                           0
@@ -350,7 +668,7 @@ namespace MathCore
         {
             using type_info = FloatTypeInfo<_type>;
             //   f=cotangent(FieldOfView/2)
-            // matriz:
+            // matrix:
             //
             // f/aspect  0      0                           0
             // 0         f      0                           0
@@ -407,6 +725,37 @@ namespace MathCore
             return self_type::projection_perspective_rh_negative_one(fovY, aspectX, near_, far_);
         }
 
+        /// \brief Creates a projection matrix (Right Handed)
+        ///
+        /// <pre>
+        /// f=cotangent(FieldOfView/2)
+        /// matrix:
+        ///
+        /// f/aspect  0      0                           0
+        /// 0         f      0                           0
+        /// 0         0    (zfar)/(znear-zfar)          (zfar*znear)/(znear-zfar)
+        /// 0         0     -1                           0
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float FovY = 60.0f;
+        /// float aspectX = screenWidth / screenHeight;
+        /// float near = 0.001f;
+        /// float far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_perspective_rh_zero_one(FovY,aspectX,near,far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param FovY Angle in degrees
+        /// \param aspectX The aspect of X related to the Height (ex.: Width/Height)
+        /// \param near_ Near plane
+        /// \param far_ Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_perspective_rh_zero_one(const _type &FovY, const _type &aspectX, const _type &near_, const _type &far_) noexcept
         {
 
@@ -424,6 +773,36 @@ namespace MathCore
                 0, 0, -1, 0);
         }
 
+        /// \brief Creates a projection matrix (Right Handed)
+        ///
+        /// The unit of the focal length is the same as specified by the width and height.
+        ///
+        /// ex.: Considering millimeters (mm) in a focal length of 35mm in a CCD area of 50x30 mm.<br />
+        /// It is possible to use this function to configure the projection:
+        ///
+        /// projection_perspective_rh_zero_one(35,50,30,0.001,100.0)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float focalLength = 35.0f;
+        /// float width = screenWidth;
+        /// float height = screenHeight;
+        /// float near = 0.001f;
+        /// float far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_perspective_rh_zero_one(focalLength,width,height,near,far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param focalLength The focal length
+        /// \param w Width
+        /// \param h Height
+        /// \param near_ Near plane
+        /// \param far_ Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_perspective_rh_zero_one(const _type &focalLength, const _type &w, const _type &h, const _type &near_, const _type &far_) noexcept
         {
             _type fovY = (_type)2 * OP<_type>::atan((h * (_type)0.5) / focalLength);
@@ -436,7 +815,7 @@ namespace MathCore
         ///
         /// <pre>
         /// f=cotangent(FieldOfView/2)
-        /// matriz:
+        /// matrix:
         ///
         /// f/aspect  0      0                           0
         /// 0         f      0                           0
@@ -516,6 +895,37 @@ namespace MathCore
             return projection_perspective_lh_negative_one(fovY, aspectX, near_, far_);
         }
 
+        /// \brief Creates a projection matrix (Left Handed)
+        ///
+        /// <pre>
+        /// f=cotangent(FieldOfView/2)
+        /// matrix:
+        ///
+        /// f/aspect  0      0                           0
+        /// 0         f      0                           0
+        /// 0         0   -(zfar)/(znear-zfar)          (zfar*znear)/(znear-zfar)
+        /// 0         0      1                           0
+        /// </pre>
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float FovY = 60.0f;
+        /// float aspectX = screenWidth / screenHeight;
+        /// float near = 0.001f;
+        /// float far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_perspective_lh_zero_one(FovY,aspectX,near,far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param FovY Angle in degrees
+        /// \param aspectX The aspect of X related to the Height (ex.: Width/Height)
+        /// \param near_ Near plane
+        /// \param far_ Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_perspective_lh_zero_one(const _type &FovY, const _type &aspectX, const _type &near_, const _type &far_) noexcept
         {
 
@@ -533,6 +943,36 @@ namespace MathCore
                 0, 0, 1, 0);
         }
 
+        /// \brief Creates a projection matrix (Left Handed)
+        ///
+        /// The unit of the focal length is the same as specified by the width and height.
+        ///
+        /// ex.: Considering millimeters (mm) in a focal length of 35mm in a CCD area of 50x30 mm.<br />
+        /// It is possible to use this function to configure the projection:
+        ///
+        /// projection_perspective_lh_zero_one(35,50,30,0.001,100.0)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float focalLength = 35.0f;
+        /// float width = screenWidth;
+        /// float height = screenHeight;
+        /// float near = 0.001f;
+        /// float far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_perspective_lh_zero_one(focalLength,width,height,near,far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param focalLength The focal length
+        /// \param w Width
+        /// \param h Height
+        /// \param near_ Near plane
+        /// \param far_ Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_perspective_lh_zero_one(const _type &focalLength, const _type &w, const _type &h, const _type &near_, const _type &far_) noexcept
         {
             _type fovY = (_type)2 * OP<_type>::atan((h * (_type)0.5) / focalLength);
@@ -577,6 +1017,28 @@ namespace MathCore
                             0, 0, -1, 0);
         }
 
+        /// \brief Creates a projection matrix from the frustum definition (Right Handed)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float Left = -1.0f, Right = 1.0f;
+        /// float Bottom = -1.0f, Top = 1.0f;
+        /// float Near = 0.001f, Far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_frustum_rh_zero_one(Left,Right,Bottom,Top,Near,Far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param Left The left limit of the projection plane
+        /// \param Right The right limit of the projection plane
+        /// \param Bottom The bottom limit of the projection plane
+        /// \param Top The top limit of the projection plane
+        /// \param Near Near plane
+        /// \param Far Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_frustum_rh_zero_one(const _type &Left, const _type &Right, const _type &Bottom, const _type &Top, const _type &Near, const _type &Far) noexcept
         {
             _type _1_o_rml = (_type)1 / (Right - Left);
@@ -626,6 +1088,28 @@ namespace MathCore
                             0, 0, 1, 0);
         }
 
+        /// \brief Creates a projection matrix from the frustum definition (Left Handed)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float Left = -1.0f, Right = 1.0f;
+        /// float Bottom = -1.0f, Top = 1.0f;
+        /// float Near = 0.001f, Far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_frustum_lh_zero_one(Left,Right,Bottom,Top,Near,Far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param Left The left limit of the projection plane
+        /// \param Right The right limit of the projection plane
+        /// \param Bottom The bottom limit of the projection plane
+        /// \param Top The top limit of the projection plane
+        /// \param Near Near plane
+        /// \param Far Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_frustum_lh_zero_one(const _type &Left, const _type &Right, const _type &Bottom, const _type &Top, const _type &Near, const _type &Far) noexcept
         {
             _type _1_o_rml = (_type)1 / (Right - Left);
@@ -673,6 +1157,28 @@ namespace MathCore
                             0, 0, 0, 1);
         }
 
+        /// \brief Creates a projection matrix from the orthographic definition (Right Handed)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float Left = -screenWidth/2.0f, Right = screenWidth/2.0f;
+        /// float Bottom = -screenHeight/2.0f, Top = screenHeight/2.0f;
+        /// float Near = -1000.0f, Far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_ortho_rh_zero_one(Left,Right,Bottom,Top,Near,Far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param Left The left limit of the projection plane
+        /// \param Right The right limit of the projection plane
+        /// \param Bottom The bottom limit of the projection plane
+        /// \param Top The top limit of the projection plane
+        /// \param Near Near plane
+        /// \param Far Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_ortho_rh_zero_one(const _type &Left, const _type &Right, const _type &Bottom, const _type &Top, const _type &Near, const _type &Far) noexcept
         {
             _type _1_o_rml = (_type)1 / (Right - Left);
@@ -721,6 +1227,28 @@ namespace MathCore
                 0, 0, 0, 1);
         }
 
+        /// \brief Creates a projection matrix from the orthographic definition (Left Handed)
+        ///
+        /// Example:
+        ///
+        /// \code
+        ///
+        /// float Left = -screenWidth/2.0f, Right = screenWidth/2.0f;
+        /// float Bottom = -screenHeight/2.0f, Top = screenHeight/2.0f;
+        /// float Near = -1000.0f, Far = 1000.0f;
+        ///
+        /// mat4 projection_matrix = projection_ortho_lh_zero_one(Left,Right,Bottom,Top,Near,Far);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param Left The left limit of the projection plane
+        /// \param Right The right limit of the projection plane
+        /// \param Bottom The bottom limit of the projection plane
+        /// \param Top The top limit of the projection plane
+        /// \param Near Near plane
+        /// \param Far Far plane
+        /// \return A 4x4 matrix
+        ///
         static ITK_INLINE typeMat4 projection_ortho_lh_zero_one(const _type &Left, const _type &Right, const _type &Bottom, const _type &Top, const _type &Near, const _type &Far) noexcept
         {
             _type _1_o_rml = (_type)1 / (Right - Left);
@@ -734,6 +1262,27 @@ namespace MathCore
                 0, 0, 0, 1);
         }
 
+        /// \brief Build a camera look-at matrix (Right Handed).
+        ///
+        /// Returns a 4x4 view matrix that positions a camera at _position_,
+        /// looking along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::cameraLookAtRH(
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the camera is looking.
+        /// \param up The up vector of the camera.
+        /// \param position The position of the camera.
+        /// \return A 4x4 view matrix.
+        ///
         static ITK_INLINE typeMat4 cameraLookAtRH(const typeVec3 &front, const typeVec3 &up, const typeVec3 &position) noexcept
         {
             typeVec3 lookTo = front;
@@ -750,6 +1299,27 @@ namespace MathCore
                          0, 0, 0, 1);
         }
 
+        /// \brief Build a camera look-at matrix (Left Handed).
+        ///
+        /// Returns a 4x4 view matrix that positions a camera at _position_,
+        /// looking along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::cameraLookAtLH(
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the camera is looking.
+        /// \param up The up vector of the camera.
+        /// \param position The position of the camera.
+        /// \return A 4x4 view matrix.
+        ///
         static ITK_INLINE typeMat4 cameraLookAtLH(const typeVec3 &front, const typeVec3 &up, const typeVec3 &position) noexcept
         {
             typeVec3 lookTo = front;
@@ -766,6 +1336,27 @@ namespace MathCore
                          0, 0, 0, 1);
         }
 
+        /// \brief Build a camera look-at matrix (Right Handed).
+        ///
+        /// Returns a 4x4 view matrix that positions a camera at _position_,
+        /// looking along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::cameraLookAtRH(
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the camera is looking.
+        /// \param up The up vector of the camera.
+        /// \param position The position of the camera.
+        /// \return A 4x4 view matrix.
+        ///
         static ITK_INLINE typeMat4 cameraLookAtRH(const typeVec4 &front, const typeVec4 &up, const typeVec4 &position) noexcept
         {
             typeVec4 lookTo = front;
@@ -781,6 +1372,27 @@ namespace MathCore
                          0, 0, 0, 1);
         }
 
+        /// \brief Build a camera look-at matrix (Left Handed).
+        ///
+        /// Returns a 4x4 view matrix that positions a camera at _position_,
+        /// looking along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::cameraLookAtLH(
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the camera is looking.
+        /// \param up The up vector of the camera.
+        /// \param position The position of the camera.
+        /// \return A 4x4 view matrix.
+        ///
         static ITK_INLINE typeMat4 cameraLookAtLH(const typeVec4 &front, const typeVec4 &up, const typeVec4 &position) noexcept
         {
             typeVec4 lookTo = front;
@@ -796,6 +1408,27 @@ namespace MathCore
                          0, 0, 0, 1);
         }
 
+        /// \brief Build a model look-at matrix (Right Handed).
+        ///
+        /// Returns a 4x4 model matrix that orients a model at _position_,
+        /// facing along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::modelLookAtRH(
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the model is facing.
+        /// \param up The up vector of the model.
+        /// \param position The position of the model.
+        /// \return A 4x4 model matrix.
+        ///
         static ITK_INLINE typeMat4 modelLookAtRH(const typeVec3 &front, const typeVec3 &up, const typeVec3 &position) noexcept
         {
             typeVec3 lookTo = front;
@@ -809,6 +1442,27 @@ namespace MathCore
                             typeVec4(position, 1));
         }
 
+        /// \brief Build a model look-at matrix (Left Handed).
+        ///
+        /// Returns a 4x4 model matrix that orients a model at _position_,
+        /// facing along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::modelLookAtLH(
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f),
+        ///     vec3<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the model is facing.
+        /// \param up The up vector of the model.
+        /// \param position The position of the model.
+        /// \return A 4x4 model matrix.
+        ///
         static ITK_INLINE typeMat4 modelLookAtLH(const typeVec3 &front, const typeVec3 &up, const typeVec3 &position) noexcept
         {
             typeVec3 lookTo = front;
@@ -822,6 +1476,27 @@ namespace MathCore
                             typeVec4(position, 1));
         }
 
+        /// \brief Build a model look-at matrix (Right Handed).
+        ///
+        /// Returns a 4x4 model matrix that orients a model at _position_,
+        /// facing along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::modelLookAtRH(
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the model is facing.
+        /// \param up The up vector of the model.
+        /// \param position The position of the model.
+        /// \return A 4x4 model matrix.
+        ///
         static ITK_INLINE typeMat4 modelLookAtRH(const typeVec4 &front, const typeVec4 &up, const typeVec4 &position) noexcept
         {
             typeVec4 lookTo = front;
@@ -833,6 +1508,27 @@ namespace MathCore
                             position);
         }
 
+        /// \brief Build a model look-at matrix (Left Handed).
+        ///
+        /// Returns a 4x4 model matrix that orients a model at _position_,
+        /// facing along the _front_ direction with _up_ as the up vector.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::modelLookAtLH(
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, 1.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 1.0f, 0.0f, 0.0f),
+        ///     vec4<float, SIMD_TYPE::SSE>(0.0f, 0.0f, -1.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param front The direction the model is facing.
+        /// \param up The up vector of the model.
+        /// \param position The position of the model.
+        /// \return A 4x4 model matrix.
+        ///
         static ITK_INLINE typeMat4 modelLookAtLH(const typeVec4 &front, const typeVec4 &up, const typeVec4 &position) noexcept
         {
             typeVec4 lookTo = front;
@@ -844,6 +1540,25 @@ namespace MathCore
                             position);
         }
 
+        /// \brief Build a 2D look-at rotation matrix (Right Handed).
+        ///
+        /// Returns a 4x4 matrix that rotates a 2D object so that it faces
+        /// along the _front_ direction, positioned at _position_.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::lookAtRotationRH(
+        ///     vec2<float, SIMD_TYPE::SSE>(1.0f, 0.0f),
+        ///     vec2<float, SIMD_TYPE::SSE>(0.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _front The direction the object is facing.
+        /// \param position The position of the object.
+        /// \return A 4x4 rotation matrix.
+        ///
         static ITK_INLINE typeMat4 lookAtRotationRH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
@@ -878,6 +1593,25 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Build a 2D look-at rotation matrix (Left Handed).
+        ///
+        /// Returns a 4x4 matrix that rotates a 2D object so that it faces
+        /// along the _front_ direction, positioned at _position_.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat4<float, SIMD_TYPE::SSE> m;
+        /// m = GEN<mat4<float, SIMD_TYPE::SSE>>::lookAtRotationLH(
+        ///     vec2<float, SIMD_TYPE::SSE>(1.0f, 0.0f),
+        ///     vec2<float, SIMD_TYPE::SSE>(0.0f, 0.0f));
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param _front The direction the object is facing.
+        /// \param position The position of the object.
+        /// \return A 4x4 rotation matrix.
+        ///
         static ITK_INLINE typeMat4 lookAtRotationLH(const typeVec2 &_front, const typeVec2 &position) noexcept
         {
             typeVec2 front = OP<typeVec2>::normalize(_front);
@@ -1030,6 +1764,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Construct a 4x4 matrix from a 2x2 matrix.
+        ///
+        /// Embeds the given 2x2 matrix into the upper-left 2x2 block of a
+        /// 4x4 identity matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat2<float, SIMD_TYPE::SSE> m2(1.0f, 2.0f, 3.0f, 4.0f);
+        /// mat4<float, SIMD_TYPE::SSE> m4 = GEN<mat4<float, SIMD_TYPE::SSE>>::fromMat2(m2);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param v The 2x2 matrix to embed.
+        /// \return A 4x4 matrix with the 2x2 matrix in its upper-left block.
+        ///
         static ITK_INLINE typeMat4 fromMat2(const typeMat2 &v) noexcept
         {
 #if defined(ITK_SSE2)
@@ -1061,6 +1811,22 @@ namespace MathCore
 #endif
         }
 
+        /// \brief Construct a 4x4 matrix from a 3x3 matrix.
+        ///
+        /// Embeds the given 3x3 matrix into the upper-left 3x3 block of a
+        /// 4x4 identity matrix.
+        ///
+        /// Example:
+        ///
+        /// \code
+        /// mat3<float, SIMD_TYPE::SSE> m3;
+        /// mat4<float, SIMD_TYPE::SSE> m4 = GEN<mat4<float, SIMD_TYPE::SSE>>::fromMat3(m3);
+        /// \endcode
+        ///
+        /// \author Alessandro Ribeiro
+        /// \param m The 3x3 matrix to embed.
+        /// \return A 4x4 matrix with the 3x3 matrix in its upper-left block.
+        ///
         static ITK_INLINE typeMat4 fromMat3(const typeMat3 &m) noexcept
         {
 #if defined(ITK_SSE2)
