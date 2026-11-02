@@ -417,6 +417,10 @@ namespace AlgorithmCore
         /// \author Alessandro Ribeiro
         ///
         /// \tparam T The type of elements to sort.
+        /// \tparam Extractor_T Extractor used to read the sort key from each element.
+        ///         Defaults to ToSortExtractor<T>, which sorts the value itself or its
+        ///         `toSort` member. Provide a custom extractor to sort arbitrary types
+        ///         by a chosen key.
         /// \param _arr Pointer to the array to sort.
         /// \param arrSize Number of elements in the array.
         /// \param tmp_array Optional external temporary buffer. If null, an internal
@@ -432,10 +436,41 @@ namespace AlgorithmCore
         /// // farr is now {-2.5f, -1.0f, 0.0f, 3.14f}
         /// \endcode
         ///
-        template <typename T>
+        /// Sorting a custom type with a custom extractor (the extractor exposes a
+        /// `sort_input_type` accepted by IntGuessing and a static `read_data` that
+        /// returns the sort key):
+        ///
+        /// \code
+        /// struct PointDistance
+        /// {
+        ///     vec2d pos;
+        ///     double distance;
+        /// };
+        /// struct CustomSortT
+        /// {
+        ///     /// \brief The type of the sort input (compatible with int/float types).
+        ///     ///
+        ///     typedef double sort_input_type;
+        ///     /// \brief Read the sort key from the given value.
+        ///     ///
+        ///     /// \param v The value to read from.
+        ///     /// \return The value of the sort key.
+        ///     ///
+        ///     static const double &read_data(const PointDistance* v) noexcept { return v->distance; }
+        /// };
+        ///
+        /// std::vector<PointDistance> data;
+        /// ...
+        /// std::vector<PointDistance*> ref_array(rnd_points.size());
+        /// for (uint64_t i=0; i < (uint64_t)ref_array.size(); i++)
+        ///     ref_array[i] = &rnd_points[i];
+        /// AlgorithmCore::Sorting::radix_sort<PointDistance*, CustomSortT>(ref_array.data(), (uint32_t)ref_array.size());
+        /// \endcode
+        ///
+        template <typename T, typename Extractor_T = ToSortExtractor<T>>
         static inline void radix_sort(T *_arr, uint32_t arrSize, T *tmp_array = nullptr)
         {
-            using to_sort_extractor = ToSortExtractor<T>;
+            using to_sort_extractor = Extractor_T;
             using int_guessing = IntGuessing<typename to_sort_extractor::sort_input_type>;
             using sort_type = typename int_guessing::sort_type;
 
@@ -466,7 +501,7 @@ namespace AlgorithmCore
 
             // compute offsets
             uint32_t acc[int_guessing::bytes] = {}; // initialize cleaned
-            //uint32_t tmp[int_guessing::bytes];
+            // uint32_t tmp[int_guessing::bytes];
             for (uint32_t j = 0; j < 256; j++)
             {
                 for (uint32_t k = 0; k < int_guessing::bytes; k++)
@@ -500,6 +535,6 @@ namespace AlgorithmCore
 
             int_guessing::final_memcpy(_arr, in, sizeof(T) * arrSize);
         }
-        
+
     }
 }
